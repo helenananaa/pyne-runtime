@@ -97,6 +97,84 @@ def test_incremental_session_manager_evicts_lru_idle_session_at_capacity() -> No
     assert active.ref_count == 1
 
 
+def test_incremental_session_manager_factory_failure_does_not_evict_idle_session() -> None:
+    manager = PyneIncrementalSessionManager(max_sessions=1, idle_ttl_seconds=100)
+    first = manager.acquire("keep", DummySession)
+    manager.release("keep")
+
+    def boom() -> DummySession:
+        raise RuntimeError("factory failed")
+
+    with pytest.raises(RuntimeError, match="factory failed"):
+        manager.acquire("new", boom)
+
+    again = manager.acquire("keep", DummySession)
+    assert again is first
+    assert manager.snapshot()["keys"]["keep"]["refCount"] == 1
+
+
+def test_incremental_session_manager_concurrent_acquire_keeps_one_session() -> None:
+    import threading
+
+    manager = PyneIncrementalSessionManager()
+    created: list[DummySession] = []
+    factory_started = threading.Event()
+    release_factory = threading.Event()
+
+    def factory() -> DummySession:
+        factory_started.set()
+        assert release_factory.wait(timeout=5)
+        session = DummySession()
+        created.append(session)
+        return session
+
+    results: list[object] = []
+
+    def worker() -> None:
+        results.append(manager.acquire("same", factory))
+
+    first = threading.Thread(target=worker)
+    second = threading.Thread(target=worker)
+    first.start()
+    assert factory_started.wait(timeout=5)
+    second.start()
+    release_factory.set()
+    threads = [first, second]
+    for thread in threads:
+        thread.join(timeout=5)
+        assert not thread.is_alive()
+
+    assert len(results) == 2
+    assert results[0] is results[1]
+    assert len(created) == 1
+    assert manager.snapshot()["keys"]["same"]["refCount"] == 2
+
+
+def test_incremental_session_manager_builds_different_keys_concurrently() -> None:
+    import threading
+
+    manager = PyneIncrementalSessionManager()
+    both_started = threading.Barrier(2, timeout=5)
+    results: list[object] = []
+
+    def factory() -> DummySession:
+        both_started.wait()
+        return DummySession()
+
+    def worker(key: str) -> None:
+        results.append(manager.acquire(key, factory))
+
+    threads = [threading.Thread(target=worker, args=(key,)) for key in ("a", "b")]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=5)
+        assert not thread.is_alive()
+
+    assert len(results) == 2
+    assert manager.snapshot()["sessions"] == 2
+
+
 def test_incremental_session_manager_fails_closed_when_all_slots_are_active() -> None:
     manager = PyneIncrementalSessionManager(max_sessions=1, idle_ttl_seconds=100)
     manager.acquire("active", DummySession)

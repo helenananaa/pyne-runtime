@@ -18,6 +18,7 @@ Usage::
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from enum import Enum
 from typing import Any, TYPE_CHECKING
 
@@ -46,7 +47,7 @@ class InputModule:
 
     def __init__(
         self,
-        params: dict[str, Any] | None = None,
+        params: Mapping[str, Any] | None = None,
         context: PyneContext | None = None,
     ) -> None:
         self._params = params or {}

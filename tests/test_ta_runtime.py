@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 
 import numpy as np
+import pytest
 
 import pyne_runtime as pn
 import pyne_runtime.utils as utils
@@ -304,6 +305,35 @@ def test_highest_lowest_use_available_warmup_history() -> None:
     assert isinstance(lowest, pn.PyneSeries)
     assert list(highest.values) == [3.0, 3.0, 5.0, 5.0]
     assert list(lowest.values) == [3.0, 1.0, 1.0, 1.0]
+
+
+def test_barssince_and_valuewhen_treat_nan_as_false() -> None:
+    condition = np.array([np.nan, 0.0, 1.0])
+    source = np.array([10.0, 20.0, 30.0])
+
+    since = np.asarray(utils.barssince(condition), dtype=np.float64)
+    captured = np.asarray(utils.valuewhen(condition, source), dtype=np.float64)
+
+    assert np.isnan(since[0])
+    assert np.isnan(since[1])
+    assert since[2] == 0.0
+    assert np.isnan(captured[0])
+    assert np.isnan(captured[1])
+    assert captured[2] == 30.0
+
+
+def test_change_and_roc_require_positive_period() -> None:
+    source = pn.PyneSeries([1.0, 2.0, 3.0], name="close")
+
+    for period in (-1, 0):
+        with pytest.raises(ValueError, match="positive integer"):
+            utils.change(source, period)
+        with pytest.raises(ValueError, match="positive integer"):
+            utils.roc(source, period)
+        with pytest.raises(ValueError, match="positive integer"):
+            TaModule().change(source, period)
+        with pytest.raises(ValueError, match="positive integer"):
+            TaModule().roc(source, period)
 
 
 def test_macd_and_bollinger_outputs_are_structured() -> None:

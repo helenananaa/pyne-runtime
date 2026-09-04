@@ -9,17 +9,21 @@ def is_incremental_pyne_script(script: str) -> bool:
         tree = ast.parse(script)
     except SyntaxError:
         return False
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name in {
+    for statement in tree.body:
+        if isinstance(statement, ast.FunctionDef) and statement.name in {
             "on_bar",
             "on_preview",
         }:
             return True
-        if isinstance(node, ast.Call) and _call_name(node.func) == "indicator":
-            for kw in node.keywords:
-                if kw.arg == "mode" and isinstance(kw.value, ast.Constant):
-                    if str(kw.value.value).lower() == "incremental":
-                        return True
+        if not isinstance(statement, ast.Expr) or not isinstance(statement.value, ast.Call):
+            continue
+        node = statement.value
+        if _call_name(node.func) != "indicator":
+            continue
+        for kw in node.keywords:
+            if kw.arg == "mode" and isinstance(kw.value, ast.Constant):
+                if str(kw.value.value).lower() == "incremental":
+                    return True
     return False
 
 

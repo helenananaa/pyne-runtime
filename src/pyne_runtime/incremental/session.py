@@ -23,7 +23,7 @@ from typing import Any, Callable
 
 from ..barstate import PyneIncrementalBarState
 from ..capabilities import capability_diagnostics
-from ..cache import PyneCacheNamespace, PyneCacheSnapshot, PyneExecutionScope
+from ..cache import PyneCache, PyneCacheNamespace, PyneCacheSnapshot, PyneExecutionScope
 from ..chart import ChartNamespace
 from ..collections import ArrayNamespace, MapNamespace, MatrixNamespace, order_namespace
 from ..color import color as color_singleton
@@ -94,6 +94,8 @@ class PyneIncrementalSessionSnapshot:
     portable_bars: tuple[dict[str, Any], ...]
     portable_seed_count: int
     portable_complete: bool
+    namespace_names: tuple[str, ...] = ()
+    trace: PyneTraceRecorder | None = None
 
 
 class PyneIncrementalSession:
@@ -149,6 +151,9 @@ class PyneIncrementalSession:
         self._preview_varip_states: dict[str, Any] = {}
         self._base_namespace_names: set[str] = set()
         self._base_namespace_values: dict[str, Any] = {}
+        self._prepared_namespace_names: set[str] = set()
+        self._prepared_namespace_values: dict[str, Any] = {}
+        self._cache_namespace: PyneCacheNamespace | None = None
         self._poisoned_reason: str | None = None
         self._retained_closed_times: list[int] = []
         self._portable_bars: list[dict[str, Any]] = []
@@ -177,6 +182,8 @@ class PyneIncrementalSession:
         )
         if self._on_bar is None:
             raise PyneSecurityError("Incremental Pyne scripts must define on_bar(ctx, bar)")
+        self._prepared_namespace_names = set(self._globals)
+        self._prepared_namespace_values = dict(self._globals)
         self._prepared = True
 
     def seed(
@@ -406,7 +413,7 @@ class PyneIncrementalSession:
             if barstate.isconfirmed and not preview:
                 ctx.commit_request_bar()
                 ctx.commit_state_history()
-        except (PyneSecurityError, IncrementalResourceLimitError) as exc:
+        except Exception as exc:
             self._poison(exc)
             raise
 
@@ -431,7 +438,7 @@ class PyneIncrementalSession:
     def _ensure_healthy(self) -> None:
         if self._poisoned_reason is not None:
             raise PyneSecurityError(
-                "Incremental session is poisoned after a security or resource-limit failure: "
+                "Incremental session is poisoned after a callback failure: "
                 f"{self._poisoned_reason}"
             )
 
@@ -489,10 +496,14 @@ class PyneIncrementalSession:
             ) from exc
 
         preview_func = memo.get(id(func), func) if func is not None else None
+        if self._cache_namespace is None:
+            raise PyneSecurityError("Incremental preview cache namespace is unavailable")
+        preview_cache = _clone_preview_cache(self.execution_scope.cache)
         self._globals.clear()
         self._globals.update(preview_globals)
         try:
-            yield preview_func
+            with self._cache_namespace._using_cache(preview_cache):
+                yield preview_func
         finally:
             self._globals.clear()
             self._globals.update(original_globals)
@@ -519,6 +530,7 @@ class PyneIncrementalSession:
             provider=self.settings.data_provider,
         )
         cache_namespace = PyneCacheNamespace(self.execution_scope.cache)
+        self._cache_namespace = cache_namespace
         trace_namespace = SimpleNamespace(
             emit=lambda event, **details: active_ctx("trace.emit()").trace.emit(
                 event,
@@ -753,7 +765,7 @@ class PyneIncrementalSession:
         try:
             with execution_timeout(self.policy.timeout_seconds):
                 self._call_by_arity(func, ctx)
-        except (PyneSecurityError, IncrementalResourceLimitError) as exc:
+        except Exception as exc:
             self._poison(exc)
             raise
 
@@ -856,6 +868,8 @@ class PyneIncrementalSession:
             portable_bars=tuple(copy.deepcopy(self._portable_bars, memo)),
             portable_seed_count=self._portable_seed_count,
             portable_complete=self._portable_complete,
+            namespace_names=tuple(self._globals),
+            trace=copy.deepcopy(self.trace, memo),
         )
 
     def snapshot_portable(
@@ -937,20 +951,84 @@ class PyneIncrementalSession:
 
         self.prepare()
         memo: dict[int, Any] = {}
-        self._ctx = copy.deepcopy(snapshot.context, memo)
-        self.trace = self._ctx.trace
-        self._meta = copy.deepcopy(snapshot.meta, memo)
-        for name, value in snapshot.global_values.items():
-            self._globals[name] = copy.deepcopy(value, memo)
-        self._restore_function_states(snapshot.function_states, memo)
-        self.execution_scope.cache.restore_state(snapshot.cache, memo=memo)
+        new_ctx = copy.deepcopy(snapshot.context, memo)
+        snapshot_trace = getattr(snapshot, "trace", None)
+        new_trace = (
+            copy.deepcopy(snapshot_trace, memo)
+            if snapshot_trace is not None
+            else new_ctx.trace
+            if new_ctx is not None
+            else self.trace
+        )
+        new_meta = copy.deepcopy(snapshot.meta, memo)
+        new_global_values = {
+            name: copy.deepcopy(value, memo)
+            for name, value in snapshot.global_values.items()
+        }
+        prepared_functions: dict[
+            str,
+            tuple[FunctionType, Any, Any, dict[str, Any]],
+        ] = {}
+        for name, state in snapshot.function_states.items():
+            function = self._prepared_namespace_values.get(name, self._globals.get(name))
+            if not isinstance(function, FunctionType):
+                raise ValueError(f"Incremental snapshot function is missing: {name}")
+            prepared_functions[name] = (
+                function,
+                copy.deepcopy(state.defaults, memo),
+                copy.deepcopy(state.kwdefaults, memo),
+                copy.deepcopy(state.attributes, memo),
+            )
+        new_portable_bars = list(copy.deepcopy(snapshot.portable_bars, memo))
+        incoming_cache = PyneCache(max_items=max(int(snapshot.cache.max_items), 1))
+        incoming_cache.restore_state(snapshot.cache, memo=memo)
+        restored_names = set(new_global_values) | set(prepared_functions)
+        stored_namespace_names = tuple(getattr(snapshot, "namespace_names", ()))
+        namespace_names = (
+            set(stored_namespace_names)
+            if stored_namespace_names
+            else set(self._base_namespace_names) | restored_names
+        )
+        if not all(isinstance(name, str) for name in namespace_names):
+            raise ValueError("Incremental snapshot namespace names must be strings")
+        replacement_globals: dict[str, Any] = {}
+        for name in namespace_names:
+            if name in new_global_values:
+                replacement_globals[name] = new_global_values[name]
+                continue
+            if name in prepared_functions:
+                replacement_globals[name] = prepared_functions[name][0]
+                continue
+            if name in self._prepared_namespace_values:
+                replacement_globals[name] = self._prepared_namespace_values[name]
+                continue
+            if name in self._base_namespace_values:
+                replacement_globals[name] = self._base_namespace_values[name]
+                continue
+            current = self._globals.get(name)
+            if isinstance(current, ModuleType):
+                replacement_globals[name] = current
+                continue
+            raise ValueError(f"Incremental snapshot global is missing: {name}")
+
+        self._ctx = new_ctx
+        self.trace = new_trace
+        self._meta = new_meta
+        self._globals.clear()
+        self._globals.update(replacement_globals)
+        for name, (function, defaults, kwdefaults, attributes) in prepared_functions.items():
+            function.__defaults__ = defaults
+            function.__kwdefaults__ = kwdefaults
+            function.__dict__.clear()
+            function.__dict__.update(attributes)
+        self.execution_scope.cache.adopt_state(incoming_cache)
         self._init_func = self._callback("init")
         self._on_bar = self._callback("on_bar")
         self._on_preview = self._callback("on_preview")
         self.last_closed_time = snapshot.last_closed_time
         self._closed_count = snapshot.closed_count
         self._retained_closed_times = list(snapshot.retained_closed_times)
-        self._portable_bars = list(copy.deepcopy(snapshot.portable_bars, memo))
+        self._portable_bars = new_portable_bars
         self._portable_seed_count = snapshot.portable_seed_count
         self._portable_complete = snapshot.portable_complete
         self._active_ctx = None
@@ -1059,6 +1137,18 @@ class PyneIncrementalSession:
         functions: dict[str, _FunctionStateSnapshot] = {}
         for name, value in self._globals.items():
             if name in self._base_namespace_names and value is self._base_namespace_values[name]:
+                continue
+            if (
+                name in self._prepared_namespace_values
+                and value is self._prepared_namespace_values[name]
+                and (
+                    _is_deeply_immutable(value)
+                    or isinstance(
+                        value,
+                        (BuiltinFunctionType, BuiltinMethodType, MethodType, ModuleType),
+                    )
+                )
+            ):
                 continue
             if isinstance(value, FunctionType):
                 if value.__closure__:
@@ -1280,6 +1370,13 @@ def _is_deeply_immutable(value: Any) -> bool:
     if isinstance(value, tuple | frozenset):
         return all(_is_deeply_immutable(item) for item in value)
     return False
+
+
+def _clone_preview_cache(source_cache: PyneCache) -> PyneCache:
+    """Clone committed cache state for one isolated preview callback."""
+    cloned = PyneCache(max_items=max(int(source_cache.stats()["maxItems"]), 1))
+    cloned.restore_state(source_cache.snapshot_state())
+    return cloned
 
 
 def _clone_preview_globals(

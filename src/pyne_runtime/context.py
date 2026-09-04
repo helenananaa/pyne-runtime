@@ -69,6 +69,7 @@ class PyneContext:
         timeframe: Any = None,
         session: Any = None,
         allow_empty: bool = False,
+        allow_missing_values: bool = False,
         require_unique_times: bool = True,
     ) -> PyneContext:
         """Create context from a list of OHLCV dicts.
@@ -78,6 +79,7 @@ class PyneContext:
         ohlcv = PyneData.from_ohlcv(
             ohlcv,
             allow_empty=allow_empty,
+            allow_missing_values=allow_missing_values,
             require_unique_times=require_unique_times,
         ).to_ohlcv()
         timeframe_info = normalize_timeframe_info(timeframe)
@@ -224,22 +226,7 @@ def _derive_time_close(
 
 
 def _timeframe_seconds(timeframe: TimeframeInfo) -> int | None:
-    period = timeframe.period.strip()
-    if not period:
+    try:
+        return int(timeframe.in_seconds())
+    except (TypeError, ValueError):
         return None
-    suffix = period[-1]
-    if suffix.isdigit():
-        return timeframe.multiplier * 60
-    if suffix in {"s", "S"}:
-        return timeframe.multiplier
-    if suffix == "m":
-        return timeframe.multiplier * 60
-    if suffix in {"h", "H"}:
-        return timeframe.multiplier * 60
-    if suffix in {"d", "D"}:
-        return timeframe.multiplier * 86_400
-    if suffix in {"w", "W"}:
-        return timeframe.multiplier * 7 * 86_400
-    if suffix == "M":
-        return timeframe.multiplier * 30 * 86_400
-    return None

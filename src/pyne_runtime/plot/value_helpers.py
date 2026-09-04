@@ -35,11 +35,15 @@ class PlotValueAdapter:
     def color_for_index(color_data: Any, idx: int, timestamp: int) -> str | None:
         if color_data is None:
             return None
+        if isinstance(color_data, PyneVar):
+            color_data = color_data.get()
         if isinstance(color_data, PyneSeries):
             color_data = color_data.to_numpy()
         if isinstance(color_data, np.ndarray):
+            if color_data.ndim == 0:
+                return serialize_color(color_data.item())
             if idx < len(color_data):
-                return str(color_data[idx])
+                return serialize_color(color_data[idx])
             return None
         if isinstance(color_data, list):
             if idx >= len(color_data):
@@ -47,14 +51,10 @@ class PlotValueAdapter:
             item = color_data[idx]
             if isinstance(item, dict):
                 if item.get("time") == timestamp or "time" not in item:
-                    return str(item.get("color")) if item.get("color") else None
+                    return serialize_color(item.get("color"))
                 return None
-            if is_na_value(item):
-                return None
-            return str(item) if item else None
-        if is_na_value(color_data):
-            return None
-        return str(color_data) if color_data else None
+            return serialize_color(item)
+        return serialize_color(color_data)
 
     @staticmethod
     def is_valid(value: Any) -> bool:
@@ -81,6 +81,57 @@ class PlotValueAdapter:
             if not is_na_value(item):
                 return serialize_scalar(item)
         return None
+
+
+def serialize_color(value: Any) -> str | None:
+    """Serialize one plot color; missing and non-scalar values become None."""
+    if value is None:
+        return None
+    if isinstance(value, (list, tuple, dict, np.ndarray, PyneSeries, PyneVar)):
+        return None
+    if isinstance(value, np.generic):
+        value = value.item()
+        if isinstance(value, (list, tuple, dict)):
+            return None
+    if is_na_value(value) or value == "":
+        return None
+    text = str(value)
+    if not text or text.lower() == "nan":
+        return None
+    return text
+
+
+def is_color_series(value: Any) -> bool:
+    if isinstance(value, PyneVar):
+        value = value.get()
+    return isinstance(value, (np.ndarray, PyneSeries, list, tuple))
+
+
+def collector_color(value: Any, *, default: str = "#f59e0b") -> str:
+    """Collector-level color: classify scalar vs series, then serialize_color."""
+    if isinstance(value, PyneVar):
+        value = value.get()
+    if isinstance(value, PyneSeries):
+        value = value.to_numpy()
+    if isinstance(value, np.ndarray):
+        if value.ndim == 0:
+            return serialize_color(value.item()) or default
+        for item in value:
+            text = serialize_color(item)
+            if text:
+                return text
+        return default
+    if isinstance(value, (list, tuple)):
+        for item in value:
+            text = (
+                serialize_color(item.get("color"))
+                if isinstance(item, dict)
+                else serialize_color(item)
+            )
+            if text:
+                return text
+        return default
+    return serialize_color(value) or default
 
 
 def serialize_scalar(value: Any) -> Any:

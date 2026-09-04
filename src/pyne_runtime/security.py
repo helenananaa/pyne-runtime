@@ -139,7 +139,7 @@ def validate_script_security(script: str, policy: PyneSecurityPolicy) -> None:
 
 def build_builtins(policy: PyneSecurityPolicy) -> Any:
     if policy.mode == "unsafe":
-        return builtins.__dict__
+        return dict(builtins.__dict__)
 
     safe = dict(SAFE_BUILTINS)
     if policy.mode == "research":

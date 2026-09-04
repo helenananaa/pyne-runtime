@@ -21,7 +21,7 @@ from collections import deque
 
 import numpy as np
 
-from .series import PyneSeries, to_numpy, wrap_like
+from .series import PyneSeries, to_numpy, wrap_like, _truthy
 from .values import is_na, is_na_value, na as _na, to_missing_scalar
 
 
@@ -315,6 +315,16 @@ def _rolling_extreme(
 # ═══════════════════════════════════════════════════════════════
 
 
+def require_positive_period(period: int, *, name: str = "period") -> int:
+    """Require a positive integer lookback period at the API boundary."""
+    if isinstance(period, bool) or not isinstance(period, (int, np.integer)):
+        raise ValueError(f"{name} must be a positive integer")
+    value = int(period)
+    if value < 1:
+        raise ValueError(f"{name} must be a positive integer, got {value}")
+    return value
+
+
 def change(src: PyneSeries | np.ndarray, period: int = 1) -> PyneSeries | np.ndarray:
     """Difference between current and previous value.
 
@@ -327,6 +337,7 @@ def change(src: PyneSeries | np.ndarray, period: int = 1) -> PyneSeries | np.nda
     Returns:
         Array of differences. NaN for the first ``period`` bars.
     """
+    period = require_positive_period(period)
     source = to_numpy(src, dtype=np.float64)
     result = np.full_like(source, np.nan, dtype=np.float64)
     if period < len(source):
@@ -348,6 +359,7 @@ def roc(src: PyneSeries | np.ndarray, period: int = 1) -> PyneSeries | np.ndarra
     Returns:
         Array of percentage changes. NaN where undefined.
     """
+    period = require_positive_period(period)
     source = to_numpy(src, dtype=np.float64)
     result = np.full_like(source, np.nan, dtype=np.float64)
     if period < len(source):
@@ -374,7 +386,7 @@ def barssince(condition: PyneSeries | np.ndarray) -> PyneSeries | np.ndarray:
     Returns:
         Integer array — bars since last True. NaN if never True before.
     """
-    flags = to_numpy(condition).astype(bool)
+    flags = np.asarray(_truthy(to_numpy(condition)), dtype=bool)
     n = len(flags)
     result = np.full(n, np.nan)
     last_true = -1
@@ -403,7 +415,7 @@ def valuewhen(
     Returns:
         Array where each element is the value of src at the nth most recent True.
     """
-    flags = to_numpy(condition).astype(bool)
+    flags = np.asarray(_truthy(to_numpy(condition)), dtype=bool)
     source = to_numpy(src, dtype=np.float64)
     n = len(flags)
     result = np.full(n, np.nan)

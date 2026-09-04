@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pyne_runtime as pn
 from pyne_runtime import PyneSettings
+from pyne_runtime.result import PyneResult
 
 
 def _bars() -> list[dict[str, float]]:
@@ -60,4 +61,50 @@ def test_process_executor_rejects_unpickleable_provider() -> None:
 
     assert not result.ok
     assert result.code == "PYNE_PROCESS_SERIALIZATION_ERROR"
+
+
+def test_run_rejects_unknown_executor_mode_before_execution() -> None:
+    import pytest
+
+    with pytest.raises(ValueError, match="executor_mode must be 'inline' or 'process'"):
+        pn.run('plot(close, "Close")', _bars(), executor_mode="typo")
+
+
+def test_process_executor_uses_spawn_start_method() -> None:
+    from pyne_runtime.executor import _multiprocessing_context
+
+    assert _multiprocessing_context().get_start_method() == "spawn"
+
+
+def test_inline_hard_timeout_config_is_rejected_at_executor_entry() -> None:
+    import pytest
+
+    settings = PyneSettings(executor_mode="process", require_hard_timeout=True)
+    with pytest.raises(ValueError, match="require_hard_timeout"):
+        pn.run('plot(close, "Close")', _bars(), settings=settings, executor_mode="inline")
+
+
+def test_inline_executor_applies_explicit_timeout_override(monkeypatch) -> None:
+    import pyne_runtime.executor as executor
+
+    observed: dict[str, float] = {}
+
+    class FakeRuntime:
+        def __init__(self, settings: PyneSettings) -> None:
+            observed["timeout"] = settings.timeout_seconds
+
+        def execute(self, **kwargs) -> PyneResult:
+            return PyneResult(ok=True)
+
+    monkeypatch.setattr(executor, "PyneRuntime", FakeRuntime)
+
+    result = executor.execute_pyne_script(
+        script='plot(close, "Close")',
+        ohlcv=_bars(),
+        executor_mode="inline",
+        timeout_seconds=0.125,
+    )
+
+    assert result.ok
+    assert observed["timeout"] == 0.125
 

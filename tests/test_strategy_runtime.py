@@ -1401,6 +1401,22 @@ plot(strategy.position_avg_price, "Average")
     assert result.values("Average") == [1.7]
 
 
+def test_strategy_rejects_unknown_commission_type() -> None:
+    result = pn.run(
+        """
+indicator("Bad commission", overlay=True)
+strategy.configure(commission_type="per_trade", commission_value=1)
+strategy.entry_when(bar_index == 0, "Long", strategy.long, qty=1, price=close)
+""",
+        _bars(),
+        executor_mode="inline",
+    )
+
+    assert not result.ok
+    assert "commission_type" in str(result.error)
+    assert "per_trade" in str(result.error)
+
+
 def test_strategy_configure_applies_percent_commission() -> None:
     result = pn.run(
         """

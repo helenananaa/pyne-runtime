@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import math
 
 import pytest
 
@@ -51,6 +52,66 @@ def test_pyne_data_rejects_invalid_ohlc_relationships() -> None:
         pn.PyneData.from_ohlcv([
             {"time": 1, "open": 1, "high": 2, "low": 1, "close": 1.5, "volume": -1},
         ])
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("close", "bad", "close must be numeric"),
+        ("open", math.nan, "open must be finite"),
+        ("high", math.inf, "high must be finite"),
+        ("time", math.nan, "time must be finite"),
+        ("time_close", -math.inf, "time_close must be finite"),
+    ],
+)
+def test_pyne_data_rejects_non_numeric_or_non_finite_values(
+    field: str,
+    value: object,
+    message: str,
+) -> None:
+    bar = {
+        "time": 1,
+        "time_close": 2,
+        "open": 1,
+        "high": 2,
+        "low": 1,
+        "close": 1.5,
+        "volume": 100,
+    }
+    bar[field] = value
+
+    with pytest.raises(ValueError, match=message):
+        pn.PyneData.from_ohlcv([bar])
+
+
+def test_pyne_data_rejects_non_mapping_rows() -> None:
+    with pytest.raises(ValueError, match="row 0 must be a mapping"):
+        pn.PyneData.from_ohlcv([None])
+
+    with pytest.raises(ValueError, match="must be an iterable"):
+        pn.PyneData.from_ohlcv(None)
+
+
+def test_pyne_data_missing_value_opt_in_still_rejects_infinity() -> None:
+    missing = {
+        "time": 1,
+        "open": None,
+        "high": math.nan,
+        "low": 1,
+        "close": 1.5,
+        "volume": None,
+    }
+    data = pn.PyneData.from_ohlcv([missing], allow_missing_values=True)
+
+    assert math.isnan(data.first["open"])
+    assert math.isnan(data.first["high"])
+    assert math.isnan(data.first["volume"])
+
+    with pytest.raises(ValueError, match="must be finite"):
+        pn.PyneData.from_ohlcv(
+            [{**missing, "open": math.inf}],
+            allow_missing_values=True,
+        )
 
 
 def test_pyne_data_column_and_row_helpers() -> None:

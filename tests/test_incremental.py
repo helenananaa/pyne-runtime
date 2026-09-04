@@ -1,15 +1,19 @@
 from __future__ import annotations
 
+import numpy as np
 import pyne_runtime as pn
 import pytest
 
 from pyne_runtime.incremental.ta import (
     _StepATR,
     _StepBOLL,
+    _StepBarsSince,
+    _StepChange,
     _StepEMA,
     _StepMonotonic,
     _StepRSI,
     _StepSMA,
+    _StepValueWhen,
 )
 from pyne_runtime.security import PyneSecurityError
 
@@ -48,6 +52,56 @@ def on_bar(ctx, bar):
 
 def test_incremental_detection_ignores_invalid_syntax() -> None:
     assert pn.is_incremental_pyne_script("if") is False
+
+
+def test_incremental_detection_only_accepts_module_top_level_on_bar() -> None:
+    nested = """
+def wrapper():
+    def on_bar(ctx, bar):
+        pass
+"""
+    conditional = """
+if True:
+    def on_bar(ctx, bar):
+        pass
+"""
+    async_entry = """
+async def on_bar(ctx, bar):
+    pass
+"""
+    duplicate = """
+def on_bar(ctx, bar):
+    pass
+def on_bar(ctx, bar):
+    pass
+"""
+    nested_indicator = """
+def wrapper():
+    indicator("Nested", mode="incremental")
+plot(close, "Close")
+"""
+    assert pn.is_incremental_pyne_script(nested) is False
+    assert pn.is_incremental_pyne_script(conditional) is False
+    assert pn.is_incremental_pyne_script(async_entry) is False
+    assert pn.is_incremental_pyne_script(duplicate) is True
+    assert pn.is_incremental_pyne_script(nested_indicator) is False
+
+
+def test_nested_on_bar_script_runs_as_batch() -> None:
+    result = pn.run(
+        """
+def wrapper():
+    def on_bar(ctx, bar):
+        ctx.plot("nested", 1)
+
+plot(close, "Close")
+""",
+        _bars(),
+        executor_mode="inline",
+    )
+
+    assert result.ok, result.error
+    assert result.get_series("Close")
 
 
 def _line_values(result: object, line_id: str) -> list[float]:
@@ -2716,3 +2770,220 @@ def test_incremental_ta_helpers_recover_after_nan() -> None:
         1.0,
         None,
     ]
+
+
+def test_preview_cache_mutations_do_not_leak_into_committed_bars() -> None:
+    script = """
+indicator("Preview cache isolation", mode="incremental")
+cache("values", lambda: [1])
+cache("nested", lambda: {"k": 1})
+
+def on_bar(ctx, bar):
+    ctx.plot("size", len(cache("values", lambda: [1])))
+    ctx.plot("nested", cache("nested", lambda: {"k": 1})["k"])
+    ctx.plot("keys", len(cache_stats()["keys"]))
+
+def on_preview(ctx, bar):
+    cache("values", lambda: []).append(999)
+    cache("nested", lambda: {})["k"] = 9
+    ctx.plot("size", 0)
+"""
+    session = pn.PyneIncrementalSession(
+        script=script,
+        settings=pn.PyneSettings(executor_mode="inline"),
+    )
+    session.seed(_bars()[:1])
+    session.on_bar_updated(_bars()[1])
+    closed = session.on_bar_closed(_bars()[1])
+
+    assert _line_values(closed, "size") == [1.0]
+    assert _line_values(closed, "nested") == [1.0]
+    assert _line_values(closed, "keys") == [2.0]
+
+
+def test_preview_cache_clear_does_not_clear_committed_cache() -> None:
+    script = """
+indicator("Preview cache clear", mode="incremental")
+cache("values", lambda: [1])
+
+def on_bar(ctx, bar):
+    ctx.plot("keys", len(cache_stats()["keys"]))
+    ctx.plot("size", len(cache("values", lambda: [1])))
+
+def on_preview(ctx, bar):
+    cache_clear()
+    ctx.plot("keys", 0)
+"""
+    session = pn.PyneIncrementalSession(
+        script=script,
+        settings=pn.PyneSettings(executor_mode="inline"),
+    )
+    session.seed(_bars()[:1])
+    session.on_bar_updated(_bars()[1])
+    closed = session.on_bar_closed(_bars()[1])
+
+    assert _line_values(closed, "keys") == [1.0]
+    assert _line_values(closed, "size") == [1.0]
+
+
+def test_preview_cache_aliases_and_function_defaults_are_isolated() -> None:
+    script = """
+indicator("Preview cache alias isolation", mode="incremental")
+cache("values", lambda: [1])
+cache_alias = cache
+
+def mutate_from_default(cache_fn=cache):
+    cache_fn("values", lambda: []).append(998)
+
+def on_bar(ctx, bar):
+    ctx.plot("size", len(cache("values", lambda: [1])))
+
+def on_preview(ctx, bar):
+    cache_alias("values", lambda: []).append(999)
+    mutate_from_default()
+"""
+    session = pn.PyneIncrementalSession(
+        script=script,
+        settings=pn.PyneSettings(executor_mode="inline"),
+    )
+    session.seed(_bars()[:1])
+    session.on_bar_updated(_bars()[1])
+    closed = session.on_bar_closed(_bars()[1])
+
+    assert _line_values(closed, "size") == [1.0]
+
+
+def test_callback_value_error_poisons_session_and_refuses_later_bars() -> None:
+    script = """
+indicator("Callback poison", mode="incremental")
+seen = []
+
+def on_bar(ctx, bar):
+    seen.append(bar.close)
+    ctx.plot("seen", len(seen))
+    if bar.close == 2:
+        raise ValueError("boom")
+"""
+    session = pn.PyneIncrementalSession(
+        script=script,
+        settings=pn.PyneSettings(executor_mode="inline"),
+    )
+    session.seed(_bars()[:1])
+    with pytest.raises(ValueError, match="boom"):
+        session.on_bar_closed(_bars()[1])
+    with pytest.raises(PyneSecurityError, match="session is poisoned"):
+        session.on_bar_closed(_bars()[2])
+
+
+def test_restore_state_is_atomic_and_supports_empty_context_snapshot() -> None:
+    from dataclasses import replace
+
+    script = """
+indicator("Restore atomic", mode="incremental")
+marker = 1
+
+def on_bar(ctx, bar):
+    ctx.plot("close", bar.close)
+"""
+    empty = pn.PyneIncrementalSession(
+        script=script,
+        settings=pn.PyneSettings(executor_mode="inline"),
+    )
+    empty_snapshot = empty.snapshot_state()
+    assert empty_snapshot.context is None
+    empty.restore_state(empty_snapshot)
+    restored_empty = empty.on_bar_closed(_bars()[0])
+    assert _line_values(restored_empty, "close") == [1.0]
+
+    session = pn.PyneIncrementalSession(
+        script=script,
+        settings=pn.PyneSettings(executor_mode="inline"),
+    )
+    session.seed(_bars()[:1])
+    snapshot = session.snapshot_state()
+
+    class Boom:
+        def __deepcopy__(self, memo):
+            raise RuntimeError("restore deepcopy failed")
+
+    with pytest.raises(RuntimeError, match="restore deepcopy failed"):
+        session.restore_state(replace(snapshot, global_values={"marker": Boom()}))
+
+    continued = session.on_bar_closed(_bars()[1])
+    assert _line_values(continued, "close") == [2.0]
+
+
+def test_restore_state_removes_globals_created_after_snapshot() -> None:
+    script = """
+indicator("Restore exact globals", mode="incremental")
+
+def on_bar(ctx, bar):
+    global late_value
+    if bar.close == 2:
+        late_value = 99
+    if bar.close == 3:
+        ctx.plot("late", late_value)
+"""
+    session = pn.PyneIncrementalSession(
+        script=script,
+        settings=pn.PyneSettings(executor_mode="inline"),
+    )
+    session.on_bar_closed(_bars()[0])
+    snapshot = session.snapshot_state()
+    session.on_bar_closed(_bars()[1])
+    assert session._globals["late_value"] == 99
+
+    session.restore_state(snapshot)
+
+    assert "late_value" not in session._globals
+    with pytest.raises(NameError, match="late_value"):
+        session.on_bar_closed(_bars()[2])
+
+
+def test_restore_state_preserves_exact_deleted_and_aliased_globals() -> None:
+    script = """
+indicator("Restore exact namespace", mode="incremental")
+delete_me = 1
+cache_alias = cache
+
+def on_bar(ctx, bar):
+    global delete_me, after_snapshot
+    cache_alias("values", lambda: []).append(bar.close)
+    if bar.close == 1:
+        del delete_me
+    if bar.close == 2:
+        after_snapshot = 99
+"""
+    session = pn.PyneIncrementalSession(
+        script=script,
+        settings=pn.PyneSettings(executor_mode="inline"),
+    )
+    session.on_bar_closed(_bars()[0])
+    snapshot = session.snapshot_state()
+    assert "delete_me" not in snapshot.namespace_names
+    session.on_bar_closed(_bars()[1])
+
+    session.restore_state(snapshot)
+
+    assert "delete_me" not in session._globals
+    assert "after_snapshot" not in session._globals
+    assert callable(session._globals["cache_alias"])
+    assert session.execution_scope.cache.stats()["keys"] == ["values"]
+
+
+def test_incremental_barssince_valuewhen_and_change_match_batch_nan_rules() -> None:
+    since = _StepBarsSince()
+    when = _StepValueWhen()
+    since_values = [since.update(flag) for flag in (float("nan"), 0, 1)]
+    captured = [
+        when.update(flag, value)
+        for flag, value in zip((float("nan"), 0, 1), (10, 20, 30))
+    ]
+    assert since_values == [None, None, 0.0]
+    assert captured == [None, None, 30]
+
+    for period in (-1, 0):
+        with pytest.raises(ValueError, match="positive integer"):
+            _StepChange(period)
+
+    assert _StepBarsSince().update(np.array(float("nan"))) is None

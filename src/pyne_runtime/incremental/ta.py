@@ -6,6 +6,8 @@ from collections import deque
 from typing import Any
 
 from ..ta_kernels import _normalize_pivot_type, _pivot_level_values
+from ..utils import require_positive_period
+from ..values import is_condition_true
 from .limits import IncrementalLimits, _LimitTracker
 
 
@@ -178,7 +180,7 @@ class _StepStdev(_StepVariance):
 
 class _StepChange:
     def __init__(self, period: int = 1) -> None:
-        self.period = max(int(period), 1)
+        self.period = require_positive_period(period)
         self.window: deque[float | None] = deque(maxlen=self.period + 1)
 
     def update(self, value: Any) -> float | None:
@@ -543,7 +545,7 @@ class _StepBarsSince:
 
     def update(self, condition: Any) -> float | None:
         self.index += 1
-        if bool(condition):
+        if is_condition_true(condition):
             self.last_true = self.index
         return None if self.last_true is None else float(self.index - self.last_true)
 
@@ -554,7 +556,7 @@ class _StepValueWhen:
         self.values: deque[Any] = deque(maxlen=self.occurrence + 1)
 
     def update(self, condition: Any, value: Any) -> Any:
-        if bool(condition):
+        if is_condition_true(condition):
             self.values.append(value)
         if len(self.values) <= self.occurrence:
             return None
@@ -1023,6 +1025,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.change('{name}') has not been initialized")
+            period = require_positive_period(period)
             self._limits.reserve_window(int(period) + 1, label=key)
             self._helpers[key] = _StepChange(period)
         return self._helpers[key]

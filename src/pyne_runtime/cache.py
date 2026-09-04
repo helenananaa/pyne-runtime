@@ -4,8 +4,10 @@ from __future__ import annotations
 import threading
 import time
 import copy
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any, Callable, Iterator
 
 
 @dataclass
@@ -142,6 +144,15 @@ class PyneCache:
             self._items = restored
             self._enforce_limit()
 
+    def adopt_state(self, other: "PyneCache") -> None:
+        """Replace live contents with another cache's already-materialized state."""
+        if not isinstance(other, PyneCache):
+            raise TypeError("other must be a PyneCache")
+        with self._lock:
+            with other._lock:
+                self._max_items = other._max_items
+                self._items = other._items
+
     def _enforce_limit(self) -> None:
         while len(self._items) > self._max_items:
             oldest_key = min(
@@ -174,15 +185,31 @@ class PyneCacheNamespace:
 
     def __init__(self, cache: PyneCache | None = None) -> None:
         self._cache = cache or pyne_cache
+        self._cache_override: ContextVar[PyneCache | None] = ContextVar(
+            f"pyne_cache_override_{id(self)}",
+            default=None,
+        )
+
+    def _active_cache(self) -> PyneCache:
+        return self._cache_override.get() or self._cache
+
+    @contextmanager
+    def _using_cache(self, cache: PyneCache) -> Iterator[None]:
+        """Temporarily route every bound helper alias to ``cache`` in this context."""
+        token = self._cache_override.set(cache)
+        try:
+            yield
+        finally:
+            self._cache_override.reset(token)
 
     def cache(self, key: str, loader: Callable[[], Any], ttl: float | None = None) -> Any:
-        return self._cache.get_or_load(key, loader, ttl=ttl)
+        return self._active_cache().get_or_load(key, loader, ttl=ttl)
 
     def cache_clear(self, key: str | None = None) -> int:
-        return self._cache.clear(key)
+        return self._active_cache().clear(key)
 
     def cache_stats(self) -> dict[str, Any]:
-        return self._cache.stats()
+        return self._active_cache().stats()
 
 
 pyne = PyneCacheNamespace(pyne_cache)

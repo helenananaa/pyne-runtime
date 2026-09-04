@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import Any
 
 from .capabilities import capability_diagnostics
-from .data import PyneData, coerce_ohlcv
-from .errors import classify_security_error, error_detail
+from .data import PyneData, PyneOhlcvError, coerce_ohlcv
+from .errors import classify_security_error, error_detail, error_hint
 from .executor import execute_pyne_script
 from .migration_diagnostics import migration_diagnostics, syntax_migration_diagnostics
 from .request.provider import DataProvider
@@ -31,9 +31,18 @@ def run(
 ) -> PyneResult:
     """Run a Pyne script against OHLCV data."""
     script_text = _read_script(script)
+    try:
+        ohlcv = coerce_ohlcv(data)
+    except PyneOhlcvError as exc:
+        return PyneResult(
+            ok=False,
+            code="PYNE_INVALID_OHLCV",
+            error=str(exc),
+            hint=error_hint("PYNE_INVALID_OHLCV"),
+        )
     return execute_pyne_script(
         script=script_text,
-        ohlcv=coerce_ohlcv(data),
+        ohlcv=ohlcv,
         params=params or {},
         security_mode=security_mode,
         executor_mode=executor_mode,

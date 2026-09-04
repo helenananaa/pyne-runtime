@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import csv
-from collections.abc import Iterable, Iterator
+import math
+from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -34,6 +35,12 @@ SESSION_COLUMNS = {
 OPTIONAL_COLUMNS = {"time_close", *SESSION_COLUMNS}
 
 
+class PyneOhlcvError(ValueError):
+    """Raised when OHLCV input fails structural validation."""
+
+    code = "PYNE_INVALID_OHLCV"
+
+
 @dataclass(frozen=True)
 class PyneData:
     """Small OHLCV container used by the friendly API."""
@@ -43,15 +50,31 @@ class PyneData:
     @classmethod
     def from_ohlcv(
         cls,
-        items: Iterable[dict[str, Any]],
+        items: Iterable[Mapping[str, Any]],
         *,
         time_unit: str = "s",
         allow_empty: bool = False,
+        allow_missing_values: bool = False,
         require_unique_times: bool = True,
     ) -> "PyneData":
-        bars = tuple(_normalize_bar(item, time_unit=time_unit) for item in items)
+        try:
+            bars = tuple(
+                _normalize_bar(
+                    item,
+                    time_unit=time_unit,
+                    row_index=index,
+                    allow_missing_values=allow_missing_values,
+                )
+                for index, item in enumerate(items)
+            )
+        except PyneOhlcvError:
+            raise
+        except TypeError as exc:
+            raise PyneOhlcvError(
+                "OHLCV data must be an iterable of mapping rows"
+            ) from exc
         if not bars and not allow_empty:
-            raise ValueError("PyneData requires at least one OHLCV bar")
+            raise PyneOhlcvError("PyneData requires at least one OHLCV bar")
         _validate_bars(bars, require_unique_times=require_unique_times)
         return cls(bars)
 
@@ -175,23 +198,67 @@ def coerce_ohlcv(data: Any) -> list[dict[str, Any]]:
     return PyneData.from_ohlcv(data).to_ohlcv()
 
 
-def _normalize_bar(item: dict[str, Any], *, time_unit: str) -> dict[str, Any]:
+def _normalize_bar(
+    item: Mapping[str, Any],
+    *,
+    time_unit: str,
+    row_index: int,
+    allow_missing_values: bool,
+) -> dict[str, Any]:
+    if not isinstance(item, Mapping):
+        raise PyneOhlcvError(
+            f"OHLCV bar at row {row_index} must be a mapping, got {type(item).__name__}"
+        )
     missing = [key for key in DEFAULT_COLUMNS if key not in item]
     if missing:
-        raise ValueError(f"OHLCV bar is missing required fields: {', '.join(missing)}")
-    timestamp = int(float(item["time"]))
+        raise PyneOhlcvError(
+            f"OHLCV bar at row {row_index} is missing required fields: {', '.join(missing)}"
+        )
+    timestamp_value = _finite_ohlcv_number(item["time"], field="time", row_index=row_index)
+    timestamp = int(timestamp_value)
     if time_unit.lower() in {"ms", "millisecond", "milliseconds"}:
         timestamp //= 1000
     normalized = {
         "time": timestamp,
-        "open": float(item["open"]),
-        "high": float(item["high"]),
-        "low": float(item["low"]),
-        "close": float(item["close"]),
-        "volume": float(item["volume"]),
+        "open": _finite_ohlcv_number(
+            item["open"],
+            field="open",
+            row_index=row_index,
+            allow_missing=allow_missing_values,
+        ),
+        "high": _finite_ohlcv_number(
+            item["high"],
+            field="high",
+            row_index=row_index,
+            allow_missing=allow_missing_values,
+        ),
+        "low": _finite_ohlcv_number(
+            item["low"],
+            field="low",
+            row_index=row_index,
+            allow_missing=allow_missing_values,
+        ),
+        "close": _finite_ohlcv_number(
+            item["close"],
+            field="close",
+            row_index=row_index,
+            allow_missing=allow_missing_values,
+        ),
+        "volume": _finite_ohlcv_number(
+            item["volume"],
+            field="volume",
+            row_index=row_index,
+            allow_missing=allow_missing_values,
+        ),
     }
     if "time_close" in item and item["time_close"] is not None:
-        time_close = int(float(item["time_close"]))
+        time_close = int(
+            _finite_ohlcv_number(
+                item["time_close"],
+                field="time_close",
+                row_index=row_index,
+            )
+        )
         if time_unit.lower() in {"ms", "millisecond", "milliseconds"}:
             time_close //= 1000
         normalized["time_close"] = time_close
@@ -199,6 +266,30 @@ def _normalize_bar(item: dict[str, Any], *, time_unit: str) -> dict[str, Any]:
         if key in item and item[key] is not None:
             normalized[key] = _normalize_session_value(item[key])
     return normalized
+
+
+def _finite_ohlcv_number(
+    value: Any,
+    *,
+    field: str,
+    row_index: int,
+    allow_missing: bool = False,
+) -> float:
+    if allow_missing and value is None:
+        return math.nan
+    try:
+        number = float(value)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise PyneOhlcvError(
+            f"OHLCV {field} must be numeric at row {row_index}, got {value!r}"
+        ) from exc
+    if allow_missing and math.isnan(number):
+        return math.nan
+    if not math.isfinite(number):
+        raise PyneOhlcvError(
+            f"OHLCV {field} must be finite at row {row_index}, got {value!r}"
+        )
+    return number
 
 
 def _validate_bars(
@@ -212,9 +303,9 @@ def _validate_bars(
         timestamp = int(bar["time"])
         if require_unique_times:
             if timestamp in seen_times:
-                raise ValueError(f"OHLCV time values must be unique; duplicate at row {index}")
+                raise PyneOhlcvError(f"OHLCV time values must be unique; duplicate at row {index}")
             if previous_time is not None and timestamp <= previous_time:
-                raise ValueError("OHLCV time values must be strictly increasing")
+                raise PyneOhlcvError("OHLCV time values must be strictly increasing")
             seen_times.add(timestamp)
             previous_time = timestamp
 
@@ -224,13 +315,13 @@ def _validate_bars(
         close_value = float(bar["close"])
         volume_value = float(bar["volume"])
         if high_value < low_value:
-            raise ValueError(f"OHLCV high must be greater than or equal to low at row {index}")
+            raise PyneOhlcvError(f"OHLCV high must be greater than or equal to low at row {index}")
         if high_value < max(open_value, close_value):
-            raise ValueError(f"OHLCV high must cover open and close at row {index}")
+            raise PyneOhlcvError(f"OHLCV high must cover open and close at row {index}")
         if low_value > min(open_value, close_value):
-            raise ValueError(f"OHLCV low must cover open and close at row {index}")
+            raise PyneOhlcvError(f"OHLCV low must cover open and close at row {index}")
         if volume_value < 0:
-            raise ValueError(f"OHLCV volume must be non-negative at row {index}")
+            raise PyneOhlcvError(f"OHLCV volume must be non-negative at row {index}")
 
 
 def _normalize_session_value(value: Any) -> Any:
