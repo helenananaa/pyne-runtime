@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added a reproducible whole-script performance harness with fresh-process
+  repetitions, raw preview/confirmed and snapshot latency, separate Python
+  allocation measurements, and an active cyclic-strategy control. Recorded a
+  growing request-diagnostics hotspot under fixed retention; runtime behavior
+  and snapshot semantics are unchanged by this measurement slice.
+
 - Added independent computation semantics identity to local and portable
   incremental snapshots. Legacy/unmarked or mismatched snapshots fail before
   restoration with `PYNE_SNAPSHOT_SEMANTICS_MISMATCH`; rebuild from authoritative

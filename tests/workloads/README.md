@@ -16,6 +16,16 @@ All five run through repeated preview, local/replay/state restoration, rolling
 retention, 256-bar state restoration, and failure/recovery scenarios. Tests compare
 timestamped points, not just values; missing warmup points must remain missing.
 
+`strategy_cycles.py` is a performance variant repeating the original lifecycle
+every 12 bars. It keeps transactions active beyond the first nine bars, unlike
+the original strategy's idle tail. Its per-cycle net profit and commission have
+independent arithmetic checks; it is not an additional TradingView capture.
+
+Run `python scripts/semantic_workload_benchmark.py --output build/semantic-performance/baseline.json`
+for isolated-process timing, snapshot and Python allocation measurements of these
+six workloads. The benchmark extends the synthetic request provider's time horizon;
+it never fetches market data. Raw samples and source identity are retained in JSON.
+
 ## TradingView evidence
 
 `ta_chain.pine` was entered into a new Pine indicator using Chrome on 2026-09-07.

@@ -158,6 +158,13 @@ snapshots with `PYNE_SNAPSHOT_SEMANTICS_MISMATCH`; rebuilding from authoritative
 OHLCV is required. Real pre-fix artifacts from `64eb354` exercise the upgrade
 boundary. See [snapshot upgrade acceptance](../development/snapshot_semantics_acceptance_zh.md).
 
+Whole-script performance now has a reproducible six-workload, three-age,
+three-repeat local baseline with raw timing and allocation samples. Restore and
+continuation checks passed, but multi-context requests retain growing diagnostic
+history despite fixed chart retention. This remains a measured long-session
+resource issue, not a stability acceptance claim. See the
+[performance baseline](../development/semantic_workload_performance_zh.md).
+
 The `0.2.0rc1` closure slice is implemented in the repository: package version,
 current-status generation, historical-plan routing, local/CI contract checks,
 capture parity gates, and distribution smoke checks are now one release-candidate
