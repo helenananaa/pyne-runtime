@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Bounded incremental request diagnostic history to the current bar, preserving
+  every current request entry and exposing `meta.requestDiagnosticsInfo` with
+  cumulative prior-entry discard counts. Preview counters remain isolated;
+  silent bars disclose empty current diagnostics. Batch behavior is unchanged.
+  Snapshot semantics advances to 2; semantics-1 sessions require OHLCV rebuild.
+
 - Added a reproducible whole-script performance harness with fresh-process
   repetitions, raw preview/confirmed and snapshot latency, separate Python
   allocation measurements, and an active cyclic-strategy control. Recorded a

@@ -1,0 +1,10 @@
+{
+  "commit": "46538e4ffd57cc71e96a012409c1348aa359a179",
+  "description": "Real semantics-1 checkpoints; same four-bar EMA fixture as snapshot_semantics.",
+  "digestNormalization": "UTF-8 text with LF line endings",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "37324d13778b2a7c687c345377ce606f9cf675d97dcc1189f74e26ffe28705b8",
+    "state.json": "7d7ce38f6b31c7ee12c474cc9552d298b49919055f3925ac6097b3f2b808cd93"
+  }
+}

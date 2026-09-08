@@ -1,5 +1,8 @@
 # 完整脚本性能基线
 
+> 后续状态：诊断历史增长已在[请求诊断保留切片](request_diagnostic_retention_zh.md)
+> 修复并复测；本页保留修复前基线及当时的结论。
+
 本轮测量独立 Python 包的实际组合负载，不新增运行时能力或宿主适配。
 入口：`scripts/semantic_workload_benchmark.py`。
 

@@ -36,11 +36,13 @@ def seal(envelope):
 
 
 @pytest.mark.parametrize("mode", ["replay", "state"])
-def test_real_legacy_snapshot_rejected_before_session_construction(mode, monkeypatch):
-    provenance = json.loads((FIXTURES / "provenance.json").read_text())
+@pytest.mark.parametrize("folder", ["snapshot_semantics", "snapshot_semantics_v1"])
+def test_real_legacy_snapshot_rejected_before_session_construction(mode, folder, monkeypatch):
+    fixtures = FIXTURES.parent / folder
+    provenance = json.loads((fixtures / "provenance.json").read_text())
     for name, digest in provenance["sha256"].items():
         # Text fixtures are normalized to LF by Git on all platforms.
-        raw = (FIXTURES / name).read_bytes().replace(b"\r\n", b"\n")
+        raw = (fixtures / name).read_bytes().replace(b"\r\n", b"\n")
         assert hashlib.sha256(raw).hexdigest() == digest
 
     def forbidden(*args, **kwargs):
@@ -49,12 +51,12 @@ def test_real_legacy_snapshot_rejected_before_session_construction(mode, monkeyp
     monkeypatch.setattr(pn.PyneIncrementalSession, "__init__", forbidden)
     with pytest.raises(pn.PynePortableSnapshotError, match="rebuild.*OHLCV") as error:
         pn.PyneIncrementalSession.from_portable_snapshot(
-            (FIXTURES / f"{mode}.json").read_bytes(), script=SCRIPT
+            (fixtures / f"{mode}.json").read_bytes(), script=SCRIPT
         )
     assert error.value.code == "PYNE_SNAPSHOT_SEMANTICS_MISMATCH"
 
 
-@pytest.mark.parametrize("version", [None, 0, 2, True, "1", 1.0])
+@pytest.mark.parametrize("version", [None, 0, 1, INCREMENTAL_SEMANTICS_VERSION + 1, True, "2", 2.0])
 @pytest.mark.parametrize("mode", ["replay", "state"])
 def test_unknown_or_malformed_portable_semantics_rejected(mode, version):
     original = session()
@@ -64,7 +66,7 @@ def test_unknown_or_malformed_portable_semantics_rejected(mode, version):
         pn.PyneIncrementalSession.from_portable_snapshot(seal(envelope), script=SCRIPT)
 
 
-@pytest.mark.parametrize("version", [None, 0, 2, True, "1", 1.0])
+@pytest.mark.parametrize("version", [None, 0, 1, INCREMENTAL_SEMANTICS_VERSION + 1, True, "2", 2.0])
 def test_local_rejection_preserves_committed_and_preview_state(version):
     original = session()
     control = session()

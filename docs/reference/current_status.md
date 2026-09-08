@@ -160,9 +160,11 @@ boundary. See [snapshot upgrade acceptance](../development/snapshot_semantics_ac
 
 Whole-script performance now has a reproducible six-workload, three-age,
 three-repeat local baseline with raw timing and allocation samples. Restore and
-continuation checks passed, but multi-context requests retain growing diagnostic
-history despite fixed chart retention. This remains a measured long-session
-resource issue, not a stability acceptance claim. See the
+continuation checks passed. That baseline exposed growing request diagnostic
+history despite fixed chart retention. The following slice scopes diagnostics to
+the current bar, discloses discarded history and advances snapshot semantics to 2.
+See [diagnostic retention acceptance](../development/request_diagnostic_retention_zh.md)
+and the historical
 [performance baseline](../development/semantic_workload_performance_zh.md).
 
 The `0.2.0rc1` closure slice is implemented in the repository: package version,

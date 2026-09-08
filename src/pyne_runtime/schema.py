@@ -803,6 +803,18 @@ def request_provider_schema() -> dict[str, Any]:
         },
         "diagnostics": {
             "resultLocation": "meta.requestDiagnostics",
+            "incrementalRetention": {
+                "scope": "current_bar",
+                "infoLocation": "meta.requestDiagnosticsInfo",
+                "infoFields": ["scope", "barTime", "retained", "dropped", "truncated"],
+                "semantics": (
+                    "All calls in the current bar remain visible; prior-bar entries are "
+                    "discarded at the next bar. dropped counts prior entries, including "
+                    "successful calls; preview counts do not modify committed counts. "
+                    "No-request bars expose an empty list when history was discarded. "
+                    "This bounds history growth, not calls within a single bar."
+                ),
+            },
             "entryRequired": [
                 "api",
                 "symbol",
