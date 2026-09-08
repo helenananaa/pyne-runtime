@@ -21,6 +21,25 @@ _ROLLING_REBASE_CHUNK = 4096
 _FLOAT_EXACT_SCALE = 1 << 1074
 
 
+def _rolling_nonmissing_sum(source: np.ndarray, period: int) -> np.ndarray:
+    """Sum the last period present samples, retaining the sum across gaps.
+
+    VWMA needs independent observation windows for price*volume and volume.
+    Compact once, reuse the robust rolling sum, then map back in linear time.
+    """
+    values = np.asarray(source, dtype=np.float64)
+    result = np.full(len(values), np.nan)
+    present = ~np.isnan(values)
+    compact = values[present]
+    if period <= 0 or len(compact) < period:
+        return result
+    sums = _rolling_nansum(compact, period)
+    counts = np.cumsum(present)
+    ready = counts >= period
+    result[ready] = sums[counts[ready] - period]
+    return result
+
+
 def _window_sums(values: np.ndarray, period: int) -> np.ndarray:
     cumulative = np.concatenate(
         (np.zeros(1, dtype=values.dtype), np.cumsum(values, dtype=values.dtype))

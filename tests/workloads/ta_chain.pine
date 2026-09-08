@@ -1,0 +1,23 @@
+//@version=6
+indicator("Pyne whole-script oracle 20260907", precision=10)
+float src = switch bar_index % 12
+    0 => 10
+    1 => 12
+    2 => 14
+    3 => 13
+    4 => 11
+    5 => 9
+    6 => 8
+    7 => 10
+    8 => 13
+    9 => 15
+    10 => 12
+    => 9
+float fast = ta.sma(src, 3)
+float slow = ta.sma(src, 7)
+bool crossed = ta.crossover(fast, slow)
+float last = ta.valuewhen(crossed, src, 0)
+if bar_index < 40
+    log.info("PYNE_ORACLE|" + str.tostring(bar_index) + "|" + str.tostring(src) + "|" + str.tostring(fast, "#.##########") + "|" + str.tostring(slow, "#.##########") + "|" + str.tostring(crossed ? 1 : 0) + "|" + str.tostring(last))
+plot(fast, "Fast")
+plot(slow, "Slow")

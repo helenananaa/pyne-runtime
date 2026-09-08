@@ -8,6 +8,22 @@ Current capability status, explicit limits, and validation evidence are tracked
 in [Current Project Status](current_status.md). Future priorities are maintained
 in the [Python package long-term direction](../development/python_package_long_term_plan_zh.md).
 
+Additional whole-script Pine v6 evidence now covers EMA/MACD seed and gap behavior,
+RSI flat/rising/falling/gap cases, RSI-to-EMA composition and batch TSI. These
+captures are exercised by `tests/test_ta_external_boundaries.py` separately from
+the 10 imported TA fixture totals below. See the
+[TA boundary acceptance report](../development/ta_boundary_acceptance_zh.md).
+
+Further pytest-based evidence covers native Supertrend/VWMA, custom-volume SMA
+ratios, and market-order versus pending-order OCA outcomes with positive and
+negative controls. See [trend/volume/OCA acceptance](../development/trend_volume_oca_acceptance_zh.md).
+These captures also remain separate from the imported fixture counts below.
+
+The additional [rolling statistics capture](../development/rolling_statistics_acceptance_zh.md)
+checks SMA/stdev/variance/BB missing-value windows. Two high-offset Pine dispersion
+columns are reference-only numerical differences; ordinary-range columns are
+parity-tested, and Pyne's stable results are checked against centered arithmetic.
+
 | Feature | Pyne API | Status | Known Differences | Tests | Docs |
 | --- | --- | --- | --- | --- | --- |
 | OHLCV sources | `open`, `high`, `low`, `close`, `volume` | Supported | Values are `PyneSeries`, not Pine native series | `tests/test_series.py` | `docs/concepts/data_model.md` |

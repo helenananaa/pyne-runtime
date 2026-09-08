@@ -19,9 +19,27 @@ DEFAULT_PORTABLE_SNAPSHOT_MAX_BYTES = 8 * 1024 * 1024
 DEFAULT_PORTABLE_SNAPSHOT_MAX_DEPTH = 16
 DEFAULT_PORTABLE_SNAPSHOT_MAX_NODES = 1_000_000
 
+# Independent of package and wire-format versions. Bump when committed state or
+# replay semantics change incompatibly; legacy unmarked checkpoints are unknown.
+INCREMENTAL_SEMANTICS_VERSION = 1
+
 
 class PynePortableSnapshotError(ValueError):
     """Portable checkpoint is unsupported, corrupt, mismatched, or over limit."""
+
+    code: str | None = None
+
+
+def validate_snapshot_semantics(version: Any) -> None:
+    if type(version) is not int or version != INCREMENTAL_SEMANTICS_VERSION:
+        error = PynePortableSnapshotError(
+            "PYNE_SNAPSHOT_SEMANTICS_MISMATCH: snapshot semantics "
+            f"{version!r} do not match runtime semantics {INCREMENTAL_SEMANTICS_VERSION}; "
+            "rebuild the session from authoritative OHLCV under the current runtime. "
+            "Do not relabel or reuse old state."
+        )
+        error.code = "PYNE_SNAPSHOT_SEMANTICS_MISMATCH"
+        raise error
 
 
 @dataclass(frozen=True)
@@ -53,6 +71,7 @@ def encode_portable_checkpoint(
     budget = _NodeBudget(max_nodes)
     payload = {
         "schemaVersion": PYNE_INCREMENTAL_PORTABLE_SNAPSHOT_VERSION,
+        "semanticsVersion": INCREMENTAL_SEMANTICS_VERSION,
         "scriptSha256": checkpoint.script_sha256,
         "params": _encode_value(checkpoint.params, depth=0, max_depth=max_depth, budget=budget),
         "settings": _encode_value(
@@ -114,7 +133,9 @@ def decode_portable_checkpoint(
     expected = f"sha256:{hashlib.sha256(_canonical_json(payload)).hexdigest()}"
     if envelope["checksum"] != expected:
         raise PynePortableSnapshotError("Portable incremental snapshot checksum does not match")
+    validate_snapshot_semantics(payload.get("semanticsVersion"))
     expected_keys = {
+        "semanticsVersion",
         "schemaVersion",
         "scriptSha256",
         "params",
@@ -172,6 +193,7 @@ def encode_portable_state_checkpoint(
     budget = _NodeBudget(max_nodes)
     payload = {
         "schemaVersion": PYNE_INCREMENTAL_PORTABLE_STATE_SNAPSHOT_VERSION,
+        "semanticsVersion": INCREMENTAL_SEMANTICS_VERSION,
         "scriptSha256": checkpoint.script_sha256,
         "settings": _encode_value(
             checkpoint.settings,
@@ -221,7 +243,9 @@ def decode_portable_state_checkpoint(
     expected = f"sha256:{hashlib.sha256(_canonical_json(payload)).hexdigest()}"
     if envelope["checksum"] != expected:
         raise PynePortableSnapshotError("Portable incremental snapshot checksum does not match")
+    validate_snapshot_semantics(payload.get("semanticsVersion"))
     expected_keys = {
+        "semanticsVersion",
         "schemaVersion",
         "scriptSha256",
         "settings",

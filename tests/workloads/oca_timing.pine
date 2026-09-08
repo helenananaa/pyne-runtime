@@ -1,0 +1,34 @@
+//@version=6
+strategy("Pyne OCA oracle 20260907", overlay=true, initial_capital=1000000000, pyramiding=100, process_orders_on_close=true, calc_on_order_fills=false, commission_value=0, slippage=0)
+float p = 79400.0
+if bar_index == 0
+    strategy.order("S1", strategy.long, qty=1, oca_name="same", oca_type=strategy.oca.cancel)
+    strategy.order("S2", strategy.long, qty=2, oca_name="same", oca_type=strategy.oca.cancel)
+    strategy.order("CB", strategy.long, qty=2, stop=p, oca_name="before", oca_type=strategy.oca.cancel)
+    strategy.order("CA", strategy.long, qty=1, oca_name="before", oca_type=strategy.oca.cancel)
+    strategy.order("AA", strategy.long, qty=1, oca_name="after", oca_type=strategy.oca.cancel)
+    strategy.order("AB", strategy.long, qty=2, stop=p, oca_name="after", oca_type=strategy.oca.cancel)
+    strategy.order("NB", strategy.long, qty=2, stop=p)
+    strategy.order("NA", strategy.long, qty=1)
+    strategy.order("R1", strategy.long, qty=1, oca_name="same_reduce", oca_type=strategy.oca.reduce)
+    strategy.order("R2", strategy.long, qty=2, oca_name="same_reduce", oca_type=strategy.oca.reduce)
+    strategy.order("RB", strategy.long, qty=3, stop=p, oca_name="reduce_before", oca_type=strategy.oca.reduce)
+    strategy.order("RA", strategy.long, qty=1, oca_name="reduce_before", oca_type=strategy.oca.reduce)
+    strategy.order("QA", strategy.long, qty=1, oca_name="reduce_after", oca_type=strategy.oca.reduce)
+    strategy.order("QB", strategy.long, qty=3, stop=p, oca_name="reduce_after", oca_type=strategy.oca.reduce)
+    strategy.order("TB", strategy.long, qty=2, stop=close-1, oca_name="triggered", oca_type=strategy.oca.cancel)
+    strategy.order("TA", strategy.long, qty=1, oca_name="triggered", oca_type=strategy.oca.cancel)
+    strategy.order("PC1", strategy.long, qty=1, stop=p, oca_name="pending_cancel", oca_type=strategy.oca.cancel)
+    strategy.order("PC2", strategy.long, qty=2, stop=p+10, oca_name="pending_cancel", oca_type=strategy.oca.cancel)
+    strategy.order("PR1", strategy.long, qty=1, stop=p, oca_name="pending_reduce", oca_type=strategy.oca.reduce)
+    strategy.order("PR2", strategy.long, qty=3, stop=p+10, oca_name="pending_reduce", oca_type=strategy.oca.reduce)
+held(string id) =>
+    float qty = 0
+    if strategy.opentrades > 0
+        for j = 0 to strategy.opentrades - 1
+            if strategy.opentrades.entry_id(j) == id
+                qty += strategy.opentrades.size(j)
+    qty
+if bar_index < 4
+    log.info("PYNE_OCA|" + str.tostring(bar_index) + "|" + str.tostring(time / 1000) + "|" + str.tostring(strategy.position_size) + "|" + str.tostring(strategy.opentrades) + "|" + str.tostring(held("S1")) + "|" + str.tostring(held("S2")) + "|" + str.tostring(held("CB")) + "|" + str.tostring(held("CA")) + "|" + str.tostring(held("AA")) + "|" + str.tostring(held("AB")) + "|" + str.tostring(held("NB")) + "|" + str.tostring(held("NA")) + "|" + str.tostring(held("R1")) + "|" + str.tostring(held("R2")) + "|" + str.tostring(held("RB")) + "|" + str.tostring(held("RA")) + "|" + str.tostring(held("QA")) + "|" + str.tostring(held("QB")) + "|" + str.tostring(held("TB")) + "|" + str.tostring(held("TA")) + "|" + str.tostring(held("PC1")) + "|" + str.tostring(held("PC2")) + "|" + str.tostring(held("PR1")) + "|" + str.tostring(held("PR2")) + ";")
+plot(p, "Trigger")

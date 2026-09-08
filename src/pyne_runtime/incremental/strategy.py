@@ -609,7 +609,11 @@ class IncrementalStrategyNamespace:
             order["oca_type"] = order.get("_oca_type") or self.oca.none
         if reason is not None:
             order["reason"] = reason
-        self._apply_oca_after_fill(order)
+        # Captured Pine strategy.order market fills do not apply OCA to
+        # pending siblings (even when those siblings trigger on a later bar).
+        # Keep pending fills and the existing entry path distinct.
+        if order.get("type") != "order" or order.get("_pending_submission"):
+            self._apply_oca_after_fill(order)
         next_size = self.position_size
         if order.get("type") == "entry":
             if previous_size == 0 or (previous_size > 0) != (next_size > 0):
@@ -1186,7 +1190,7 @@ class IncrementalStrategyNamespace:
             return
         filled_qty = abs(float(filled_order.get("qty", 0.0)))
         for order in self._pending_orders:
-            if order is filled_order:
+            if order is filled_order or order.get("_active") or order.get("_canceled"):
                 continue
             if order.get("_oca_name") != oca_name or order.get("_oca_type") != oca_type:
                 continue

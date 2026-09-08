@@ -25,6 +25,28 @@ Release versioning and release-candidate checks are documented in
 
 ## Pine-Like Surface
 
+The 2026-09-07 source candidate corrects EMA/MACD missing-value seeding/output and
+RSI missing/flat behavior against new Pine v6 evidence. Scripts that relied on
+early EMA seeds, carried gap values, or flat RSI=0 will produce different output.
+Rebuild affected sessions from OHLCV when adopting this change; reusing snapshots
+computed under the old semantics is not a supported migration. This does not
+change API names or output schema versions. Details are in the
+[TA boundary acceptance report](../development/ta_boundary_acceptance_zh.md).
+
+The follow-on slice corrects VWMA's independent non-missing observation windows
+and incremental market `strategy.order` OCA effects. Rebuild affected VWMA/OCA
+sessions from original OHLCV when adopting the candidate; old computed snapshots
+are not a supported semantic migration. Supertrend's first zero is retained
+because a native Pine capture confirms it. See
+[trend/volume/OCA acceptance](../development/trend_volume_oca_acceptance_zh.md).
+
+The rolling-statistics slice aligns SMA/stdev/variance/BB missing-value windows
+and the public SMA-ratio composition behind VWMA. Rebuild affected old sessions
+from OHLCV. Stable centered dispersion is retained as a deliberate numeric
+difference from two high-offset native Pine capture columns; their raw values
+are preserved as reference evidence, not counted as zero-diff parity. Details:
+[rolling statistics acceptance](../development/rolling_statistics_acceptance_zh.md).
+
 Supported:
 
 - `close[1]` and other non-negative bars-back history references.

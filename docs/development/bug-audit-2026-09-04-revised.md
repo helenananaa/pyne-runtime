@@ -1,5 +1,14 @@
 # pyne-runtime 缺陷审查修订稿
 
+> 后续状态（2026-09-07）：B1 EMA/MACD 与 B2 RSI 已取得新的 TradingView Pine v6
+> 外部证据并修复，见[指标边界验收](ta_boundary_acceptance_zh.md)。下面保留原审查
+> 的历史发现与当时的待确认结论，不应把 B1/B2 继续视为未处理项。
+
+> 第三批补充：B3 的首根 Supertrend=0 已由原生 Pine 确认，保留行为并关闭疑点；
+> B4 的 VWMA 缺失窗口已修复。C2 实测确认市价 `strategy.order` 不施加这里的
+> pending OCA 效果，批量路径正确，修复的是增量误取消/减量及已成交 sibling
+> 被追溯修改的问题。详见[第三批验收](trend_volume_oca_acceptance_zh.md)。
+
 审查基线：`main@9ce0a4d`（2026-09-04）  
 验证结果：完整测试 `881 passed, 1 warning`；工作树在验证前为干净状态。
 
@@ -352,4 +361,3 @@ ATR 尚未建立时，当前把第一根 Supertrend 写为 `0.0`；现有测试�
 - 本仓库 Pine 成本分配捕获：`tests/golden/strategy_pine_equivalent_cost_allocation.json`
 - 本仓库兼容性矩阵：`docs/reference/pine_like_api_matrix.md`
 - 本仓库安全模式说明：`docs/concepts/security_modes.md`
-

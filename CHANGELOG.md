@@ -2,6 +2,43 @@
 
 ## Unreleased
 
+- Added independent computation semantics identity to local and portable
+  incremental snapshots. Legacy/unmarked or mismatched snapshots fail before
+  restoration with `PYNE_SNAPSHOT_SEMANTICS_MISMATCH`; rebuild from authoritative
+  OHLCV after upgrading. Tests include real snapshots emitted by `64eb354`,
+  rejection without live-state mutation, and current-semantics continuation.
+
+- Aligned SMA, variance, standard deviation and Bollinger windows to the last
+  non-missing observations, and unified incremental helpers on centered rolling
+  moments with rebasing. Added 30 capture/composition, long-stream and restore
+  cases. Two high-offset native Pine dispersion columns remain explicit numeric
+  differences checked against stable centered arithmetic, not claimed as parity.
+  Rebuild affected old rolling-statistics sessions when upgrading the candidate.
+
+- Corrected VWMA to use independent windows of non-missing products and volumes,
+  backed by native Pine v6 and explicit-volume formula captures. Confirmed and
+  retained Supertrend's first zero with a native capture. Added 36 trend/volume/
+  OCA evidence and restore cases. Fixed incremental market `strategy.order`
+  incorrectly applying OCA to pending siblings, and prevented pending OCA effects
+  from retroactively changing already-filled siblings. Rebuild affected VWMA/OCA
+  sessions when adopting these semantic corrections.
+
+- Corrected EMA/MACD seeding to count non-missing observations and emit missing
+  output on gaps while retaining recursive state. Public EMA and MACD/TSI batch
+  smoothing now share the same kernel. Corrected RSI gap outputs and flat RSI=100
+  from independent TradingView Pine v6 captures. Added 27 boundary/composition
+  and checkpoint cases; old affected sessions must be rebuilt from OHLCV rather
+  than migrated from snapshots calculated under the previous semantics.
+
+- Added five host-neutral whole-script acceptance workloads covering TA chains,
+  multi-context requests, cache/state, drawings and strategy lifecycle, with
+  preview isolation, repeated restoration, 256-bar retention and failure recovery.
+  A 40-row TradingView Pine v6 log capture independently checks the TA chain.
+- Fixed premature HTF close disclosure when chart or provider history has only
+  one bar: request alignment now falls back to timeframe duration when spacing
+  cannot be inferred. Documented replay-v1's exclusion of preview visitation and
+  the need for state snapshots for intrabar-dependent committed calculations.
+
 - Relicensed the project from GPL-3.0 to MIT with authorization from the sole
   contributor, and aligned the repository and package metadata.
 - Hardened the isolated package smoke so the installed wheel must match the

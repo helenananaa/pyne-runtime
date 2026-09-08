@@ -120,7 +120,66 @@ not counted in that imported-capture list.
 
 `ta.macd()` follows Pine's tuple shape: MACD line, signal line, and histogram,
 where histogram is `macd_line - signal_line`. The signal line starts after the
-first complete non-`na` MACD-line window.
+first `signal` non-`na` MACD-line observations, which need not be contiguous.
+
+## EMA, MACD and RSI Missing Values
+
+The 2026-09-07 Pine v6 captures fix these semantics in batch and incremental mode:
+
+- EMA seeds with the mean of the first `period` non-missing observations,
+  including when leading or internal missing values interrupt the seed window.
+- A missing EMA input produces a missing output at that position. Its previous
+  recursive state is retained for the next present input; no stale value is
+  emitted on the gap itself. MACD and its signal EMA follow the same rule.
+- RSI requires `period` present adjacent-bar changes. Missing source values and
+  the first source after each gap cannot produce a change, so both positions
+  emit missing output without advancing Wilder averages.
+- After warmup, all-flat RSI (zero average gain and loss) is 100, all-gain RSI
+  is 100, and all-loss RSI is 0, matching the captured Pine v6 behavior.
+
+Incremental helpers return `None` for missing outputs; batch arrays contain NaN.
+Plot transport omits those points and rounds present values to eight decimals.
+The capture tests compare timestamps as well as numbers, including the omissions.
+
+The shared batch EMA kernel also feeds nested RSI-to-EMA smoothing and TSI;
+these composition paths have a separate external capture. Incremental TSI remains
+outside the declared surface. See [boundary acceptance](../development/ta_boundary_acceptance_zh.md)
+for source scripts, raw evidence, tests and upgrade implications.
+
+## VWMA and Supertrend Boundary Evidence
+
+VWMA maintains independent windows of the last `period` non-missing
+`source * volume` and volume observations. Both windows must be ready; a
+non-positive denominator produces missing output. Missing price samples do not
+become zero contributions to a fixed bar window. Because the two windows may
+cover different timestamps, the result is not necessarily a weighted average of
+paired prices from the last `period` chart bars.
+
+This is verified against native Pine v6 `ta.vwma` for missing price inputs and
+against its explicit SMA-ratio formula for custom missing volume. The latter is
+formula evidence, not a claim that Pine's built-in volume was overridden. Batch
+and incremental paths use the same observation-window contract.
+
+Native Pine v6 `ta.supertrend(2, 3)` and `ta.supertrend(2, 1)` both emit 0 for
+the first line point and +1 direction in the captured first-bar context. This
+counterintuitive behavior is intentionally retained. See the
+[trend/volume/OCA acceptance report](../development/trend_volume_oca_acceptance_zh.md).
+
+## SMA, Dispersion and Bollinger Windows
+
+SMA, variance, standard deviation and Bollinger Bands now use the last `period`
+non-missing observations. Once ready, a missing input retains the current result;
+leading/all-missing inputs remain missing until enough observations arrive.
+Sample variance at period 1 remains missing. `bb` keeps `(middle, upper, lower)`;
+incremental `boll` keeps its legacy `(upper, middle, lower)` order.
+
+Incremental helpers share centered rolling moments with periodic rebasing, instead
+of subtracting raw price-squared totals. This follows the existing stable batch
+numeric contract. A new native Pine v6 capture validates ordinary-range windows
+and classifies two high-offset columns as **reference-only**: Pine reported
+variance 0 or 128 around 1e9 for samples whose centered variance is single-digit.
+Pyne uses centered-arithmetic evidence for these columns and explicitly does not
+claim numeric parity there. See [rolling statistics acceptance](../development/rolling_statistics_acceptance_zh.md).
 
 All 10 committed TA capture fixtures keep a `pine_equivalent` script beside
 the Pyne script and contain imported TradingView output. The parity gate

@@ -271,7 +271,7 @@ def test_vwap_prefers_recurring_host_session_open_markers() -> None:
     assert result.values("Session VWAP") == [10.0, 15.0, 30.0, 35.0]
 
 
-def test_sma_returns_nan_for_windows_containing_nan() -> None:
+def test_sma_uses_the_last_present_observations() -> None:
     source = pn.PyneSeries([1.0, float("nan"), 3.0, 4.0], name="close")
 
     result = TaModule().sma(source, 2)
@@ -279,7 +279,7 @@ def test_sma_returns_nan_for_windows_containing_nan() -> None:
     assert isinstance(result, pn.PyneSeries)
     assert math.isnan(result.values[0])
     assert math.isnan(result.values[1])
-    assert math.isnan(result.values[2])
+    assert result.values[2] == 2.0
     assert result.values[3] == 3.5
 
 

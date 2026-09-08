@@ -123,6 +123,41 @@ migration evidence is documented separately in the
 
 ## Active Next Stage: 0.3 Development Candidate
 
+The next acceptance slice is now implemented as five first-party whole-script
+workloads: chained TA, multi-context requests, cache/state, drawings, and strategy
+lifecycle. It exercises repeated preview/restore, bounded retention, 256-bar
+continuation and failure recovery. A separate 40-row TradingView Pine v6 capture
+checks the chained TA workload in both execution modes. This capture is covered
+by pytest and is not included in the generated capture-family totals above.
+See [whole-script acceptance](../development/semantic_workload_acceptance_zh.md)
+for evidence, the single-bar HTF confirmation repair, and replay-v1 limitations.
+
+A second slice adds Pine v6 EMA/MACD/RSI boundary and smoothing-composition captures.
+It corrects non-missing EMA seeding, sparse EMA/MACD/RSI output and flat RSI, with
+checkpoint tests at seed and gap boundaries. The shared EMA path is also checked
+against captured batch TSI. See [TA boundary acceptance](../development/ta_boundary_acceptance_zh.md);
+these pytest-based captures are separate from the generated totals above.
+
+The third slice verifies native Supertrend warmup (retaining its first zero),
+repairs VWMA's independent non-missing observation windows, and fixes incremental
+market `strategy.order` OCA effects and filled-sibling lifecycle handling. It has
+native/function-formula TA evidence and a strategy capture with reachable
+non-OCA and pending OCA controls, exercised by 36 additional tests. See
+[trend/volume/OCA acceptance](../development/trend_volume_oca_acceptance_zh.md).
+
+A fourth slice aligns SMA/stdev/variance/BB observation windows and shares stable
+incremental moments. Its 30 cases cover native capture, classified high-offset
+numeric differences, 9,000-update streams, checkpoints and the previous VWMA
+SMA-ratio composition. Two captured high-offset dispersion columns are explicitly
+reference-only; Pyne preserves its stable batch arithmetic instead of claiming
+parity for them. See [rolling statistics acceptance](../development/rolling_statistics_acceptance_zh.md).
+
+The consolidation slice adds independent snapshot semantics identity. Local,
+replay-v1 and typed-state-v2 restore reject legacy/unmarked or incompatible
+snapshots with `PYNE_SNAPSHOT_SEMANTICS_MISMATCH`; rebuilding from authoritative
+OHLCV is required. Real pre-fix artifacts from `64eb354` exercise the upgrade
+boundary. See [snapshot upgrade acceptance](../development/snapshot_semantics_acceptance_zh.md).
+
 The `0.2.0rc1` closure slice is implemented in the repository: package version,
 current-status generation, historical-plan routing, local/CI contract checks,
 capture parity gates, and distribution smoke checks are now one release-candidate

@@ -43,6 +43,7 @@ from ..trace import PyneTraceRecorder, bounded_trace_value
 from .bar import IncrementalBar
 from .checkpoint import (
     DEFAULT_PORTABLE_SNAPSHOT_MAX_BYTES,
+    INCREMENTAL_SEMANTICS_VERSION,
     PortableCheckpoint,
     PortableStateCheckpoint,
     PynePortableSnapshotError,
@@ -53,6 +54,7 @@ from .checkpoint import (
     portable_snapshot_format,
     portable_settings_contract,
     settings_from_portable_contract,
+    validate_snapshot_semantics,
 )
 from .context import IncrementalContext
 from .limits import (
@@ -96,6 +98,7 @@ class PyneIncrementalSessionSnapshot:
     portable_complete: bool
     namespace_names: tuple[str, ...] = ()
     trace: PyneTraceRecorder | None = None
+    semantics_version: int | None = None
 
 
 class PyneIncrementalSession:
@@ -853,6 +856,7 @@ class PyneIncrementalSession:
         global_values, function_states = self._snapshot_user_globals(memo)
         return PyneIncrementalSessionSnapshot(
             schema_version=PYNE_INCREMENTAL_SNAPSHOT_VERSION,
+            semantics_version=INCREMENTAL_SEMANTICS_VERSION,
             script_sha256=_script_sha256(self.script),
             params=copy.deepcopy(dict(self.params.items()), memo),
             security_mode=self.security_mode,
@@ -938,6 +942,7 @@ class PyneIncrementalSession:
         self._ensure_healthy()
         if not isinstance(snapshot, PyneIncrementalSessionSnapshot):
             raise TypeError("snapshot must be a PyneIncrementalSessionSnapshot")
+        validate_snapshot_semantics(getattr(snapshot, "semantics_version", None))
         if snapshot.schema_version != PYNE_INCREMENTAL_SNAPSHOT_VERSION:
             raise ValueError(f"Unsupported incremental snapshot version {snapshot.schema_version}")
         if snapshot.script_sha256 != _script_sha256(self.script):
@@ -1045,6 +1050,7 @@ class PyneIncrementalSession:
         execution_scope: PyneExecutionScope | None = None,
     ) -> "PyneIncrementalSession":
         """Create a fresh session and restore a matching process-local snapshot."""
+        validate_snapshot_semantics(getattr(snapshot, "semantics_version", None))
 
         session = cls(
             script=script,
@@ -1087,6 +1093,7 @@ class PyneIncrementalSession:
                 raise PynePortableSnapshotError(
                     "Portable typed state root is not an incremental session snapshot"
                 )
+            validate_snapshot_semantics(getattr(snapshot, "semantics_version", None))
             restored = cls(
                 script=script,
                 params=copy.deepcopy(snapshot.params),

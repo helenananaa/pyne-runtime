@@ -1,0 +1,37 @@
+//@version=6
+indicator("Pyne rolling statistics oracle 20260907", precision=10)
+int i = bar_index
+float src = switch i % 8
+    0 => 1
+    1 => 4
+    2 => 2
+    3 => 5
+    4 => 3
+    5 => 6
+    6 => 2
+    => 4
+float holes = i == 1 or i == 7 or i == 12 ? na : src
+float leading = i < 3 ? na : src
+float highSource = 1000000000.0 + holes
+float baseSma = ta.sma(src, 3)
+float holeSma = ta.sma(holes, 3)
+float leadingSma = ta.sma(leading, 3)
+float std = ta.stdev(holes, 3)
+float vb = ta.variance(holes, 3, true)
+float vu = ta.variance(holes, 3, false)
+[mid, upper, lower] = ta.bb(holes, 3, 2.0)
+float hm = ta.sma(highSource, 3)
+float hs = ta.stdev(highSource, 3)
+float hv = ta.variance(highSource, 3, true)
+float sampleOne = ta.variance(holes, 1, false)
+float smaOne = ta.sma(holes, 1)
+float emptySma = ta.sma(float(na), 3)
+float emptyStd = ta.stdev(float(na), 3)
+f(float x) => str.tostring(x, "#.##########")
+var string rows = ""
+if i < 18
+    rows += "PYNE_STATS|" + str.tostring(i) + "|" + f(src) + "|" + f(holes) + "|" + f(leading) + "|" + f(baseSma) + "|" + f(holeSma) + "|" + f(leadingSma) + "|" + f(std) + "|" + f(vb) + "|" + f(vu) + "|" + f(mid) + "|" + f(upper) + "|" + f(lower) + "|" + f(hm) + "|" + f(hs) + "|" + f(hv) + "|" + f(sampleOne) + "|" + f(smaOne) + "|" + f(emptySma) + "|" + f(emptyStd) + ";"
+    if i % 6 == 5
+        log.info(rows)
+        rows := ""
+plot(mid, "Middle")

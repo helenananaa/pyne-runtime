@@ -219,6 +219,8 @@ class RequestModule:
             requested_values=requested_values,
             gaps=normalized_gaps,
             lookahead=normalized_lookahead,
+            chart_step_hint=_timeframe_seconds_from_text(self._context.timeframe.period),
+            requested_step_hint=_timeframe_seconds_from_text(timeframe_text),
         )
 
     def security_lower_tf(

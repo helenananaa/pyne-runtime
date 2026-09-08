@@ -74,8 +74,10 @@ def test_request_capture_diff_uses_provider_metadata(tmp_path: Path) -> None:
                     }
                 },
                 "script": (
+                    # Synthetic diff-tool fixture: intentionally expose the
+                    # single HTF row at its open, without implying confirmation.
                     'mintick = request.security("BTCUSDT", "240", '
-                    'lambda ctx: ctx.syminfo.mintick)\n'
+                    'lambda ctx: ctx.syminfo.mintick, lookahead="on")\n'
                     'plot(mintick, "Requested Mintick")\n'
                 ),
                 "expected_series": {
@@ -221,7 +223,8 @@ def _write_fixture(tmp_path: Path, captured_value: float) -> Path:
                 "provider_bars": [
                     {"time": 1, "open": 90, "high": 110, "low": 80, "close": 100, "volume": 1000}
                 ],
-                "script": 'higher = request.security("BTCUSDT", "240", "close")\nplot(higher, "HTF Close")\n',
+                # This tests comparison plumbing, not HTF confirmation timing.
+                "script": 'higher = request.security("BTCUSDT", "240", "close", lookahead="on")\nplot(higher, "HTF Close")\n',
                 "expected_series": {
                     "HTF Close": [
                         {"time": 1, "value": 100},

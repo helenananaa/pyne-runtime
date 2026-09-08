@@ -1,0 +1,10 @@
+{
+  "commit": "64eb354f2e50490146d59502e6f0e7181eb0dd99",
+  "description": "Unmodified portable snapshots emitted by historical source using indicator.pyne, inline executor and 1S timeframe; four bars i=0..3, OHLC=(i+1,i+2,i,i+1), volume=10.",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "6bb3b36a49c29acc1bf69ef00c7218522b4bc12e38a201f18be0382023fb7a4e",
+    "state.json": "cb9a5b9b7843401a68673895c925bc0b4af7c002818a9e37961704154bc54834"
+  },
+  "digestNormalization": "UTF-8 text with LF line endings"
+}

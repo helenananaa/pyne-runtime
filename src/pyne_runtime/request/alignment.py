@@ -54,6 +54,8 @@ def _align_request_values(
     requested_values: RequestValues,
     gaps: str,
     lookahead: str,
+    chart_step_hint: int | None = None,
+    requested_step_hint: int | None = None,
 ) -> PyneSeries | tuple[PyneSeries, ...]:
     if isinstance(requested_values, tuple):
         return tuple(
@@ -66,6 +68,8 @@ def _align_request_values(
                 requested_values=values,
                 gaps=gaps,
                 lookahead=lookahead,
+                chart_step_hint=chart_step_hint,
+                requested_step_hint=requested_step_hint,
             )
             for index, values in enumerate(requested_values)
         )
@@ -79,6 +83,8 @@ def _align_request_values(
         requested_values=requested_values,
         gaps=gaps,
         lookahead=lookahead,
+        chart_step_hint=chart_step_hint,
+        requested_step_hint=requested_step_hint,
     )
 
 def _align_single_request_values(
@@ -91,8 +97,13 @@ def _align_single_request_values(
     requested_values: list[Any],
     gaps: str,
     lookahead: str,
+    chart_step_hint: int | None = None,
+    requested_step_hint: int | None = None,
 ) -> PyneSeries:
-    confirmation_times = _confirmation_times(chart_times, requested_times)
+    confirmation_times = _confirmation_times(
+        chart_times, requested_times,
+        chart_step_hint=chart_step_hint, requested_step_hint=requested_step_hint,
+    )
     values = [
         _aligned_value(
             chart_time,
@@ -137,11 +148,16 @@ def _aligned_value(
     return np.nan if is_na_value(value) else float(value)
 
 
-def _confirmation_times(chart_times: list[int], requested_times: list[int]) -> list[int]:
+def _confirmation_times(
+    chart_times: list[int], requested_times: list[int], *,
+    chart_step_hint: int | None = None, requested_step_hint: int | None = None,
+) -> list[int]:
     if not requested_times:
         return []
-    chart_step = _infer_step(chart_times)
-    requested_step = _infer_step(requested_times)
+    # A one-bar context still has a duration. Without metadata fallback the
+    # first requested HTF close is exposed at its open (implicit lookahead).
+    chart_step = _infer_step(chart_times) or chart_step_hint
+    requested_step = _infer_step(requested_times) or requested_step_hint
     if chart_step is None or requested_step is None or requested_step <= chart_step:
         return list(requested_times)
     return [time + requested_step - chart_step for time in requested_times]

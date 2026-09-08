@@ -2738,16 +2738,16 @@ def test_incremental_ta_helpers_recover_after_nan() -> None:
     rsi = _StepRSI(2)
     atr = _StepATR(2)
 
-    assert [sma.update(value) for value in (1, nan, 3, 5)] == [None, None, None, 4.0]
+    assert [sma.update(value) for value in (1, nan, 3, 5)] == [None, None, 2.0, 4.0]
     assert [boll.update(value) for value in (1, nan, 3, 5)][-1] == (6.0, 4.0, 2.0)
     assert [ema.update(value) for value in (1, nan, 3, nan, 5)] == pytest.approx(
-        [None, 1.0, 7 / 3, 7 / 3, 37 / 9],
+        [None, None, 2.0, None, 4.0],
         nan_ok=True,
     )
 
     rsi_values = [rsi.update(value) for value in (1, 2, 3, nan, 4, 5)]
     assert rsi_values[:2] == [None, None]
-    assert rsi_values[2:] == [100.0, 100.0, 100.0, 100.0]
+    assert rsi_values[2:] == [100.0, None, None, 100.0]
 
     assert atr.update(2, 1, 1.5) is None
     assert atr.update(3, 1, 2) == 1.5

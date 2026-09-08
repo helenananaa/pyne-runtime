@@ -623,6 +623,11 @@ Pyne 作为 Python 包需要逐步走向可依赖、可发布、可升级。
 
 ## 8. 近期建议
 
+> 2026-09-07 更新：下文保留早期阶段背景，其中隔离、typed provider error、
+> retention 和 snapshot 等工作已经实现，不应重复作为待办。
+> 当前近期主线与验收结果见[完整脚本语义验收](semantic_workload_acceptance_zh.md)。
+> 优先根据完整脚本和外部捕获暴露的语义问题开发，再用实际负载推动性能优化。
+
 当前代码已经完成了 Pine-to-Pyne cookbook、`validate()` 迁移诊断、
 完整 `input.*` metadata、param schema、`varip()`、collection limits、
 schema contract、TA capture、strategy capture 和 request capture。下一阶段
