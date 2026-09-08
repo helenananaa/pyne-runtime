@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Indexed incremental provider-cache timestamps for interval lookup and skipped
+  ineffective preview traversal into the already-shared runtime request facade.
+  Cache coverage, eviction budgets and user-alias isolation remain unchanged.
+  Snapshot semantics remains 2; paired source benchmarks compare full outputs.
+
 - Bounded incremental request diagnostic history to the current bar, preserving
   every current request entry and exposing `meta.requestDiagnosticsInfo` with
   cumulative prior-entry discard counts. Preview counters remain isolated;

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+from bisect import bisect_left, bisect_right
 from collections.abc import Callable, Mapping
 from typing import Any
 
@@ -110,6 +111,7 @@ class _RangeCachingProvider:
         self._max_cached_bars = max(int(max_cached_bars), 1)
         self._max_covered_ranges = max(int(max_covered_ranges), 1)
         self._bars: dict[tuple[str, str], dict[int, dict[str, Any]]] = {}
+        self._times: dict[tuple[str, str], list[int]] = {}
         self._ranges: dict[tuple[str, str], list[tuple[int, int]]] = {}
         self._fetches = 0
 
@@ -123,11 +125,10 @@ class _RangeCachingProvider:
         key = (str(symbol), str(timeframe))
         normalized_start = int(start)
         normalized_end = int(end)
-        result_rows = {
-            timestamp: copy.deepcopy(row)
-            for timestamp, row in self._bars.get(key, {}).items()
-            if normalized_start <= timestamp <= normalized_end
-        }
+        times = self._times.get(key, [])
+        bucket = self._bars.get(key, {})
+        selected = times[bisect_left(times, normalized_start):bisect_right(times, normalized_end)]
+        result_rows = {timestamp: copy.deepcopy(bucket[timestamp]) for timestamp in selected}
         for missing_start, missing_end in _missing_ranges(
             normalized_start,
             normalized_end,
@@ -142,13 +143,23 @@ class _RangeCachingProvider:
             self._fetches += 1
             if not _cacheable_rows(rows):
                 return rows
-            bucket = self._bars.setdefault(key, {})
+            prepared: dict[int, dict[str, Any]] = {}
             for row in rows:
                 timestamp = int(row["time"])
                 if missing_start <= timestamp <= missing_end:
-                    copied = copy.deepcopy(row)
-                    bucket[timestamp] = copied
-                    result_rows[timestamp] = copy.deepcopy(copied)
+                    prepared[timestamp] = copy.deepcopy(row)
+            # Validate/copy the fetched batch before publishing rows or index.
+            # A malformed row must not leave an unindexed partial insertion.
+            bucket = self._bars.setdefault(key, {})
+            new_times = {timestamp for timestamp in prepared if timestamp not in bucket}
+            bucket.update(prepared)
+            result_rows.update(copy.deepcopy(prepared))
+            times = self._times.setdefault(key, [])
+            added = sorted(new_times)
+            if added and times and added[0] <= times[-1]:
+                times[:] = sorted([*times, *added])
+            else:
+                times.extend(added)
             self._ranges[key] = _merge_ranges(
                 [*self._ranges.get(key, []), (missing_start, missing_end)]
             )
@@ -180,6 +191,7 @@ class _RangeCachingProvider:
         # Dropping coverage is safe: later calls refetch authoritative evidence.
         # The current request still returns its already materialized rows.
         self._bars.pop(active_key, None)
+        self._times.pop(active_key, None)
         self._ranges.pop(active_key, None)
 
 

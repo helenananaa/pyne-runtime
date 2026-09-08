@@ -1475,6 +1475,11 @@ def _preview_copy_memo(value: Any) -> dict[int, Any]:
         if isinstance(current, ModuleType):
             proxy = module_proxies.setdefault(identity, _PreviewModuleProxy(current))
             memo[identity] = proxy
+        elif type(current) is IncrementalRequestModule:
+            # This exact runtime facade already shares itself in __deepcopy__.
+            # Walking its provider/cache graph creates memo entries that copy
+            # will never consume. Separately exposed user aliases are still walked.
+            continue
         elif isinstance(
             current,
             (BuiltinFunctionType, BuiltinMethodType, FunctionType, MethodType, type),

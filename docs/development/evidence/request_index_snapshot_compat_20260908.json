@@ -1,0 +1,17 @@
+{
+  "baseline": "41033bb",
+  "semanticsVersion": 2,
+  "historyBars": 64,
+  "verified": [
+    {
+      "mode": "state",
+      "snapshotSha256": "2d153e6fc7ffda5abc427d6f3af321354f9a684e2f4f32ea01be89bf389d36bc",
+      "restoredAndContinued": true
+    },
+    {
+      "mode": "replay",
+      "snapshotSha256": "9640fb1834100c917c9d4010fd0dca68c560abab83b7497fc3790c4092f0f5df",
+      "restoredAndContinued": true
+    }
+  ]
+}

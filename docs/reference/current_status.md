@@ -167,6 +167,13 @@ See [diagnostic retention acceptance](../development/request_diagnostic_retentio
 and the historical
 [performance baseline](../development/semantic_workload_performance_zh.md).
 
+The following request optimization adds indexed cache interval lookup and avoids
+ineffective preview traversal into the already-shared request facade. Nine paired
+old/new workload cases retain identical output digests; 1024-bar preview median
+paired ratio is 0.440 on the measured host, at a small index memory cost. Cache
+budgets are unchanged and semantics-2 portable snapshots remain compatible. See
+[paired request acceptance](../development/request_index_preview_zh.md).
+
 The `0.2.0rc1` closure slice is implemented in the repository: package version,
 current-status generation, historical-plan routing, local/CI contract checks,
 capture parity gates, and distribution smoke checks are now one release-candidate

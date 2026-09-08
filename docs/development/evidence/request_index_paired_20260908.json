@@ -1,0 +1,3589 @@
+{
+  "schema": "pyne.paired-request-performance/1",
+  "completed": true,
+  "startedUtc": "2026-09-08T01:00:52.044009+00:00",
+  "python": "3.12.7 | packaged by Anaconda, Inc. | (main, Oct  4 2024, 13:17:27) [MSC v.1929 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "sourceRoots": {
+    "before": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\build\\request-index\\baseline\\src",
+    "after": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\src"
+  },
+  "sourceSha256": {
+    "before": "4753f8d777656b2d994a4d8e0d0282999a73c1f844458b98cfab6d3295d15645",
+    "after": "4ee1e581dd55f465baa5126603fe5175bd5432f02e7ea32c49e228ed7e0301f2"
+  },
+  "harnessSha256": "0d3aa7cbf785d42d327f07290d4b2b8cdcaa146568bae6c579cff1e0f2b33e83",
+  "comparatorSha256": "f23fc43d376d9b572aac197009da75024ccdc0f67c87bfe96a39ea84992fa8ce",
+  "method": "alternating before/after fresh processes; histories 64/256/1024; samples 32; retention 64; max_bars 256; output hashing outside timed/traced sections; same source scripts and provider; per-case semantic digest equality required",
+  "repeats": 3,
+  "pairs": [
+    {
+      "repeat": 0,
+      "history": 64,
+      "before": {
+        "workload": "requests",
+        "historyBars": 64,
+        "preview": {
+          "samplesMs": [
+            8.5346,
+            9.3916,
+            8.8924,
+            8.4196,
+            9.6013,
+            9.0719,
+            9.4074,
+            9.0635,
+            8.9638,
+            9.3232,
+            9.4248,
+            10.1068,
+            9.482,
+            8.7812,
+            9.4677,
+            9.1762,
+            9.1243,
+            9.305,
+            9.3716,
+            9.3255,
+            9.2247,
+            9.0708,
+            10.5689,
+            8.8696,
+            9.1992,
+            11.2074,
+            9.6997,
+            9.7267,
+            10.4961,
+            9.5536,
+            9.7912,
+            9.2207,
+            10.1823,
+            9.5949,
+            10.7606,
+            9.7941,
+            10.5236,
+            9.591,
+            10.0016,
+            10.371,
+            9.5332,
+            11.2405,
+            9.8491,
+            12.2126,
+            10.958,
+            9.8572,
+            10.833,
+            10.9923,
+            11.3421,
+            11.6942,
+            10.6846,
+            11.1915,
+            10.4944,
+            10.6385,
+            12.7672,
+            11.3579,
+            12.5503,
+            10.8578,
+            10.6587,
+            10.533,
+            10.723,
+            10.056,
+            11.077,
+            10.0713
+          ],
+          "medianMs": 9.8216,
+          "p95Ms": 11.6942,
+          "maxMs": 12.7672,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            3.2789,
+            5.2947,
+            3.349,
+            3.425,
+            4.3937,
+            3.7742,
+            3.6814,
+            3.4149,
+            3.7465,
+            3.9593,
+            3.4703,
+            3.1971,
+            4.1105,
+            5.253,
+            4.0938,
+            3.6481,
+            3.9596,
+            4.0119,
+            3.9424,
+            4.1995,
+            5.2486,
+            4.4905,
+            4.4246,
+            4.5091,
+            4.3343,
+            4.4593,
+            4.1422,
+            5.1303,
+            3.9102,
+            4.3073,
+            5.0885,
+            4.4701
+          ],
+          "medianMs": 4.10215,
+          "p95Ms": 5.253,
+          "maxMs": 5.2947,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.2785,
+                1.2472,
+                1.3267
+              ],
+              "medianMs": 1.2785,
+              "p95Ms": 1.3267,
+              "maxMs": 1.3267,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                1.9594,
+                2.2579,
+                2.002
+              ],
+              "medianMs": 2.002,
+              "p95Ms": 2.2579,
+              "maxMs": 2.2579,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 37519,
+            "encode": {
+              "samplesMs": [
+                5.9339,
+                4.0639,
+                3.8916
+              ],
+              "medianMs": 4.0639,
+              "p95Ms": 5.9339,
+              "maxMs": 5.9339,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                5.8185,
+                5.288,
+                5.2758
+              ],
+              "medianMs": 5.288,
+              "p95Ms": 5.8185,
+              "maxMs": 5.8185,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": true,
+            "bytes": 5822,
+            "encode": {
+              "samplesMs": [
+                0.8792,
+                1.0639,
+                0.9564
+              ],
+              "medianMs": 0.9564,
+              "p95Ms": 1.0639,
+              "maxMs": 1.0639,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                126.8999,
+                124.8212,
+                124.5208
+              ],
+              "medianMs": 124.8212,
+              "p95Ms": 126.8999,
+              "maxMs": 126.8999,
+              "count": 3
+            }
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 274016,
+          "peakPythonBytes": 492340
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "cd01c8d75ef577c8ee4ca25229025b399265f596359bfd6c6e501eed4ae6f08c",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\build\\request-index\\baseline\\src\\pyne_runtime\\__init__.py"
+      },
+      "after": {
+        "workload": "requests",
+        "historyBars": 64,
+        "preview": {
+          "samplesMs": [
+            8.6474,
+            9.3237,
+            8.1519,
+            10.4444,
+            8.6398,
+            9.0799,
+            8.0917,
+            9.3715,
+            9.0315,
+            12.6174,
+            10.81,
+            9.2738,
+            10.427,
+            10.3368,
+            12.0845,
+            11.8117,
+            10.2896,
+            8.6233,
+            8.7465,
+            8.1202,
+            9.7271,
+            9.6164,
+            9.8652,
+            8.4618,
+            8.9252,
+            8.7174,
+            9.5173,
+            8.8582,
+            8.7823,
+            8.5791,
+            8.8472,
+            8.8386,
+            8.0772,
+            7.8036,
+            8.5556,
+            8.0449,
+            9.5603,
+            9.1828,
+            8.3019,
+            9.5683,
+            8.8625,
+            8.5607,
+            8.6633,
+            10.6367,
+            8.8516,
+            8.9917,
+            8.5639,
+            8.9734,
+            9.1455,
+            10.1408,
+            10.2016,
+            8.1385,
+            9.2539,
+            8.9259,
+            9.3983,
+            9.1866,
+            9.6311,
+            11.7896,
+            8.9668,
+            10.1813,
+            9.982,
+            10.2317,
+            9.6767,
+            9.0998
+          ],
+          "medianMs": 9.08985,
+          "p95Ms": 11.7896,
+          "maxMs": 12.6174,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            3.4722,
+            4.1914,
+            4.0815,
+            3.492,
+            4.4427,
+            4.3147,
+            4.7409,
+            4.0392,
+            4.6091,
+            3.5513,
+            4.3598,
+            4.655,
+            3.6358,
+            4.2549,
+            4.5872,
+            4.1425,
+            4.6771,
+            5.0998,
+            4.0975,
+            4.0315,
+            4.1958,
+            3.7111,
+            3.7543,
+            4.0573,
+            4.7372,
+            4.1429,
+            4.5645,
+            5.0871,
+            4.6398,
+            4.7385,
+            4.37,
+            5.8317
+          ],
+          "medianMs": 4.284800000000001,
+          "p95Ms": 5.0998,
+          "maxMs": 5.8317,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.2233,
+                1.5708,
+                1.1727
+              ],
+              "medianMs": 1.2233,
+              "p95Ms": 1.5708,
+              "maxMs": 1.5708,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                1.9476,
+                2.0646,
+                1.8614
+              ],
+              "medianMs": 1.9476,
+              "p95Ms": 2.0646,
+              "maxMs": 2.0646,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 37519,
+            "encode": {
+              "samplesMs": [
+                6.1401,
+                4.3472,
+                4.317
+              ],
+              "medianMs": 4.3472,
+              "p95Ms": 6.1401,
+              "maxMs": 6.1401,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                5.9607,
+                5.7716,
+                6.4311
+              ],
+              "medianMs": 5.9607,
+              "p95Ms": 6.4311,
+              "maxMs": 6.4311,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": true,
+            "bytes": 5822,
+            "encode": {
+              "samplesMs": [
+                1.0232,
+                1.0244,
+                0.9871
+              ],
+              "medianMs": 1.0232,
+              "p95Ms": 1.0244,
+              "maxMs": 1.0244,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                138.4183,
+                130.6022,
+                138.0132
+              ],
+              "medianMs": 138.0132,
+              "p95Ms": 138.4183,
+              "maxMs": 138.4183,
+              "count": 3
+            }
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 275600,
+          "peakPythonBytes": 493764
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "cd01c8d75ef577c8ee4ca25229025b399265f596359bfd6c6e501eed4ae6f08c",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\src\\pyne_runtime\\__init__.py"
+      },
+      "equalOutputs": true
+    },
+    {
+      "repeat": 0,
+      "history": 256,
+      "before": {
+        "workload": "requests",
+        "historyBars": 256,
+        "preview": {
+          "samplesMs": [
+            16.2587,
+            15.7624,
+            16.1824,
+            16.8127,
+            16.6581,
+            16.2288,
+            19.1837,
+            18.1052,
+            16.6924,
+            15.7117,
+            18.1126,
+            17.5842,
+            17.7073,
+            17.251,
+            17.8605,
+            18.0183,
+            17.7966,
+            17.7857,
+            18.5432,
+            19.394,
+            17.7686,
+            20.1602,
+            19.1549,
+            20.3278,
+            18.5459,
+            17.1406,
+            16.7322,
+            16.3506,
+            17.4349,
+            16.9796,
+            16.4423,
+            17.7691,
+            16.6758,
+            16.9496,
+            16.8415,
+            18.792,
+            17.7084,
+            17.2734,
+            19.1249,
+            17.0612,
+            19.2624,
+            17.784,
+            17.9862,
+            17.7597,
+            17.4719,
+            17.381,
+            16.9475,
+            16.4164,
+            16.6611,
+            16.6748,
+            17.2121,
+            18.4863,
+            16.6212,
+            17.415,
+            18.1066,
+            17.0867,
+            17.0018,
+            16.3006,
+            17.6043,
+            17.2428,
+            16.4772,
+            16.52,
+            17.1016,
+            18.0685
+          ],
+          "medianMs": 17.327199999999998,
+          "p95Ms": 19.2624,
+          "maxMs": 20.3278,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            7.7275,
+            7.572,
+            7.407,
+            9.0729,
+            7.795,
+            8.1316,
+            7.9209,
+            8.379,
+            9.4904,
+            8.6779,
+            10.2527,
+            9.6612,
+            8.5305,
+            7.7893,
+            8.3438,
+            8.1457,
+            8.0787,
+            8.5871,
+            8.4369,
+            7.843,
+            7.9964,
+            8.014,
+            7.4701,
+            7.5489,
+            7.9144,
+            9.0813,
+            8.6408,
+            7.9289,
+            7.8218,
+            7.8588,
+            7.5424,
+            8.0565
+          ],
+          "medianMs": 8.03525,
+          "p95Ms": 9.6612,
+          "maxMs": 10.2527,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.8766,
+                1.9823,
+                2.0619
+              ],
+              "medianMs": 1.9823,
+              "p95Ms": 2.0619,
+              "maxMs": 2.0619,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                2.5725,
+                2.5897,
+                2.7063
+              ],
+              "medianMs": 2.5897,
+              "p95Ms": 2.7063,
+              "maxMs": 2.7063,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 38262,
+            "encode": {
+              "samplesMs": [
+                6.1724,
+                4.5248,
+                4.7949
+              ],
+              "medianMs": 4.7949,
+              "p95Ms": 6.1724,
+              "maxMs": 6.1724,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                5.5333,
+                5.3815,
+                5.4051
+              ],
+              "medianMs": 5.4051,
+              "p95Ms": 5.5333,
+              "maxMs": 5.5333,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": true,
+            "bytes": 20159,
+            "encode": {
+              "samplesMs": [
+                3.0868,
+                3.3156,
+                3.1993
+              ],
+              "medianMs": 3.1993,
+              "p95Ms": 3.3156,
+              "maxMs": 3.3156,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                1601.5462,
+                1371.0064,
+                1380.5768
+              ],
+              "medianMs": 1380.5768,
+              "p95Ms": 1601.5462,
+              "maxMs": 1601.5462,
+              "count": 3
+            }
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 634611,
+          "peakPythonBytes": 1073159
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "afcb5e04443c0a610be929ed91273d4dea08b6faffaf76429159aaeaf35c3468",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\build\\request-index\\baseline\\src\\pyne_runtime\\__init__.py"
+      },
+      "after": {
+        "workload": "requests",
+        "historyBars": 256,
+        "preview": {
+          "samplesMs": [
+            19.1765,
+            15.5141,
+            18.191,
+            19.3044,
+            18.2308,
+            19.4311,
+            19.2132,
+            18.3974,
+            19.1584,
+            20.0507,
+            21.4178,
+            21.1162,
+            21.3166,
+            20.7643,
+            20.3399,
+            16.8913,
+            19.705,
+            20.5839,
+            20.2402,
+            19.6737,
+            18.8339,
+            20.3896,
+            19.982,
+            16.1716,
+            19.8307,
+            19.8679,
+            16.0345,
+            20.1158,
+            19.3908,
+            19.4635,
+            19.0753,
+            15.9107,
+            16.8302,
+            17.8438,
+            17.0227,
+            17.6761,
+            17.2373,
+            17.4163,
+            17.104,
+            17.9278,
+            18.4403,
+            20.0427,
+            18.297,
+            16.7712,
+            17.6871,
+            17.4754,
+            18.1372,
+            16.4495,
+            16.916,
+            19.4911,
+            16.9873,
+            18.9195,
+            16.8518,
+            17.6167,
+            14.8183,
+            20.098,
+            19.1366,
+            19.5394,
+            19.1629,
+            18.2589,
+            18.9948,
+            18.2394,
+            17.9,
+            19.0394
+          ],
+          "medianMs": 18.8767,
+          "p95Ms": 20.7643,
+          "maxMs": 21.4178,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            10.5339,
+            13.3357,
+            13.042,
+            12.5047,
+            11.8619,
+            13.8091,
+            14.1992,
+            14.366,
+            13.3855,
+            12.2078,
+            12.5236,
+            13.5123,
+            12.6476,
+            11.4096,
+            12.074,
+            11.1865,
+            10.0705,
+            9.3467,
+            11.3401,
+            10.5861,
+            12.4019,
+            8.5077,
+            11.4392,
+            12.4533,
+            11.5411,
+            9.1547,
+            11.2496,
+            13.5134,
+            12.5576,
+            12.1185,
+            11.3968,
+            12.4856
+          ],
+          "medianMs": 12.16315,
+          "p95Ms": 14.1992,
+          "maxMs": 14.366,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                2.3736,
+                2.3338,
+                2.2278
+              ],
+              "medianMs": 2.3338,
+              "p95Ms": 2.3736,
+              "maxMs": 2.3736,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                3.1858,
+                3.3565,
+                2.9916
+              ],
+              "medianMs": 3.1858,
+              "p95Ms": 3.3565,
+              "maxMs": 3.3565,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 38262,
+            "encode": {
+              "samplesMs": [
+                8.0678,
+                5.839,
+                5.3567
+              ],
+              "medianMs": 5.839,
+              "p95Ms": 8.0678,
+              "maxMs": 8.0678,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                6.2103,
+                5.997,
+                7.922
+              ],
+              "medianMs": 6.2103,
+              "p95Ms": 7.922,
+              "maxMs": 7.922,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": true,
+            "bytes": 20159,
+            "encode": {
+              "samplesMs": [
+                3.4629,
+                3.0359,
+                3.5571
+              ],
+              "medianMs": 3.4629,
+              "p95Ms": 3.5571,
+              "maxMs": 3.5571,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                1426.273,
+                1469.1634,
+                1856.1499
+              ],
+              "medianMs": 1469.1634,
+              "p95Ms": 1856.1499,
+              "maxMs": 1856.1499,
+              "count": 3
+            }
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 637357,
+          "peakPythonBytes": 1075950
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "afcb5e04443c0a610be929ed91273d4dea08b6faffaf76429159aaeaf35c3468",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\src\\pyne_runtime\\__init__.py"
+      },
+      "equalOutputs": true
+    },
+    {
+      "repeat": 0,
+      "history": 1024,
+      "before": {
+        "workload": "requests",
+        "historyBars": 1024,
+        "preview": {
+          "samplesMs": [
+            33.158,
+            39.4578,
+            38.3083,
+            29.3979,
+            36.0836,
+            35.759,
+            37.0735,
+            34.8488,
+            41.6551,
+            31.6512,
+            26.0438,
+            30.7153,
+            27.3164,
+            28.8472,
+            29.1245,
+            28.4502,
+            26.3946,
+            27.4172,
+            29.6417,
+            29.8955,
+            29.1947,
+            27.3118,
+            25.8333,
+            25.7477,
+            24.5701,
+            24.2357,
+            27.6824,
+            26.6463,
+            30.2072,
+            29.6148,
+            27.5744,
+            30.2877,
+            25.9898,
+            27.7412,
+            27.1932,
+            27.1359,
+            29.2263,
+            31.0811,
+            32.4662,
+            27.2802,
+            29.9033,
+            25.3321,
+            27.8481,
+            25.2012,
+            30.0915,
+            27.9303,
+            28.3755,
+            27.8815,
+            30.7461,
+            32.8069,
+            27.9655,
+            28.0432,
+            30.4086,
+            34.83,
+            37.1736,
+            47.7837,
+            61.5731,
+            48.7021,
+            37.7725,
+            34.5287,
+            31.0079,
+            34.7933,
+            34.8119,
+            31.7275
+          ],
+          "medianMs": 29.62825,
+          "p95Ms": 41.6551,
+          "maxMs": 61.5731,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            10.5941,
+            8.9451,
+            9.7295,
+            18.9537,
+            10.8491,
+            10.3167,
+            9.5697,
+            10.5711,
+            10.258,
+            8.3231,
+            10.6613,
+            8.0037,
+            9.2065,
+            8.3138,
+            11.7212,
+            9.948,
+            9.029,
+            8.8648,
+            8.4757,
+            10.265,
+            10.0437,
+            8.68,
+            8.2372,
+            8.8416,
+            8.8503,
+            10.3596,
+            12.6449,
+            17.8763,
+            16.7882,
+            9.6527,
+            10.3703,
+            10.0232
+          ],
+          "medianMs": 9.9856,
+          "p95Ms": 17.8763,
+          "maxMs": 18.9537,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.1875,
+                1.0825,
+                1.2159
+              ],
+              "medianMs": 1.1875,
+              "p95Ms": 1.2159,
+              "maxMs": 1.2159,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                1.9843,
+                1.7457,
+                1.919
+              ],
+              "medianMs": 1.919,
+              "p95Ms": 1.9843,
+              "maxMs": 1.9843,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 38428,
+            "encode": {
+              "samplesMs": [
+                6.5357,
+                4.4769,
+                5.2333
+              ],
+              "medianMs": 5.2333,
+              "p95Ms": 6.5357,
+              "maxMs": 6.5357,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                6.297,
+                7.6082,
+                6.7654
+              ],
+              "medianMs": 6.7654,
+              "p95Ms": 7.6082,
+              "maxMs": 7.6082,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": false,
+            "reason": "Portable snapshot history exceeded max_bars; use the process-local snapshot or start a new portable checkpoint boundary"
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 1225336,
+          "peakPythonBytes": 1744028
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "0efa5668ac9e825245e32661501c27fa5ec60df62ecf6208db9c5ed3c2048811",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\build\\request-index\\baseline\\src\\pyne_runtime\\__init__.py"
+      },
+      "after": {
+        "workload": "requests",
+        "historyBars": 1024,
+        "preview": {
+          "samplesMs": [
+            12.4492,
+            12.6787,
+            13.8616,
+            12.7711,
+            12.6518,
+            12.0377,
+            12.2631,
+            12.3077,
+            12.8178,
+            12.6471,
+            12.3444,
+            13.6409,
+            12.27,
+            16.9174,
+            14.1228,
+            14.564,
+            13.8366,
+            20.7322,
+            20.2864,
+            21.0396,
+            18.6762,
+            15.7839,
+            18.33,
+            18.1391,
+            16.0885,
+            16.5387,
+            14.9258,
+            14.2988,
+            17.1887,
+            16.2693,
+            15.5926,
+            13.65,
+            16.6691,
+            13.0876,
+            12.7233,
+            12.9838,
+            16.8676,
+            14.0572,
+            14.5574,
+            14.8944,
+            12.8092,
+            12.905,
+            12.4285,
+            12.5081,
+            13.1571,
+            12.9397,
+            14.2945,
+            12.1588,
+            12.4494,
+            12.2881,
+            12.5112,
+            12.1597,
+            12.3626,
+            12.9714,
+            12.8666,
+            12.0728,
+            17.5508,
+            13.0691,
+            12.8553,
+            12.8704,
+            13.0018,
+            13.0649,
+            12.7757,
+            12.5968
+          ],
+          "medianMs": 13.033349999999999,
+          "p95Ms": 18.6762,
+          "maxMs": 21.0396,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            7.9595,
+            8.5757,
+            7.5004,
+            8.503,
+            8.5576,
+            8.8061,
+            7.9208,
+            8.7163,
+            14.2803,
+            12.7496,
+            9.7327,
+            9.7432,
+            11.0293,
+            13.0145,
+            11.2766,
+            9.0816,
+            8.5228,
+            10.3026,
+            9.8318,
+            10.0787,
+            8.1785,
+            8.184,
+            7.9331,
+            7.841,
+            7.9056,
+            7.9041,
+            7.9697,
+            9.6951,
+            8.094,
+            8.0409,
+            8.0477,
+            8.6794
+          ],
+          "medianMs": 8.56665,
+          "p95Ms": 13.0145,
+          "maxMs": 14.2803,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.0957,
+                1.522,
+                1.0313
+              ],
+              "medianMs": 1.0957,
+              "p95Ms": 1.522,
+              "maxMs": 1.522,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                1.9005,
+                2.2795,
+                2.0428
+              ],
+              "medianMs": 2.0428,
+              "p95Ms": 2.2795,
+              "maxMs": 2.2795,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 38428,
+            "encode": {
+              "samplesMs": [
+                5.8316,
+                4.3371,
+                3.9457
+              ],
+              "medianMs": 4.3371,
+              "p95Ms": 5.8316,
+              "maxMs": 5.8316,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                6.3266,
+                6.3886,
+                5.9118
+              ],
+              "medianMs": 6.3266,
+              "p95Ms": 6.3886,
+              "maxMs": 6.3886,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": false,
+            "reason": "Portable snapshot history exceeded max_bars; use the process-local snapshot or start a new portable checkpoint boundary"
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 1246969,
+          "peakPythonBytes": 1765661
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "0efa5668ac9e825245e32661501c27fa5ec60df62ecf6208db9c5ed3c2048811",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\src\\pyne_runtime\\__init__.py"
+      },
+      "equalOutputs": true
+    },
+    {
+      "repeat": 1,
+      "history": 1024,
+      "after": {
+        "workload": "requests",
+        "historyBars": 1024,
+        "preview": {
+          "samplesMs": [
+            11.1944,
+            11.253,
+            11.3188,
+            11.8901,
+            10.8409,
+            10.7168,
+            11.3551,
+            11.3983,
+            11.462,
+            10.9772,
+            11.8997,
+            11.456,
+            11.2658,
+            11.1689,
+            11.2736,
+            11.3915,
+            11.3919,
+            11.3655,
+            11.83,
+            12.118,
+            12.1679,
+            12.1567,
+            12.08,
+            11.4808,
+            12.1275,
+            11.3036,
+            11.9297,
+            11.6335,
+            11.8482,
+            11.8733,
+            10.7855,
+            10.8041,
+            11.0611,
+            11.005,
+            11.409,
+            11.0204,
+            11.0984,
+            11.6825,
+            14.3352,
+            11.7406,
+            10.8763,
+            11.0811,
+            11.2283,
+            11.7517,
+            11.6324,
+            11.3975,
+            12.7819,
+            11.8872,
+            12.0244,
+            11.6617,
+            11.7004,
+            11.8068,
+            11.4203,
+            11.4092,
+            11.4796,
+            11.4191,
+            12.9113,
+            11.6283,
+            11.8297,
+            11.7822,
+            11.8528,
+            11.9826,
+            11.6802,
+            11.2748
+          ],
+          "medianMs": 11.4708,
+          "p95Ms": 12.1679,
+          "maxMs": 14.3352,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            7.094,
+            7.391,
+            6.9482,
+            7.448,
+            7.1901,
+            7.2177,
+            7.1006,
+            7.0955,
+            7.0027,
+            7.7878,
+            8.3471,
+            7.7466,
+            7.4902,
+            7.7512,
+            7.0777,
+            7.058,
+            7.2267,
+            7.3091,
+            7.2429,
+            7.7445,
+            7.0028,
+            7.3658,
+            7.2598,
+            7.8807,
+            7.332,
+            7.7908,
+            8.1679,
+            11.9709,
+            7.5347,
+            7.5955,
+            7.5158,
+            7.2925
+          ],
+          "medianMs": 7.3489,
+          "p95Ms": 8.3471,
+          "maxMs": 11.9709,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.0837,
+                1.1055,
+                1.17
+              ],
+              "medianMs": 1.1055,
+              "p95Ms": 1.17,
+              "maxMs": 1.17,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                1.8495,
+                1.8905,
+                1.8084
+              ],
+              "medianMs": 1.8495,
+              "p95Ms": 1.8905,
+              "maxMs": 1.8905,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 38428,
+            "encode": {
+              "samplesMs": [
+                6.1417,
+                3.8605,
+                4.117
+              ],
+              "medianMs": 4.117,
+              "p95Ms": 6.1417,
+              "maxMs": 6.1417,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                6.3119,
+                5.2736,
+                6.0862
+              ],
+              "medianMs": 6.0862,
+              "p95Ms": 6.3119,
+              "maxMs": 6.3119,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": false,
+            "reason": "Portable snapshot history exceeded max_bars; use the process-local snapshot or start a new portable checkpoint boundary"
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 1245214,
+          "peakPythonBytes": 1763906
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "0efa5668ac9e825245e32661501c27fa5ec60df62ecf6208db9c5ed3c2048811",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\src\\pyne_runtime\\__init__.py"
+      },
+      "before": {
+        "workload": "requests",
+        "historyBars": 1024,
+        "preview": {
+          "samplesMs": [
+            37.5923,
+            34.4583,
+            28.428,
+            39.0677,
+            31.2979,
+            27.4786,
+            25.4676,
+            25.4972,
+            24.8362,
+            24.4867,
+            23.8297,
+            28.4969,
+            29.7409,
+            26.9147,
+            29.1131,
+            27.4555,
+            28.5939,
+            30.5774,
+            28.7735,
+            32.0928,
+            33.1603,
+            31.9157,
+            28.5269,
+            32.1116,
+            32.5263,
+            34.0228,
+            31.7458,
+            37.5389,
+            32.9455,
+            40.0118,
+            36.7189,
+            42.5283,
+            36.3671,
+            39.9703,
+            39.6571,
+            33.7119,
+            39.4672,
+            35.2038,
+            37.6248,
+            33.0279,
+            37.3042,
+            34.433,
+            41.0457,
+            35.816,
+            31.2415,
+            32.8854,
+            33.1664,
+            29.45,
+            33.2016,
+            28.5008,
+            28.1497,
+            30.9724,
+            30.6322,
+            35.2538,
+            32.1176,
+            30.0488,
+            27.0119,
+            30.525,
+            34.3072,
+            28.6084,
+            29.7233,
+            28.4927,
+            28.7376,
+            28.7603
+          ],
+          "medianMs": 31.830750000000002,
+          "p95Ms": 39.9703,
+          "maxMs": 42.5283,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            9.0367,
+            13.5729,
+            9.1544,
+            8.485,
+            7.7691,
+            9.8291,
+            11.454,
+            10.3675,
+            10.2163,
+            9.0051,
+            9.9277,
+            11.2444,
+            11.0156,
+            13.4716,
+            12.2778,
+            12.1041,
+            14.2829,
+            12.7716,
+            10.1567,
+            10.9587,
+            9.9958,
+            10.3653,
+            8.9292,
+            9.457,
+            9.0048,
+            11.7984,
+            12.4833,
+            9.2921,
+            10.7408,
+            12.0351,
+            8.5132,
+            10.3397
+          ],
+          "medianMs": 10.3525,
+          "p95Ms": 13.5729,
+          "maxMs": 14.2829,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.2262,
+                1.84,
+                1.6594
+              ],
+              "medianMs": 1.6594,
+              "p95Ms": 1.84,
+              "maxMs": 1.84,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                2.3301,
+                2.6776,
+                2.7985
+              ],
+              "medianMs": 2.6776,
+              "p95Ms": 2.7985,
+              "maxMs": 2.7985,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 38428,
+            "encode": {
+              "samplesMs": [
+                9.1333,
+                5.416,
+                5.0187
+              ],
+              "medianMs": 5.416,
+              "p95Ms": 9.1333,
+              "maxMs": 9.1333,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                8.435,
+                7.0144,
+                8.5395
+              ],
+              "medianMs": 8.435,
+              "p95Ms": 8.5395,
+              "maxMs": 8.5395,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": false,
+            "reason": "Portable snapshot history exceeded max_bars; use the process-local snapshot or start a new portable checkpoint boundary"
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 1230061,
+          "peakPythonBytes": 1748753
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "0efa5668ac9e825245e32661501c27fa5ec60df62ecf6208db9c5ed3c2048811",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\build\\request-index\\baseline\\src\\pyne_runtime\\__init__.py"
+      },
+      "equalOutputs": true
+    },
+    {
+      "repeat": 1,
+      "history": 256,
+      "after": {
+        "workload": "requests",
+        "historyBars": 256,
+        "preview": {
+          "samplesMs": [
+            11.1735,
+            10.7838,
+            11.189,
+            10.9002,
+            11.6774,
+            11.4573,
+            11.1212,
+            11.2535,
+            11.0606,
+            11.5257,
+            11.1919,
+            11.3219,
+            11.3193,
+            11.4294,
+            10.7436,
+            11.9586,
+            10.9831,
+            10.9198,
+            10.707,
+            11.1328,
+            11.5442,
+            10.6008,
+            10.932,
+            11.2207,
+            11.3042,
+            11.1155,
+            11.886,
+            11.0711,
+            11.1451,
+            11.076,
+            11.4424,
+            11.332,
+            12.427,
+            12.2296,
+            11.032,
+            11.0956,
+            11.7299,
+            11.2379,
+            11.4736,
+            11.0987,
+            11.3086,
+            11.614,
+            15.1252,
+            12.281,
+            11.4285,
+            11.4017,
+            12.0301,
+            12.2125,
+            11.9001,
+            11.4689,
+            12.6688,
+            11.55,
+            10.8899,
+            15.2282,
+            11.7184,
+            11.2825,
+            12.0383,
+            12.3087,
+            11.6642,
+            12.3652,
+            11.6226,
+            11.3734,
+            13.0092,
+            12.3353
+          ],
+          "medianMs": 11.387550000000001,
+          "p95Ms": 12.6688,
+          "maxMs": 15.2282,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            7.1248,
+            7.0673,
+            7.2782,
+            7.3347,
+            7.2213,
+            7.1828,
+            7.4074,
+            7.0126,
+            6.8806,
+            7.4496,
+            6.6499,
+            7.1244,
+            7.0253,
+            7.1466,
+            6.9956,
+            7.1202,
+            7.562,
+            7.072,
+            7.2521,
+            7.3515,
+            7.2585,
+            7.6152,
+            7.0487,
+            7.6632,
+            6.8619,
+            7.1086,
+            7.8199,
+            7.8147,
+            7.5225,
+            7.9465,
+            7.2493,
+            8.0582
+          ],
+          "medianMs": 7.2353000000000005,
+          "p95Ms": 7.9465,
+          "maxMs": 8.0582,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.7984,
+                1.762,
+                1.8048
+              ],
+              "medianMs": 1.7984,
+              "p95Ms": 1.8048,
+              "maxMs": 1.8048,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                2.5265,
+                2.4627,
+                2.4987
+              ],
+              "medianMs": 2.4987,
+              "p95Ms": 2.5265,
+              "maxMs": 2.5265,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 38262,
+            "encode": {
+              "samplesMs": [
+                6.3409,
+                4.5442,
+                4.3774
+              ],
+              "medianMs": 4.5442,
+              "p95Ms": 6.3409,
+              "maxMs": 6.3409,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                5.2068,
+                4.9416,
+                5.0923
+              ],
+              "medianMs": 5.0923,
+              "p95Ms": 5.2068,
+              "maxMs": 5.2068,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": true,
+            "bytes": 20159,
+            "encode": {
+              "samplesMs": [
+                3.4443,
+                2.9749,
+                3.133
+              ],
+              "medianMs": 3.133,
+              "p95Ms": 3.4443,
+              "maxMs": 3.4443,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                1210.9568,
+                1222.3993,
+                1233.9624
+              ],
+              "medianMs": 1222.3993,
+              "p95Ms": 1233.9624,
+              "maxMs": 1233.9624,
+              "count": 3
+            }
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 637447,
+          "peakPythonBytes": 1076040
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "afcb5e04443c0a610be929ed91273d4dea08b6faffaf76429159aaeaf35c3468",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\src\\pyne_runtime\\__init__.py"
+      },
+      "before": {
+        "workload": "requests",
+        "historyBars": 256,
+        "preview": {
+          "samplesMs": [
+            15.0441,
+            15.6412,
+            14.9855,
+            14.8234,
+            15.3119,
+            15.8095,
+            15.4514,
+            15.3125,
+            15.4425,
+            14.8998,
+            14.8947,
+            15.2594,
+            14.606,
+            15.2376,
+            16.2791,
+            14.9922,
+            16.2527,
+            15.5992,
+            15.0026,
+            15.1639,
+            15.8537,
+            15.4256,
+            14.7475,
+            15.4223,
+            15.2386,
+            14.7979,
+            24.1711,
+            15.1138,
+            15.2687,
+            15.2116,
+            15.1582,
+            15.557,
+            15.2785,
+            14.9905,
+            25.6827,
+            15.1174,
+            14.8773,
+            14.8508,
+            14.9827,
+            15.2843,
+            14.5378,
+            14.964,
+            16.066,
+            15.1348,
+            15.0903,
+            15.4879,
+            15.5849,
+            16.603,
+            15.2333,
+            15.1731,
+            14.945,
+            15.4972,
+            15.6892,
+            15.14,
+            15.7147,
+            15.5473,
+            15.2737,
+            15.6614,
+            15.7468,
+            15.5588,
+            15.4151,
+            15.1591,
+            15.2705,
+            14.8685
+          ],
+          "medianMs": 15.264050000000001,
+          "p95Ms": 16.2791,
+          "maxMs": 25.6827,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            7.2928,
+            7.0217,
+            7.5,
+            7.1373,
+            7.1582,
+            7.0119,
+            7.4538,
+            7.0332,
+            6.9628,
+            7.7576,
+            7.5003,
+            7.0273,
+            6.9119,
+            6.9075,
+            7.373,
+            7.2466,
+            6.9381,
+            7.1167,
+            6.9402,
+            7.0737,
+            7.3417,
+            6.9505,
+            7.2363,
+            7.3644,
+            7.1795,
+            7.1379,
+            7.487,
+            7.3017,
+            7.1956,
+            7.168,
+            7.008,
+            7.0275
+          ],
+          "medianMs": 7.14805,
+          "p95Ms": 7.5003,
+          "maxMs": 7.7576,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.8547,
+                1.8997,
+                1.792
+              ],
+              "medianMs": 1.8547,
+              "p95Ms": 1.8997,
+              "maxMs": 1.8997,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                2.5147,
+                2.9017,
+                2.7092
+              ],
+              "medianMs": 2.7092,
+              "p95Ms": 2.9017,
+              "maxMs": 2.9017,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 38262,
+            "encode": {
+              "samplesMs": [
+                6.4548,
+                4.5442,
+                4.6571
+              ],
+              "medianMs": 4.6571,
+              "p95Ms": 6.4548,
+              "maxMs": 6.4548,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                5.8418,
+                5.4531,
+                5.3807
+              ],
+              "medianMs": 5.4531,
+              "p95Ms": 5.8418,
+              "maxMs": 5.8418,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": true,
+            "bytes": 20159,
+            "encode": {
+              "samplesMs": [
+                3.0763,
+                2.8089,
+                2.8823
+              ],
+              "medianMs": 2.8823,
+              "p95Ms": 3.0763,
+              "maxMs": 3.0763,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                1215.2597,
+                1218.8109,
+                1242.0139
+              ],
+              "medianMs": 1218.8109,
+              "p95Ms": 1242.0139,
+              "maxMs": 1242.0139,
+              "count": 3
+            }
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 635466,
+          "peakPythonBytes": 1074014
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "afcb5e04443c0a610be929ed91273d4dea08b6faffaf76429159aaeaf35c3468",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\build\\request-index\\baseline\\src\\pyne_runtime\\__init__.py"
+      },
+      "equalOutputs": true
+    },
+    {
+      "repeat": 1,
+      "history": 64,
+      "after": {
+        "workload": "requests",
+        "historyBars": 64,
+        "preview": {
+          "samplesMs": [
+            8.4966,
+            7.73,
+            9.3939,
+            11.0595,
+            9.6204,
+            8.6183,
+            8.0628,
+            7.6093,
+            7.9394,
+            7.7159,
+            8.8834,
+            8.7525,
+            9.5544,
+            8.4853,
+            8.7885,
+            7.9973,
+            8.0001,
+            7.9938,
+            8.4708,
+            7.984,
+            10.2874,
+            9.1062,
+            8.3831,
+            8.157,
+            8.6195,
+            8.7089,
+            8.6313,
+            8.2119,
+            8.589,
+            8.1683,
+            8.1478,
+            8.052,
+            8.3292,
+            7.9619,
+            8.1874,
+            7.8896,
+            7.9909,
+            7.7093,
+            8.163,
+            7.654,
+            7.9432,
+            7.9353,
+            8.2229,
+            9.1807,
+            8.0249,
+            7.3831,
+            8.0255,
+            8.3938,
+            9.2882,
+            10.0985,
+            8.2188,
+            7.8231,
+            8.6129,
+            8.102,
+            8.1462,
+            8.5821,
+            8.8446,
+            8.7708,
+            8.2998,
+            10.2333,
+            8.5554,
+            8.1078,
+            8.4035,
+            8.5813
+          ],
+          "medianMs": 8.26135,
+          "p95Ms": 10.0985,
+          "maxMs": 11.0595,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            3.7459,
+            3.8436,
+            3.573,
+            3.4278,
+            3.5708,
+            5.7271,
+            5.4485,
+            4.076,
+            3.6933,
+            3.8187,
+            3.8778,
+            3.6509,
+            3.7197,
+            4.0178,
+            3.7957,
+            3.7274,
+            3.8563,
+            3.6236,
+            3.6449,
+            3.6086,
+            4.0555,
+            3.9189,
+            3.5239,
+            4.5081,
+            4.0261,
+            3.8201,
+            3.7865,
+            4.822,
+            4.1697,
+            4.0212,
+            4.1122,
+            3.9656
+          ],
+          "medianMs": 3.83185,
+          "p95Ms": 5.4485,
+          "maxMs": 5.7271,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.4227,
+                1.3665,
+                1.222
+              ],
+              "medianMs": 1.3665,
+              "p95Ms": 1.4227,
+              "maxMs": 1.4227,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                2.4276,
+                2.127,
+                1.937
+              ],
+              "medianMs": 2.127,
+              "p95Ms": 2.4276,
+              "maxMs": 2.4276,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 37519,
+            "encode": {
+              "samplesMs": [
+                5.6722,
+                5.3183,
+                4.3895
+              ],
+              "medianMs": 5.3183,
+              "p95Ms": 5.6722,
+              "maxMs": 5.6722,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                6.3678,
+                5.9765,
+                5.8095
+              ],
+              "medianMs": 5.9765,
+              "p95Ms": 6.3678,
+              "maxMs": 6.3678,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": true,
+            "bytes": 5822,
+            "encode": {
+              "samplesMs": [
+                0.961,
+                0.9298,
+                1.586
+              ],
+              "medianMs": 0.961,
+              "p95Ms": 1.586,
+              "maxMs": 1.586,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                127.4871,
+                143.3173,
+                144.0874
+              ],
+              "medianMs": 143.3173,
+              "p95Ms": 144.0874,
+              "maxMs": 144.0874,
+              "count": 3
+            }
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 275420,
+          "peakPythonBytes": 493584
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "cd01c8d75ef577c8ee4ca25229025b399265f596359bfd6c6e501eed4ae6f08c",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\src\\pyne_runtime\\__init__.py"
+      },
+      "before": {
+        "workload": "requests",
+        "historyBars": 64,
+        "preview": {
+          "samplesMs": [
+            8.3413,
+            8.3952,
+            8.4755,
+            8.1066,
+            8.4265,
+            8.0424,
+            8.3962,
+            8.9985,
+            8.3451,
+            8.4332,
+            8.2162,
+            8.2235,
+            8.5964,
+            8.5232,
+            8.6161,
+            8.449,
+            8.8639,
+            8.5907,
+            8.2485,
+            8.7162,
+            8.5094,
+            8.7882,
+            8.7034,
+            8.3807,
+            8.6198,
+            8.4692,
+            8.6702,
+            8.5852,
+            8.7922,
+            9.486,
+            9.2467,
+            9.3525,
+            8.8652,
+            8.9805,
+            9.2253,
+            10.0963,
+            9.3617,
+            9.2529,
+            9.2662,
+            9.1102,
+            9.1793,
+            9.2901,
+            9.1369,
+            9.1372,
+            9.0602,
+            9.7447,
+            10.0418,
+            9.0161,
+            9.7532,
+            10.3699,
+            9.5213,
+            9.2871,
+            9.4698,
+            9.5753,
+            9.8383,
+            9.7338,
+            9.8385,
+            10.1113,
+            10.3043,
+            9.7963,
+            9.4742,
+            9.8928,
+            9.9914,
+            10.0614
+          ],
+          "medianMs": 9.03815,
+          "p95Ms": 10.0963,
+          "maxMs": 10.3699,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            3.1009,
+            3.0339,
+            3.1256,
+            3.1699,
+            3.0723,
+            3.1946,
+            3.2518,
+            3.2684,
+            3.1914,
+            3.2779,
+            3.2432,
+            3.218,
+            3.2683,
+            3.4415,
+            3.5213,
+            3.4677,
+            3.7397,
+            3.6893,
+            3.7426,
+            3.5806,
+            3.5521,
+            3.7471,
+            3.6941,
+            3.8995,
+            3.7661,
+            3.7377,
+            3.8775,
+            4.0013,
+            4.0619,
+            3.9741,
+            3.9516,
+            5.0256
+          ],
+          "medianMs": 3.5366999999999997,
+          "p95Ms": 4.0619,
+          "maxMs": 5.0256,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.2572,
+                1.2754,
+                1.2498
+              ],
+              "medianMs": 1.2572,
+              "p95Ms": 1.2754,
+              "maxMs": 1.2754,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                2.214,
+                2.3274,
+                2.0367
+              ],
+              "medianMs": 2.214,
+              "p95Ms": 2.3274,
+              "maxMs": 2.3274,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 37519,
+            "encode": {
+              "samplesMs": [
+                6.0171,
+                3.7043,
+                4.2266
+              ],
+              "medianMs": 4.2266,
+              "p95Ms": 6.0171,
+              "maxMs": 6.0171,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                5.1017,
+                5.1159,
+                5.8862
+              ],
+              "medianMs": 5.1159,
+              "p95Ms": 5.8862,
+              "maxMs": 5.8862,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": true,
+            "bytes": 5822,
+            "encode": {
+              "samplesMs": [
+                0.9903,
+                0.8942,
+                0.9343
+              ],
+              "medianMs": 0.9343,
+              "p95Ms": 0.9903,
+              "maxMs": 0.9903,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                124.498,
+                117.4511,
+                119.8849
+              ],
+              "medianMs": 119.8849,
+              "p95Ms": 124.498,
+              "maxMs": 124.498,
+              "count": 3
+            }
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 273161,
+          "peakPythonBytes": 491530
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "cd01c8d75ef577c8ee4ca25229025b399265f596359bfd6c6e501eed4ae6f08c",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\build\\request-index\\baseline\\src\\pyne_runtime\\__init__.py"
+      },
+      "equalOutputs": true
+    },
+    {
+      "repeat": 2,
+      "history": 64,
+      "before": {
+        "workload": "requests",
+        "historyBars": 64,
+        "preview": {
+          "samplesMs": [
+            9.2614,
+            8.6647,
+            8.5893,
+            8.3864,
+            8.334,
+            8.8071,
+            8.7623,
+            8.4157,
+            8.5566,
+            8.4031,
+            9.1855,
+            8.7536,
+            8.8507,
+            8.5469,
+            9.0318,
+            8.8818,
+            9.0067,
+            9.0451,
+            8.8675,
+            8.9586,
+            9.2234,
+            8.9115,
+            9.6205,
+            9.1017,
+            10.2028,
+            9.6931,
+            9.1267,
+            9.1322,
+            9.4299,
+            9.386,
+            9.6748,
+            9.5164,
+            9.4455,
+            9.5536,
+            9.7722,
+            9.6837,
+            9.305,
+            9.3303,
+            10.0065,
+            9.0504,
+            9.0922,
+            9.3538,
+            9.5331,
+            9.3027,
+            9.6522,
+            9.2992,
+            10.113,
+            9.2454,
+            9.5588,
+            9.3349,
+            9.548,
+            10.1368,
+            9.7279,
+            9.4924,
+            9.7881,
+            9.2689,
+            9.7729,
+            9.2716,
+            9.5317,
+            9.6905,
+            9.7391,
+            9.6481,
+            9.5139,
+            9.7677
+          ],
+          "medianMs": 9.30385,
+          "p95Ms": 10.0065,
+          "maxMs": 10.2028,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            3.3472,
+            3.1354,
+            3.2646,
+            3.2437,
+            3.2711,
+            3.2327,
+            3.3645,
+            3.3653,
+            3.4394,
+            3.6544,
+            3.3862,
+            3.8745,
+            3.4727,
+            3.8036,
+            3.5754,
+            3.8597,
+            3.7079,
+            3.8206,
+            3.6926,
+            3.7558,
+            3.6981,
+            3.707,
+            3.6923,
+            3.6866,
+            3.7746,
+            3.6979,
+            3.9544,
+            3.6897,
+            3.7095,
+            3.7917,
+            3.932,
+            3.9521
+          ],
+          "medianMs": 3.69245,
+          "p95Ms": 3.9521,
+          "maxMs": 3.9544,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.1817,
+                1.3121,
+                1.1965
+              ],
+              "medianMs": 1.1965,
+              "p95Ms": 1.3121,
+              "maxMs": 1.3121,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                2.0714,
+                1.9782,
+                1.9307
+              ],
+              "medianMs": 1.9782,
+              "p95Ms": 2.0714,
+              "maxMs": 2.0714,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 37519,
+            "encode": {
+              "samplesMs": [
+                5.2686,
+                4.0364,
+                3.8645
+              ],
+              "medianMs": 4.0364,
+              "p95Ms": 5.2686,
+              "maxMs": 5.2686,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                5.4579,
+                5.5596,
+                5.6168
+              ],
+              "medianMs": 5.5596,
+              "p95Ms": 5.6168,
+              "maxMs": 5.6168,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": true,
+            "bytes": 5822,
+            "encode": {
+              "samplesMs": [
+                0.874,
+                1.0097,
+                0.9502
+              ],
+              "medianMs": 0.9502,
+              "p95Ms": 1.0097,
+              "maxMs": 1.0097,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                120.7559,
+                119.1471,
+                118.2988
+              ],
+              "medianMs": 119.1471,
+              "p95Ms": 120.7559,
+              "maxMs": 120.7559,
+              "count": 3
+            }
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 273431,
+          "peakPythonBytes": 491800
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "cd01c8d75ef577c8ee4ca25229025b399265f596359bfd6c6e501eed4ae6f08c",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\build\\request-index\\baseline\\src\\pyne_runtime\\__init__.py"
+      },
+      "after": {
+        "workload": "requests",
+        "historyBars": 64,
+        "preview": {
+          "samplesMs": [
+            6.9173,
+            6.9189,
+            7.3646,
+            7.1661,
+            7.2138,
+            7.2879,
+            7.2688,
+            7.232,
+            7.6748,
+            7.3899,
+            7.9438,
+            7.3637,
+            7.6758,
+            7.6016,
+            8.2748,
+            7.4972,
+            7.4395,
+            7.8066,
+            7.9003,
+            7.7556,
+            7.6635,
+            7.4131,
+            7.5273,
+            8.3731,
+            7.4401,
+            7.2664,
+            7.5189,
+            7.4624,
+            7.5327,
+            7.4479,
+            7.9354,
+            7.476,
+            7.5682,
+            7.6221,
+            10.8269,
+            8.181,
+            7.8579,
+            8.6892,
+            7.8335,
+            7.4928,
+            8.1216,
+            7.926,
+            7.4538,
+            7.6757,
+            7.8018,
+            7.6882,
+            8.2873,
+            7.6614,
+            7.9637,
+            7.5659,
+            7.6429,
+            7.6004,
+            7.8435,
+            7.9355,
+            8.4758,
+            7.6471,
+            7.8366,
+            7.8495,
+            8.0825,
+            7.7555,
+            8.21,
+            8.0782,
+            7.9812,
+            8.1283
+          ],
+          "medianMs": 7.66915,
+          "p95Ms": 8.3731,
+          "maxMs": 10.8269,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            3.0847,
+            3.1542,
+            3.0627,
+            3.6878,
+            3.2258,
+            3.3118,
+            4.1861,
+            3.274,
+            3.4327,
+            3.3986,
+            3.4198,
+            3.3876,
+            3.4002,
+            3.4213,
+            3.3979,
+            3.602,
+            3.8455,
+            3.442,
+            4.0581,
+            3.4471,
+            3.4818,
+            3.5078,
+            3.5399,
+            4.6034,
+            3.5778,
+            3.6847,
+            3.7683,
+            3.7805,
+            3.687,
+            3.7578,
+            3.9566,
+            3.9054
+          ],
+          "medianMs": 3.4947999999999997,
+          "p95Ms": 4.1861,
+          "maxMs": 4.6034,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.2578,
+                1.2198,
+                1.2912
+              ],
+              "medianMs": 1.2578,
+              "p95Ms": 1.2912,
+              "maxMs": 1.2912,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                2.0656,
+                2.2423,
+                2.2724
+              ],
+              "medianMs": 2.2423,
+              "p95Ms": 2.2724,
+              "maxMs": 2.2724,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 37519,
+            "encode": {
+              "samplesMs": [
+                5.8903,
+                4.0062,
+                3.779
+              ],
+              "medianMs": 4.0062,
+              "p95Ms": 5.8903,
+              "maxMs": 5.8903,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                5.3861,
+                5.558,
+                5.449
+              ],
+              "medianMs": 5.449,
+              "p95Ms": 5.558,
+              "maxMs": 5.558,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": true,
+            "bytes": 5822,
+            "encode": {
+              "samplesMs": [
+                1.3422,
+                0.9938,
+                0.9508
+              ],
+              "medianMs": 0.9938,
+              "p95Ms": 1.3422,
+              "maxMs": 1.3422,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                119.4038,
+                118.4365,
+                128.2304
+              ],
+              "medianMs": 119.4038,
+              "p95Ms": 128.2304,
+              "maxMs": 128.2304,
+              "count": 3
+            }
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 274340,
+          "peakPythonBytes": 492504
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "cd01c8d75ef577c8ee4ca25229025b399265f596359bfd6c6e501eed4ae6f08c",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\src\\pyne_runtime\\__init__.py"
+      },
+      "equalOutputs": true
+    },
+    {
+      "repeat": 2,
+      "history": 256,
+      "before": {
+        "workload": "requests",
+        "historyBars": 256,
+        "preview": {
+          "samplesMs": [
+            15.0408,
+            15.4712,
+            23.1564,
+            15.7718,
+            15.2579,
+            15.0408,
+            15.0546,
+            15.4566,
+            15.5376,
+            15.4752,
+            17.8388,
+            15.3296,
+            17.2825,
+            15.0677,
+            16.5869,
+            16.5969,
+            16.6765,
+            15.594,
+            15.8891,
+            15.6362,
+            15.6908,
+            15.1198,
+            16.286,
+            15.9168,
+            16.4635,
+            16.9865,
+            18.1085,
+            18.1496,
+            15.9327,
+            15.9821,
+            15.4747,
+            16.0989,
+            14.9586,
+            14.727,
+            14.8181,
+            15.3734,
+            14.9677,
+            16.2472,
+            14.8539,
+            15.7386,
+            15.0665,
+            14.8025,
+            14.6391,
+            14.9562,
+            14.7804,
+            14.9861,
+            15.0848,
+            15.3195,
+            15.2052,
+            14.8703,
+            15.0321,
+            15.9144,
+            15.0566,
+            15.0713,
+            15.1562,
+            15.375,
+            15.6169,
+            15.094,
+            14.2803,
+            14.8114,
+            16.2858,
+            15.262,
+            14.8202,
+            14.6045
+          ],
+          "medianMs": 15.3515,
+          "p95Ms": 17.8388,
+          "maxMs": 23.1564,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            7.3079,
+            7.1582,
+            7.2307,
+            7.3678,
+            7.2858,
+            8.146,
+            7.0589,
+            7.7242,
+            7.3627,
+            7.3232,
+            7.9248,
+            7.0815,
+            7.2058,
+            7.9957,
+            7.4384,
+            7.4296,
+            6.8287,
+            6.9764,
+            7.5788,
+            7.1778,
+            6.8125,
+            7.0137,
+            7.2435,
+            7.1517,
+            7.3859,
+            6.8152,
+            7.0542,
+            8.0198,
+            6.714,
+            7.669,
+            7.325,
+            7.0522
+          ],
+          "medianMs": 7.26465,
+          "p95Ms": 8.0198,
+          "maxMs": 8.146,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.9161,
+                1.8888,
+                1.8385
+              ],
+              "medianMs": 1.8888,
+              "p95Ms": 1.9161,
+              "maxMs": 1.9161,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                2.6003,
+                2.6805,
+                2.5903
+              ],
+              "medianMs": 2.6003,
+              "p95Ms": 2.6805,
+              "maxMs": 2.6805,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 38262,
+            "encode": {
+              "samplesMs": [
+                6.4926,
+                4.6114,
+                4.4635
+              ],
+              "medianMs": 4.6114,
+              "p95Ms": 6.4926,
+              "maxMs": 6.4926,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                5.5412,
+                5.4761,
+                5.3866
+              ],
+              "medianMs": 5.4761,
+              "p95Ms": 5.5412,
+              "maxMs": 5.5412,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": true,
+            "bytes": 20159,
+            "encode": {
+              "samplesMs": [
+                2.9809,
+                3.0211,
+                3.1951
+              ],
+              "medianMs": 3.0211,
+              "p95Ms": 3.1951,
+              "maxMs": 3.1951,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                1250.8814,
+                1221.4189,
+                1254.9254
+              ],
+              "medianMs": 1250.8814,
+              "p95Ms": 1254.9254,
+              "maxMs": 1254.9254,
+              "count": 3
+            }
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 632946,
+          "peakPythonBytes": 1071539
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "afcb5e04443c0a610be929ed91273d4dea08b6faffaf76429159aaeaf35c3468",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\build\\request-index\\baseline\\src\\pyne_runtime\\__init__.py"
+      },
+      "after": {
+        "workload": "requests",
+        "historyBars": 256,
+        "preview": {
+          "samplesMs": [
+            11.1451,
+            10.8398,
+            10.953,
+            11.0776,
+            11.3084,
+            11.2845,
+            10.7466,
+            11.055,
+            15.8594,
+            11.8827,
+            11.781,
+            11.8583,
+            12.1641,
+            12.1171,
+            11.9064,
+            11.7323,
+            12.2032,
+            11.5841,
+            11.6505,
+            11.4644,
+            11.5519,
+            11.3353,
+            11.7816,
+            11.1859,
+            11.7908,
+            11.7596,
+            12.0403,
+            11.7332,
+            11.978,
+            11.3425,
+            11.2189,
+            10.8142,
+            11.4857,
+            10.9517,
+            11.4809,
+            10.862,
+            11.2529,
+            10.9832,
+            11.135,
+            12.1086,
+            11.9693,
+            11.4308,
+            11.0512,
+            10.8353,
+            11.9254,
+            11.6771,
+            11.0887,
+            10.9309,
+            11.7572,
+            12.5778,
+            11.9282,
+            11.5832,
+            11.628,
+            12.0972,
+            11.7786,
+            11.7126,
+            13.8021,
+            11.672,
+            11.5092,
+            11.4171,
+            11.65,
+            12.3732,
+            11.9613,
+            12.7224
+          ],
+          "medianMs": 11.639,
+          "p95Ms": 12.5778,
+          "maxMs": 15.8594,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            6.7519,
+            7.0279,
+            6.8035,
+            7.6659,
+            7.5463,
+            7.2079,
+            8.0979,
+            8.3355,
+            7.2408,
+            7.2418,
+            7.1108,
+            7.3263,
+            7.5576,
+            7.3543,
+            6.9835,
+            7.3591,
+            6.901,
+            7.1816,
+            7.0607,
+            8.1476,
+            7.0977,
+            7.5202,
+            7.4132,
+            6.9566,
+            7.2481,
+            7.3357,
+            7.3796,
+            8.1542,
+            7.2905,
+            7.5133,
+            7.3337,
+            7.4633
+          ],
+          "medianMs": 7.33,
+          "p95Ms": 8.1542,
+          "maxMs": 8.3355,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.8106,
+                1.7955,
+                1.7642
+              ],
+              "medianMs": 1.7955,
+              "p95Ms": 1.8106,
+              "maxMs": 1.8106,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                2.514,
+                2.6665,
+                2.4736
+              ],
+              "medianMs": 2.514,
+              "p95Ms": 2.6665,
+              "maxMs": 2.6665,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 38262,
+            "encode": {
+              "samplesMs": [
+                6.3372,
+                4.5755,
+                4.5346
+              ],
+              "medianMs": 4.5755,
+              "p95Ms": 6.3372,
+              "maxMs": 6.3372,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                5.42,
+                5.1838,
+                5.293
+              ],
+              "medianMs": 5.293,
+              "p95Ms": 5.42,
+              "maxMs": 5.42,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": true,
+            "bytes": 20159,
+            "encode": {
+              "samplesMs": [
+                2.8801,
+                3.271,
+                3.1088
+              ],
+              "medianMs": 3.1088,
+              "p95Ms": 3.271,
+              "maxMs": 3.271,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                1257.6446,
+                1240.1377,
+                1268.2294
+              ],
+              "medianMs": 1257.6446,
+              "p95Ms": 1268.2294,
+              "maxMs": 1268.2294,
+              "count": 3
+            }
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 637807,
+          "peakPythonBytes": 1076355
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "afcb5e04443c0a610be929ed91273d4dea08b6faffaf76429159aaeaf35c3468",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\src\\pyne_runtime\\__init__.py"
+      },
+      "equalOutputs": true
+    },
+    {
+      "repeat": 2,
+      "history": 1024,
+      "before": {
+        "workload": "requests",
+        "historyBars": 1024,
+        "preview": {
+          "samplesMs": [
+            23.4324,
+            23.4411,
+            23.8078,
+            23.6102,
+            22.7253,
+            22.1815,
+            23.1001,
+            22.4959,
+            23.5003,
+            22.6813,
+            22.5104,
+            22.357,
+            22.0405,
+            22.2105,
+            22.1545,
+            22.3128,
+            24.644,
+            22.1603,
+            23.0357,
+            22.0817,
+            23.4676,
+            22.2161,
+            22.0617,
+            22.5353,
+            23.097,
+            22.7175,
+            22.7301,
+            26.2053,
+            23.6343,
+            22.1957,
+            22.1974,
+            22.2012,
+            23.5829,
+            23.4285,
+            23.7294,
+            24.0236,
+            22.3458,
+            23.9055,
+            23.9102,
+            22.0209,
+            21.8977,
+            22.2501,
+            22.3313,
+            22.1441,
+            22.0997,
+            21.2905,
+            22.2303,
+            22.6074,
+            21.9196,
+            21.7283,
+            21.851,
+            22.3116,
+            22.1735,
+            34.5381,
+            25.0948,
+            28.53,
+            22.956,
+            22.7403,
+            23.1601,
+            22.7488,
+            23.9919,
+            22.2883,
+            23.3511,
+            23.1986
+          ],
+          "medianMs": 22.64435,
+          "p95Ms": 25.0948,
+          "maxMs": 34.5381,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            8.1032,
+            7.2403,
+            7.1588,
+            6.9528,
+            7.1192,
+            7.2036,
+            7.1004,
+            8.0219,
+            7.1798,
+            7.4065,
+            7.1857,
+            7.0941,
+            7.4152,
+            7.3449,
+            7.0145,
+            7.0296,
+            7.1461,
+            7.0722,
+            7.6918,
+            6.9334,
+            7.4213,
+            7.2292,
+            7.0162,
+            6.9908,
+            7.598,
+            8.7392,
+            7.6272,
+            7.6881,
+            7.7987,
+            7.3733,
+            7.1925,
+            7.421
+          ],
+          "medianMs": 7.2164,
+          "p95Ms": 8.1032,
+          "maxMs": 8.7392,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.0297,
+                0.9898,
+                1.7375
+              ],
+              "medianMs": 1.0297,
+              "p95Ms": 1.7375,
+              "maxMs": 1.7375,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                1.7351,
+                1.7516,
+                2.8704
+              ],
+              "medianMs": 1.7516,
+              "p95Ms": 2.8704,
+              "maxMs": 2.8704,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 38428,
+            "encode": {
+              "samplesMs": [
+                5.6847,
+                3.6523,
+                3.9072
+              ],
+              "medianMs": 3.9072,
+              "p95Ms": 5.6847,
+              "maxMs": 5.6847,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                5.6975,
+                5.3291,
+                5.5238
+              ],
+              "medianMs": 5.5238,
+              "p95Ms": 5.6975,
+              "maxMs": 5.6975,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": false,
+            "reason": "Portable snapshot history exceeded max_bars; use the process-local snapshot or start a new portable checkpoint boundary"
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 1229701,
+          "peakPythonBytes": 1748393
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "0efa5668ac9e825245e32661501c27fa5ec60df62ecf6208db9c5ed3c2048811",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\build\\request-index\\baseline\\src\\pyne_runtime\\__init__.py"
+      },
+      "after": {
+        "workload": "requests",
+        "historyBars": 1024,
+        "preview": {
+          "samplesMs": [
+            17.2497,
+            16.8195,
+            16.8644,
+            17.0659,
+            18.4336,
+            17.6602,
+            17.1296,
+            17.5029,
+            14.8022,
+            17.118,
+            17.2204,
+            17.0458,
+            19.1524,
+            17.824,
+            17.3883,
+            16.1948,
+            17.3577,
+            17.3814,
+            18.1031,
+            16.6201,
+            17.5804,
+            17.1894,
+            16.9751,
+            16.7624,
+            17.2011,
+            18.0012,
+            17.0863,
+            17.1552,
+            16.6763,
+            16.6181,
+            17.3351,
+            16.8938,
+            17.2597,
+            16.4876,
+            16.7935,
+            16.5119,
+            17.8072,
+            17.0057,
+            17.3979,
+            16.1013,
+            16.9209,
+            15.6796,
+            17.096,
+            17.0733,
+            16.8868,
+            13.6542,
+            16.944,
+            19.6446,
+            16.8183,
+            17.4315,
+            16.9705,
+            17.8907,
+            16.0371,
+            17.0125,
+            17.9368,
+            17.3063,
+            17.7418,
+            17.0713,
+            17.2433,
+            16.8994,
+            17.2621,
+            17.083,
+            17.6969,
+            17.3217
+          ],
+          "medianMs": 17.107,
+          "p95Ms": 18.1031,
+          "maxMs": 19.6446,
+          "count": 64
+        },
+        "confirmed": {
+          "samplesMs": [
+            10.9556,
+            11.5292,
+            11.8115,
+            11.8802,
+            11.0564,
+            11.6208,
+            10.5324,
+            10.994,
+            11.6438,
+            10.9509,
+            11.0235,
+            11.0737,
+            10.8382,
+            10.8139,
+            11.0728,
+            11.3944,
+            10.6737,
+            10.3327,
+            11.3272,
+            11.0626,
+            10.7311,
+            10.7559,
+            10.6458,
+            12.5839,
+            11.7406,
+            10.6779,
+            11.9039,
+            11.5904,
+            11.3336,
+            10.9801,
+            11.6041,
+            11.2285
+          ],
+          "medianMs": 11.0677,
+          "p95Ms": 11.9039,
+          "maxMs": 12.5839,
+          "count": 32
+        },
+        "checkpoints": {
+          "local": {
+            "available": true,
+            "bytes": null,
+            "encode": {
+              "samplesMs": [
+                1.6483,
+                1.3932,
+                1.3704
+              ],
+              "medianMs": 1.3932,
+              "p95Ms": 1.6483,
+              "maxMs": 1.6483,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                2.7201,
+                2.5783,
+                2.6495
+              ],
+              "medianMs": 2.6495,
+              "p95Ms": 2.7201,
+              "maxMs": 2.7201,
+              "count": 3
+            }
+          },
+          "state": {
+            "available": true,
+            "bytes": 38428,
+            "encode": {
+              "samplesMs": [
+                8.6331,
+                4.9736,
+                5.7734
+              ],
+              "medianMs": 5.7734,
+              "p95Ms": 8.6331,
+              "maxMs": 8.6331,
+              "count": 3
+            },
+            "restore": {
+              "samplesMs": [
+                8.5955,
+                8.6,
+                8.2155
+              ],
+              "medianMs": 8.5955,
+              "p95Ms": 8.6,
+              "maxMs": 8.6,
+              "count": 3
+            }
+          },
+          "replay": {
+            "available": false,
+            "reason": "Portable snapshot history exceeded max_bars; use the process-local snapshot or start a new portable checkpoint boundary"
+          }
+        },
+        "memory": {
+          "retainedPythonBytes": 1245079,
+          "peakPythonBytes": 1763771
+        },
+        "correctness": "restore/continuation and first-preview isolation passed",
+        "semanticDigest": "0efa5668ac9e825245e32661501c27fa5ec60df62ecf6208db9c5ed3c2048811",
+        "importedRuntime": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\src\\pyne_runtime\\__init__.py"
+      },
+      "equalOutputs": true
+    }
+  ],
+  "finishedUtc": "2026-09-08T01:06:04.253272+00:00"
+}
