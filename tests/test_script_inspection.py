@@ -225,6 +225,89 @@ def on_bar(ctx, bar):
     assert incremental["resourceHints"]["statefulTaInstances"] == 3
 
 
+def test_inspect_script_exposes_advisory_series_ternary_without_blocking_compatibility() -> None:
+    source = """
+indicator("ADX")
+dm_plus = high - high[1] if high - high[1] > low[1] - low else 0
+"""
+    expected = next(
+        item
+        for item in pn.validate(source)
+        if item["code"] == "PYNE_MIGRATION_HINT"
+    )
+    report = pn.inspect_script(source)
+    serialized = json.dumps(report)
+
+    assert report["schemaVersion"] == 2
+    assert report["compatibility"]["supported"] is True
+    assert report["compatibility"]["diagnostics"] == []
+    assert report["migration"]["batchToIncremental"]["eligible"] is True
+    assert source not in serialized
+    advisory = report["migration"]["diagnostics"]
+    assert advisory
+    assert advisory[0]["code"] == expected["code"]
+    assert advisory[0]["message"] == expected["message"]
+    assert advisory[0]["line"] == expected["line"]
+    assert advisory[0]["hint"] == expected["hint"]
+
+
+def test_inspect_script_does_not_advise_scalar_bar_close_or_when_expressions() -> None:
+    scalar = pn.inspect_script(
+        """
+indicator("Scalar", mode="incremental")
+def on_bar(ctx, bar):
+    if bar.close > 0:
+        ctx.plot("Close", bar.close)
+"""
+    )
+    corrected = pn.inspect_script(
+        """
+indicator("When")
+plot(when(close > open, high, low), "Range")
+"""
+    )
+
+    assert scalar["compatibility"]["supported"] is True
+    assert scalar["migration"]["diagnostics"] == []
+    assert scalar["migration"]["batchToIncremental"]["eligible"] is True
+    assert corrected["compatibility"]["supported"] is True
+    assert corrected["migration"]["diagnostics"] == []
+
+
+def test_advisory_does_not_block_legitimate_shadowed_series_name():
+    source = 'indicator("Scalar")\nclose = 3\nif close > 0:\n    plot(1, "Scalar")\n'
+    report = pn.inspect_script(source)
+    assert report["migration"]["diagnostics"] == pn.validate(source)
+    assert report["migration"]["diagnostics"]
+    assert report["compatibility"]["supported"] is True
+    assert report["migration"]["batchToIncremental"]["eligible"] is True
+    result = pn.run(source, [{"time": 1, "open": 1, "high": 2, "low": 0, "close": 1,
+                              "volume": 1}], executor_mode="inline")
+    assert result.ok, result.error
+
+
+def test_inspect_script_syntax_error_keeps_advisory_array_from_hint() -> None:
+    source = "indicator('Broken')\nvalues = array.from(1, 2, 3)\n"
+    expected = next(
+        item
+        for item in pn.validate(source)
+        if item["code"] == "PYNE_MIGRATION_HINT"
+    )
+    report = pn.inspect_script(source)
+    serialized = json.dumps(report)
+
+    assert report["compatibility"]["supported"] is False
+    assert any(item["code"] == "PYNE_SYNTAX_ERROR" for item in report["compatibility"]["diagnostics"])
+    advisory = report["migration"]["diagnostics"]
+    assert advisory
+    assert advisory[0]["code"] == expected["code"]
+    assert advisory[0]["message"] == expected["message"]
+    assert advisory[0]["line"] == expected["line"]
+    assert advisory[0]["hint"] == expected["hint"]
+    assert source not in serialized
+    assert "array.from(1, 2, 3)" not in serialized
+
+
 def test_inspector_v2_marks_dynamic_signature_arguments_unknown() -> None:
     report = pn.inspect_script(
         """

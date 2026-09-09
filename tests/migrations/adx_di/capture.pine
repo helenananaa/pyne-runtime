@@ -1,0 +1,35 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © BeikabuOyaji
+
+//@version=5
+
+
+indicator("Pyne migration ADX DI 20260909", precision=10)
+len = input.int(14)
+th = input.int(20)
+
+TrueRange = math.max(math.max(high-low, math.abs(high-nz(close[1]))), math.abs(low-nz(close[1])))
+DirectionalMovementPlus = high-nz(high[1]) > nz(low[1])-low ? math.max(high-nz(high[1]), 0): 0
+DirectionalMovementMinus = nz(low[1])-low > high-nz(high[1]) ? math.max(nz(low[1])-low, 0): 0
+
+SmoothedTrueRange = 0.0
+SmoothedTrueRange := nz(SmoothedTrueRange[1]) - (nz(SmoothedTrueRange[1])/len) + TrueRange
+
+SmoothedDirectionalMovementPlus = 0.0
+SmoothedDirectionalMovementPlus := nz(SmoothedDirectionalMovementPlus[1]) - (nz(SmoothedDirectionalMovementPlus[1])/len) + DirectionalMovementPlus
+
+SmoothedDirectionalMovementMinus = 0.0
+SmoothedDirectionalMovementMinus := nz(SmoothedDirectionalMovementMinus[1]) - (nz(SmoothedDirectionalMovementMinus[1])/len) + DirectionalMovementMinus
+
+DIPlus = SmoothedDirectionalMovementPlus / SmoothedTrueRange * 100
+DIMinus = SmoothedDirectionalMovementMinus / SmoothedTrueRange * 100
+DX = math.abs(DIPlus-DIMinus) / (DIPlus+DIMinus)*100
+ADX = ta.sma(DX, len)
+
+plot(DIPlus, color=color.green, title="DI+")
+plot(DIMinus, color=color.red, title="DI-")
+plot(ADX, color=color.navy, title="ADX")
+hline(th, color=color.black)
+// Instrumentation only: capture actual chart input and output from the same start.
+if bar_index < 80
+    log.info("PYNE_ADX|" + str.tostring(bar_index) + "|" + str.tostring(time) + "|" + str.tostring(open, "#.##########") + "|" + str.tostring(high, "#.##########") + "|" + str.tostring(low, "#.##########") + "|" + str.tostring(close, "#.##########") + "|" + str.tostring(volume, "#.##########") + "|" + str.tostring(DIPlus, "#.##########") + "|" + str.tostring(DIMinus, "#.##########") + "|" + str.tostring(ADX, "#.##########"))

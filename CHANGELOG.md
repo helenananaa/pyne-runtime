@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Added a real MPL-2.0 ADX/DI migration fixture with 80 TradingView market-bar
+  captures, batch/incremental and restart acceptance. Derivative fixture scripts
+  retain their license and are not part of the installed runtime package.
+- Inspector v2 now exposes the existing advisory migration diagnostics under
+  `migration.diagnostics`, including syntax-error hints, without turning heuristic
+  warnings into capability blockers or changing execution/snapshot semantics.
+- Added a bounded multi-session capacity harness with current RSS, streamed raw
+  event timings, snapshot costs and continuation against the un-restored session.
+
 - Added request-provider fault/recovery acceptance for both supported request
   families, including poisoned-session rejection, typed-state continuation and
   retained confirmed plot points across provider replacement. No runtime change.

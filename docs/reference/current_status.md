@@ -123,6 +123,15 @@ migration evidence is documented separately in the
 
 ## Active Next Stage: 0.3 Development Candidate
 
+The stable-delivery work now includes a real ADX/DI source migration with 80
+TradingView-captured market bars, timestamped batch/incremental prefix comparisons,
+preview isolation and typed-state continuation. Inspector v2 exposes the existing
+advisory migration diagnostics without turning heuristics into capability blocks.
+See [migration acceptance](../development/adx_migration_acceptance_zh.md) and the
+[delivery ledger](../development/stable_delivery_zh.md). The MPL-2.0 derivative
+fixtures remain outside the installed runtime package. Long-session capacity and
+final release qualification remain separate, unfinished gates.
+
 The next acceptance slice is now implemented as five first-party whole-script
 workloads: chained TA, multi-context requests, cache/state, drawings, and strategy
 lifecycle. It exercises repeated preview/restore, bounded retention, 256-bar
