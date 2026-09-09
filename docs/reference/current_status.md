@@ -12,6 +12,11 @@ where the host owns market data, rendering, and operational isolation. Stable
 support is the bounded compatibility contract; it is not a full Pine
 implementation or a production brokerage engine.
 
+The 0.3.0 code candidate has passed complete local Windows/Linux gates and
+same-wheel workflow checks, including the NumPy 1.26.0 floor. The hosted 3×3
+matrix and publication remain pending; see the
+[release readiness record](../development/release_readiness_zh.md).
+
 ## Repository Evidence Snapshot
 
 Run `python scripts/project_status.py --check` to verify this block. When capture
