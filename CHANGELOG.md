@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Documented executable session recovery workflows: fresh-process typed-state
+  continuation, preview-sensitive replay differences, and rebuilding real legacy
+  snapshots from authoritative OHLCV after a semantics mismatch. Runtime behavior
+  and snapshot semantics are unchanged.
+
 - CI and release workflows now install the same built wheel across Linux,
   Windows and macOS on Python 3.11/3.12/3.13. Publication depends on all nine
   installed-wheel checks and consumes the verified artifact without rebuilding.

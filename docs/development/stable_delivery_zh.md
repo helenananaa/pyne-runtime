@@ -48,12 +48,17 @@
 | B 代表性正确性 | `test_semantic_workloads.py`，外部 TA/OCA 捕获与快照测试 | 部分完成；按 U1–U6 核对逐项覆盖，补真实迁移与输入证据，不能以 58 个捕获代表全部流程 |
 | C 长期容量 | 六负载 64/256/1024 年龄基线、请求索引配对报告 | 部分完成；尚缺长期 RSS、多会话混合负载、缓存预算达到/淘汰、频繁 preview 的容量包络 |
 | D 迁移体验 | Inspector v2、cookbook、能力需求榜 | 部分完成；真实任务的诊断到修正到执行闭环待验证 |
-| E 发行包 | Windows 历史完整门禁；现有 CI 与 package smoke | 部分完成；同一 wheel 的九平台组合安装配置正在独立工作树实施，选定提交的远端运行未验证 |
+| E 发行包 | 同一 wheel 的九平台安装配置已整合；Windows 3.12 本地安装通过 | 部分完成；选定提交的远端运行与完整门禁未验证 |
 
 初始核对 HEAD `3e0c5fd`，工作区干净。2026-09-09 已执行状态生成检查和
 `test_semantic_workloads.py`、`test_incremental_request_index.py`、
 `test_capability_demand_backlog.py`：57 passed。这是定向证据，不是完整发行验收。
 此前 1111 passed 为仓库历史验收记录，本轮不据此声称当前发行提交已过门禁。
+
+支持范围切片提交 `187e01c`：文档入口与宿主指南检查 7 passed。其后同一运行时代码
+的 TA 边界、trend/volume、OCA、滚动统计、snapshot semantics 和 portable snapshot
+六个测试文件合计 132 passed（10.61s），本地日志
+`build/stable-delivery/semantic-audit-check.log`。该补充检查未覆盖长期容量或真实迁移。
 
 ## 执行与证据规则
 
@@ -63,7 +68,19 @@ Grok 修改任务使用独立工作树，有界轮数；维护者审核 diff、�
 不把单机短窗口当作 SLA。先测稳定趋势与热点，再决定优化。
 
 当前切片：安装包矩阵（`codex/stable-package-matrix`），只涉及发行验证与文档，
-不修改运行时语义。后续优先完成 U1–U6 的证据缺口审计和长期容量测量。
+不修改运行时语义，已审核整合为 `e6fdead`；详见
+[安装包矩阵验收](package_matrix_acceptance_zh.md)。
+
+U5 补充切片：新进程恢复事件敏感状态、replay-v1 的明确数值差异，以及真实旧快照
+拒绝后 OHLCV 重建/继续，已由 `tests/test_recovery_workflows.py` 验证。
+连同 snapshot semantics 与文档入口检查合计 38 passed，Ruff 通过。重建测试初稿曾
+误用 first-close EMA seed（2 failed）；核对现有外部捕获的三样本均值种子规则后
+修正独立算术预期，未修改运行时或捕获。使用方法见
+[Session Recovery](../tutorials/session_recovery.md)。
+
+Grok 的 U1–U6 只读审计已完成，维护者复核后选择 U2 provider failure/confirmed
+prefix 的直接验收作为下一切片，位于独立工作树 `codex/request-recovery-acceptance`。
+长期容量与真实迁移流程仍待完成；不将候选缺口审计当作完整性证明。
 
 本地修改、审核提交和验证已获授权；远端推送、合并、发布须另有明确授权。
 所有 U1–U6、容量证据、迁移/重建说明、选定发行提交门禁都完成，才可判定可交付。
