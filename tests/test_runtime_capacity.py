@@ -26,7 +26,7 @@ def load_harness():
 def test_rss_positive_on_windows():
     module = load_harness()
     sample = module.current_process_rss()
-    assert "ru_maxrss" not in json.dumps(sample)
+    assert "ru_maxrss" not in sample["source"]
     if sys.platform == "win32":
         assert sample["supported"] is True
         assert sample["source"] == "windows.GetProcessMemoryInfo.WorkingSetSize"
@@ -38,6 +38,15 @@ def test_rss_positive_on_windows():
     else:
         assert sample["supported"] is False
         assert sample["bytes"] is None
+
+
+def test_unsupported_rss_platform_is_explicit_not_zero_or_peak(monkeypatch):
+    module = load_harness()
+    monkeypatch.setattr(module.sys, "platform", "unsupported-os")
+    sample = module.current_process_rss()
+    assert sample["supported"] is False
+    assert sample["bytes"] is None
+    assert sample["source"] == "unsupported"
 
 
 def test_invalid_args_rejected():

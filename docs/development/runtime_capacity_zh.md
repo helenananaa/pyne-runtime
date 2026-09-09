@@ -77,3 +77,7 @@ H:\program\pyne-runtime\.venv\Scripts\python.exe scripts/runtime_capacity.py `
 
 维护者复跑：5 tests passed、Ruff passed；3 会话/96 根/每根2次 preview 的 review-smoke
 完成。证据 build/runtime-capacity/review-smoke.json；这是工具冒烟，长测尚未验收。
+
+跨平台测试复核：未知平台允许用说明文字解释为什么不采用峰值 RSS，测试只检查
+实际 `source` 字段没有把峰值当当前值。新增未知平台返回 `supported=false`、
+`bytes=null` 的直接检查，避免正确的“不可用”说明导致 macOS CI 误报；6 项通过。
