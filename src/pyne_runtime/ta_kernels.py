@@ -176,7 +176,11 @@ def _rolling_weighted_sums(values: np.ndarray, period: int) -> np.ndarray:
             segment_start = output_start - period + 1
             segment = source[segment_start:output_stop]
             simple = float(np.sum(segment[:period]))
-            weighted = float(np.dot(segment[:period], weights))
+            # einsum with optimize=False stays in NumPy, avoiding BLAS thread
+            # dispatch on the tiny period-length seed reduction.
+            weighted = float(
+                np.einsum("i,i->", segment[:period], weights, optimize=False)
+            )
             for end_index in range(output_start, output_stop):
                 result[end_index - period + 1] = weighted
                 relative_end = end_index - output_start + period - 1

@@ -143,9 +143,19 @@ system temp directory permissions or stale pytest cleanup artifacts. Set
 They also build with `python -m build --no-isolation`, so install the dev
 extras first with `python -m pip install -e .[dev]`.
 The package smoke step uses `scripts/package_smoke.py --offline`, which installs
-the just-built wheel with `--no-deps` inside a venv that can see local system
-site packages; this keeps the gate runnable without package-index access while
-still checking wheel contents, CLI entry points, schema output, and example
+the just-built wheel with `--no-deps` and `PIP_NO_INDEX`. After creating the
+temporary venv, offline smoke queries the supplied `--python` interpreter (not
+the driver process) for `sysconfig` `purelib`/`platlib` and writes a `.pth` file
+into the child venv site-packages listing those existing absolute directories.
+That appends the calling environment's dependency dirs after the child
+site-packages so local packages such as numpy remain importable without an
+index, without `site.addsitedir` on the parent, and without processing parent
+`.pth` or editable hooks. `--system-site-packages` still uses the base
+interpreter site; the `.pth` is what inherits the `--python` environment. The
+installed wheel must still resolve from the temporary venv, not repository
+`src` or a parent `pyne_runtime`. This keeps the gate runnable without
+package-index access while still checking wheel contents, CLI entry points,
+schema output, and example
 execution. After those CLI checks, smoke invokes
 `scripts/installed_runtime_acceptance.py` with the same temporary wheel
 interpreter and sanitized environment. That helper must not import pytest,

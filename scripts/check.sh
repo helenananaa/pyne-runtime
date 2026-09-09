@@ -42,6 +42,7 @@ export TMPDIR="$CHECK_TMP"
 git diff --check
 "$PYTHON" -m pytest -p no:cacheprovider --basetemp "$PYTEST_TMP/run"
 "$PYTHON" scripts/performance_smoke.py --check
+"$PYTHON" scripts/incremental_stability_smoke.py --check
 "$PYTHON" scripts/strategy_capture_scaffold.py --check
 "$PYTHON" scripts/strategy_capture_diff.py --assertion parity
 "$PYTHON" scripts/ta_capture_diff.py --assertion parity

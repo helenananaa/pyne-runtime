@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Removed BLAS thread dispatch from weighted rolling seed reduction, fixing the
+  Linux WMA growth gate without changing its 3.0 limit. The formula is unchanged,
+  but unrounded accumulation can differ, so snapshot semantics advances to 3;
+  real semantics-2 snapshots are retained as rejection fixtures.
+- Fixed offline wheel smoke when dependencies are installed in the calling venv
+  rather than its base interpreter. Dependency paths are appended without running
+  parent editable/.pth hooks; the installed wheel still takes precedence.
+- Aligned existing performance and incremental-stability checks across PowerShell,
+  POSIX and CI entry points.
+
 - Qualified the frozen 1/4/8-session long-running workload through 4096 bars per
   session, with current RSS, snapshot/continuation checks, archived raw events and
   independently recomputed latency statistics. Results define a measured range,

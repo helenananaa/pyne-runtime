@@ -21,6 +21,23 @@ Current schema versions:
 
 ## Incremental Snapshot Schemas
 
+### Computation semantics identity
+
+The computation identity is `INCREMENTAL_SEMANTICS_VERSION`, currently **3**.
+Portable payloads carry `semanticsVersion`; local snapshots carry
+`semantics_version`. This identity is independent of the package and snapshot
+wire-format versions. Missing or mismatched identities are rejected with
+`PYNE_SNAPSHOT_SEMANTICS_MISMATCH`, even if other snapshot fields match.
+
+Version 3 replaces the weighted-seed BLAS reduction with a NumPy reduction.
+The mathematical formula is unchanged, but accumulation order can change
+unrounded values used by request expressions and script state. The identity
+therefore advances conservatively. Rebuild version-2 and older sessions from
+authoritative host OHLCV; never relabel old payloads. See
+[Session Recovery](../tutorials/session_recovery.md) for the intrabar-history limit.
+Same-version continuation, script/settings checks and wire-format validation
+still apply; matching this number alone is not sufficient to restore a snapshot.
+
 Process-local incremental snapshots are currently version 2. They are opaque
 Python runtime objects and are valid only for matching script, settings,
 parameters, retention policy, and runtime semantics.

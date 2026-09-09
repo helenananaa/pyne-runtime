@@ -216,6 +216,129 @@ def test_package_smoke_resolves_console_entry_point(tmp_path: Path) -> None:
         assert path == tmp_path / "venv" / "bin" / "pyne"
 
 
+def test_write_offline_parent_site_pth_exposes_deps_without_parent_hooks(
+    tmp_path: Path,
+) -> None:
+    module = _load_package_smoke()
+    parent_site = tmp_path / "parent-site"
+    parent_site.mkdir()
+    (parent_site / "offline_dep.py").write_text("marker = 'parent-dep'\n", encoding="utf-8")
+    parent_pkg = parent_site / "pyne_runtime"
+    parent_pkg.mkdir()
+    (parent_pkg / "__init__.py").write_text("origin = 'parent'\n", encoding="utf-8")
+    sentinel = tmp_path / "parent-hook-sentinel"
+    (parent_site / "parent_hook.pth").write_text("import parent_hook\n", encoding="utf-8")
+    (parent_site / "parent_hook.py").write_text(
+        "from pathlib import Path\n"
+        f"Path({str(sentinel)!r}).write_text('hooked', encoding='utf-8')\n",
+        encoding="utf-8",
+    )
+
+    venv_dir = tmp_path / "venv"
+    subprocess.run(
+        [sys.executable, "-m", "venv", "--without-pip", str(venv_dir)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    child_python = module._venv_python(venv_dir)
+    child_purelib, _child_platlib = module._query_sysconfig_paths(
+        child_python,
+        env=module._sanitized_env(),
+    )
+    child_pkg = child_purelib / "pyne_runtime"
+    child_pkg.mkdir(parents=True)
+    (child_pkg / "__init__.py").write_text("origin = 'child'\n", encoding="utf-8")
+
+    written = module._write_offline_parent_site_pth(
+        parent_purelib=parent_site,
+        parent_platlib=parent_site,
+        child_purelib=child_purelib,
+        venv_dir=venv_dir,
+    )
+    assert written is not None
+    assert written.is_relative_to(venv_dir)
+    assert written.read_text(encoding="utf-8") == f"{parent_site.resolve()}\n"
+
+    completed = subprocess.run(
+        [
+            str(child_python),
+            "-c",
+            (
+                "import offline_dep, pyne_runtime\n"
+                "print(offline_dep.marker)\n"
+                "print(pyne_runtime.origin)\n"
+                "print(pyne_runtime.__file__)\n"
+            ),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=module._sanitized_env(),
+        cwd=tmp_path,
+    )
+    lines = completed.stdout.splitlines()
+    assert lines[0] == "parent-dep"
+    assert lines[1] == "child"
+    assert Path(lines[2]).resolve().is_relative_to(venv_dir.resolve())
+    assert not sentinel.exists()
+
+
+def test_write_offline_parent_site_pth_rejects_newline_paths(tmp_path: Path) -> None:
+    module = _load_package_smoke()
+    child_purelib = tmp_path / "venv" / "site-packages"
+    child_purelib.mkdir(parents=True)
+    parent = tmp_path / "parent\nsite"
+
+    try:
+        module._write_offline_parent_site_pth(
+            parent_purelib=parent,
+            parent_platlib=parent,
+            child_purelib=child_purelib,
+            venv_dir=tmp_path / "venv",
+        )
+    except RuntimeError as exc:
+        assert "newline" in str(exc)
+    else:
+        raise AssertionError("expected newline path rejection")
+
+
+def test_write_offline_parent_site_pth_rejects_child_outside_venv(tmp_path: Path) -> None:
+    module = _load_package_smoke()
+    try:
+        module._write_offline_parent_site_pth(
+            parent_purelib=tmp_path / "parent",
+            parent_platlib=tmp_path / "parent",
+            child_purelib=tmp_path / "other" / "site-packages",
+            venv_dir=tmp_path / "venv",
+        )
+    except RuntimeError as exc:
+        assert "outside smoke venv" in str(exc)
+    else:
+        raise AssertionError("expected child purelib rejection")
+
+
+def test_query_sysconfig_paths_uses_supplied_python(tmp_path: Path, monkeypatch) -> None:
+    module = _load_package_smoke()
+    recorded: list[str] = []
+
+    def fake_run(command, **kwargs):
+        recorded.extend(command[:1])
+        class Result:
+            stdout = '{"purelib": "P", "platlib": "L"}'
+        return Result()
+
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+    python = tmp_path / "override" / "python"
+    purelib, platlib = module._query_sysconfig_paths(
+        python,
+        env=module._sanitized_env({"PATH": "bin"}),
+    )
+    assert recorded == [str(python)]
+    assert purelib == Path("P").resolve()
+    assert platlib == Path("L").resolve()
+
+
 def _load_package_smoke() -> ModuleType:
     spec = spec_from_file_location("package_smoke", SCRIPT)
     assert spec is not None

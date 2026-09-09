@@ -1,0 +1,127 @@
+{
+  "cases": [
+    {
+      "n": 2000,
+      "period": 3,
+      "offset": 0.0,
+      "changedFloats": 1,
+      "maxAbsDiff": 7.41594285980085e-17,
+      "changedAt8Decimals": 0
+    },
+    {
+      "n": 2000,
+      "period": 3,
+      "offset": 1000000000.0,
+      "changedFloats": 0,
+      "maxAbsDiff": 0.0,
+      "changedAt8Decimals": 0
+    },
+    {
+      "n": 2000,
+      "period": 3,
+      "offset": 1000000000000.0,
+      "changedFloats": 0,
+      "maxAbsDiff": 0.0,
+      "changedAt8Decimals": 0
+    },
+    {
+      "n": 2000,
+      "period": 31,
+      "offset": 0.0,
+      "changedFloats": 0,
+      "maxAbsDiff": 0.0,
+      "changedAt8Decimals": 0
+    },
+    {
+      "n": 2000,
+      "period": 31,
+      "offset": 1000000000.0,
+      "changedFloats": 0,
+      "maxAbsDiff": 0.0,
+      "changedAt8Decimals": 0
+    },
+    {
+      "n": 2000,
+      "period": 31,
+      "offset": 1000000000000.0,
+      "changedFloats": 0,
+      "maxAbsDiff": 0.0,
+      "changedAt8Decimals": 0
+    },
+    {
+      "n": 2000,
+      "period": 512,
+      "offset": 0.0,
+      "changedFloats": 1489,
+      "maxAbsDiff": 5.551115123125783e-17,
+      "changedAt8Decimals": 0
+    },
+    {
+      "n": 2000,
+      "period": 512,
+      "offset": 1000000000.0,
+      "changedFloats": 0,
+      "maxAbsDiff": 0.0,
+      "changedAt8Decimals": 0
+    },
+    {
+      "n": 2000,
+      "period": 512,
+      "offset": 1000000000000.0,
+      "changedFloats": 0,
+      "maxAbsDiff": 0.0,
+      "changedAt8Decimals": 0
+    },
+    {
+      "n": 20000,
+      "period": 10000,
+      "offset": 0.0,
+      "changedFloats": 10001,
+      "maxAbsDiff": 1.734723475976807e-17,
+      "changedAt8Decimals": 0
+    },
+    {
+      "n": 20000,
+      "period": 10000,
+      "offset": 1000000000.0,
+      "changedFloats": 0,
+      "maxAbsDiff": 0.0,
+      "changedAt8Decimals": 0
+    },
+    {
+      "n": 20000,
+      "period": 10000,
+      "offset": 1000000000000.0,
+      "changedFloats": 0,
+      "maxAbsDiff": 0.0,
+      "changedAt8Decimals": 0
+    },
+    {
+      "n": 40000,
+      "period": 20000,
+      "offset": 0.0,
+      "changedFloats": 20001,
+      "maxAbsDiff": 1.3877787807814457e-17,
+      "changedAt8Decimals": 0
+    },
+    {
+      "n": 40000,
+      "period": 20000,
+      "offset": 1000000000.0,
+      "changedFloats": 0,
+      "maxAbsDiff": 0.0,
+      "changedAt8Decimals": 0
+    },
+    {
+      "n": 40000,
+      "period": 20000,
+      "offset": 1000000000000.0,
+      "changedFloats": 0,
+      "maxAbsDiff": 0.0,
+      "changedAt8Decimals": 0
+    }
+  ],
+  "maxAbsDiff": 7.41594285980085e-17,
+  "changedFloats": 31492,
+  "changedAt8Decimals": 0
+}

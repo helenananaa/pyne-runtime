@@ -242,6 +242,40 @@ def test_weighted_and_regression_work_is_bounded_by_rebase_chunks(monkeypatch) -
     assert calls <= 8
 
 
+def test_wma_and_linreg_seed_does_not_call_np_dot(monkeypatch) -> None:
+    """Weighted seed must not dispatch through np.dot (BLAS thread storm)."""
+    kernels = importlib.import_module("pyne_runtime.ta_kernels")
+
+    def forbidden(*_args: Any, **_kwargs: Any) -> Any:
+        raise AssertionError("np.dot must not be used on the weighted seed path")
+
+    rng = np.random.default_rng(20260909)
+    source = 1.0e12 + rng.normal(size=256)
+    source[17] = np.nan
+    source[64] = np.inf
+    source[65] = -np.inf
+    module = TaModule()
+    period = 32
+    weights = np.arange(1, period + 1, dtype=np.float64)
+    with np.errstate(invalid="ignore"):
+        expected_wma = _rolling_reference(
+            source,
+            period,
+            lambda window: np.dot(window, weights) / weights.sum(),
+        )
+        expected_linreg = _rolling_linreg_reference(source, period, offset=7)
+    # Compute the independent reference before forbidding only the runtime path.
+    monkeypatch.setattr(kernels.np, "dot", forbidden)
+    actual_wma = np.asarray(module.wma(source, period))
+    actual_linreg = np.asarray(module.linreg(source, period, offset=7))
+    np.testing.assert_array_equal(np.isnan(actual_wma), np.isnan(expected_wma))
+    np.testing.assert_allclose(actual_wma, expected_wma, rtol=1e-14, atol=5e-4, equal_nan=True)
+    np.testing.assert_array_equal(np.isnan(actual_linreg), np.isnan(expected_linreg))
+    np.testing.assert_allclose(
+        actual_linreg, expected_linreg, rtol=1e-12, atol=5e-4, equal_nan=True
+    )
+
+
 def test_pivots_match_causal_confirmation_reference() -> None:
     source = np.array([1.0, 3.0, 2.0, 3.0, 1.0, np.nan, 5.0, 4.0, 2.0, -1.0, 2.0])
     left = 2

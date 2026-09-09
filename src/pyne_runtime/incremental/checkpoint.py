@@ -21,7 +21,7 @@ DEFAULT_PORTABLE_SNAPSHOT_MAX_NODES = 1_000_000
 
 # Independent of package and wire-format versions. Bump when committed state or
 # replay semantics change incompatibly; legacy unmarked checkpoints are unknown.
-INCREMENTAL_SEMANTICS_VERSION = 2
+INCREMENTAL_SEMANTICS_VERSION = 3
 
 
 class PynePortableSnapshotError(ValueError):

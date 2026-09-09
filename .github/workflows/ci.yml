@@ -39,6 +39,11 @@ jobs:
       - name: Test
         run: python -m pytest
 
+      - name: Performance and session stability gates
+        run: |
+          python scripts/performance_smoke.py --check
+          python scripts/incremental_stability_smoke.py --check
+
       - name: Strategy capture gates
         run: |
           python scripts/strategy_capture_scaffold.py --check

@@ -115,13 +115,19 @@ def main(argv: list[str] | None = None) -> int:
     for name, digest in provenance["sha256"].items():
         verify_hash(legacy / name, digest)
     legacy_script = (legacy / "indicator.pyne").read_text(encoding="utf-8")
-    try:
-        pn.PyneIncrementalSession.from_portable_snapshot(
-            (legacy / "state.json").read_bytes(), script=legacy_script)
-    except pn.PynePortableSnapshotError as error:
-        require(error.code == "PYNE_SNAPSHOT_SEMANTICS_MISMATCH", "unexpected legacy rejection")
-    else:
-        raise RuntimeError("legacy snapshot accepted")
+    for folder in ("snapshot_semantics", "snapshot_semantics_v1", "snapshot_semantics_v2"):
+        old = legacy.parent / folder
+        old_provenance = json.loads((old / "provenance.json").read_text(encoding="utf-8"))
+        for name, digest in old_provenance["sha256"].items():
+            verify_hash(old / name, digest)
+        old_script = (old / "indicator.pyne").read_text(encoding="utf-8")
+        try:
+            pn.PyneIncrementalSession.from_portable_snapshot(
+                (old / "state.json").read_bytes(), script=old_script)
+        except pn.PynePortableSnapshotError as error:
+            require(error.code == "PYNE_SNAPSHOT_SEMANTICS_MISMATCH", "unexpected legacy rejection")
+        else:
+            raise RuntimeError(f"legacy snapshot accepted: {folder}")
     rebuilt = pn.PyneIncrementalSession(
         script=legacy_script, settings=pn.PyneSettings(executor_mode="inline", timeframe="1S"))
     rebuild_bars = [dict(time=i, open=float(i+1), high=float(i+2), low=float(i),

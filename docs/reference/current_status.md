@@ -135,6 +135,13 @@ statistics; see [capacity acceptance](../development/capacity_acceptance_zh.md).
 This is a measured workload range, not a production SLA. Final release qualification
 remains unfinished.
 
+Linux qualification exposed weighted-seed BLAS dispatch overhead and an offline
+venv dependency-path gap. Both have focused fixes without relaxed budgets. The
+weighted reduction changes unrounded accumulation order, so computation semantics
+is now **3** and version-2 snapshots require rebuilding. See
+[Linux candidate repairs](../development/linux_candidate_repairs_zh.md);
+the combined candidate still needs full qualification.
+
 The next acceptance slice is now implemented as five first-party whole-script
 workloads: chained TA, multi-context requests, cache/state, drawings, and strategy
 lifecycle. It exercises repeated preview/restore, bounded retention, 256-bar

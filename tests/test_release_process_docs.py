@@ -24,6 +24,8 @@ COMMON_PYTHON_GATE_PREFIXES = (
     ("-m", "ruff", "check", "."),
     ("scripts/project_status.py", "--check"),
     ("-m", "pytest"),
+    ("scripts/performance_smoke.py", "--check"),
+    ("scripts/incremental_stability_smoke.py", "--check"),
     ("scripts/strategy_capture_scaffold.py", "--check"),
     ("scripts/strategy_capture_diff.py", "--assertion", "parity"),
     ("scripts/ta_capture_diff.py", "--assertion", "parity"),
