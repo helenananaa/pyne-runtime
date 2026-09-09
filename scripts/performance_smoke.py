@@ -256,15 +256,13 @@ def _stdev_nan_penalty(repeats: int) -> dict[str, Any]:
 
 def _wma_growth(repeats: int) -> dict[str, Any]:
     module = TaModule()
-
-    def evaluate(count: int) -> float:
-        source = np.sin(np.arange(count, dtype=np.float64) / 17.0)
-        return _median_seconds(lambda: module.wma(source, count // 2), repeats)
-
-    return _growth_check(
+    small_source = np.sin(np.arange(20_000, dtype=np.float64) / 17.0)
+    large_source = np.sin(np.arange(40_000, dtype=np.float64) / 17.0)
+    return _paired_growth_check(
         "wma_time_growth",
-        small=evaluate(20_000),
-        large=evaluate(40_000),
+        small_callback=lambda: module.wma(small_source, 10_000),
+        large_callback=lambda: module.wma(large_source, 20_000),
+        repeats=repeats,
         limit=3.0,
         unit="seconds",
     )
@@ -272,22 +270,13 @@ def _wma_growth(repeats: int) -> dict[str, Any]:
 
 def _order_statistic_growth(repeats: int) -> dict[str, Any]:
     module = TaModule()
-
-    def evaluate(count: int) -> float:
-        source = np.sin(np.arange(count, dtype=np.float64) / 29.0)
-        return _median_seconds(
-            lambda: module.percentile_linear_interpolation(
-                source,
-                count // 2,
-                75,
-            ),
-            repeats,
-        )
-
-    return _growth_check(
+    small_source = np.sin(np.arange(4_000, dtype=np.float64) / 29.0)
+    large_source = np.sin(np.arange(8_000, dtype=np.float64) / 29.0)
+    return _paired_growth_check(
         "rolling_order_statistic_time_growth",
-        small=evaluate(4_000),
-        large=evaluate(8_000),
+        small_callback=lambda: module.percentile_linear_interpolation(small_source, 2_000, 75),
+        large_callback=lambda: module.percentile_linear_interpolation(large_source, 4_000, 75),
+        repeats=repeats,
         limit=3.25,
         unit="seconds",
     )
@@ -530,7 +519,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="return non-zero on a failed budget")
     parser.add_argument("--json", action="store_true", help="print the full JSON report")
-    parser.add_argument("--repeats", type=int, default=3)
+    parser.add_argument("--repeats", type=int, default=9)
     args = parser.parse_args()
 
     report = build_report(repeats=args.repeats)

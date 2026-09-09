@@ -1,0 +1,464 @@
+{
+  "schema": "pyne.release.acceptance.v1",
+  "version": "0.3.0",
+  "semanticsIdentity": 3,
+  "tagCommit": "8379d6bf05f7d1abe04d2c61ff0b786878cd875a",
+  "qualifiedLocalCodeCommit": "eabb9a2a8489590f24439374fe049bf789e38c4f",
+  "release": {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/helenananaa/pyne-runtime/releases/assets/552532317",
+        "contentType": "application/octet-stream",
+        "createdAt": "2026-09-09T10:28:02Z",
+        "digest": "sha256:36f2ba901154c6907f3e18768f9df379d1b7b8ba4fbc5abc34f9eebc346f8189",
+        "downloadCount": 0,
+        "id": "RA_kwDOShqBB84g7vld",
+        "label": "",
+        "name": "pyne_runtime-0.3.0-py3-none-any.whl",
+        "size": 240074,
+        "state": "uploaded",
+        "updatedAt": "2026-09-09T10:28:02Z",
+        "url": "https://github.com/helenananaa/pyne-runtime/releases/download/v0.3.0/pyne_runtime-0.3.0-py3-none-any.whl"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/helenananaa/pyne-runtime/releases/assets/552532320",
+        "contentType": "application/x-gtar",
+        "createdAt": "2026-09-09T10:28:02Z",
+        "digest": "sha256:828a36ce07ee8001fbf5dc3fcddc6e13d6e08788535599d68fe694d261347039",
+        "downloadCount": 0,
+        "id": "RA_kwDOShqBB84g7vlg",
+        "label": "",
+        "name": "pyne_runtime-0.3.0.tar.gz",
+        "size": 3747305,
+        "state": "uploaded",
+        "updatedAt": "2026-09-09T10:28:02Z",
+        "url": "https://github.com/helenananaa/pyne-runtime/releases/download/v0.3.0/pyne_runtime-0.3.0.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/helenananaa/pyne-runtime/releases/assets/552532321",
+        "contentType": "application/octet-stream",
+        "createdAt": "2026-09-09T10:28:02Z",
+        "digest": "sha256:09098ab409a3750edafa122badcb66975817ed0b29fd59bf0a89dad91cee8837",
+        "downloadCount": 0,
+        "id": "RA_kwDOShqBB84g7vlh",
+        "label": "",
+        "name": "SHA256SUMS",
+        "size": 194,
+        "state": "uploaded",
+        "updatedAt": "2026-09-09T10:28:02Z",
+        "url": "https://github.com/helenananaa/pyne-runtime/releases/download/v0.3.0/SHA256SUMS"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "publishedAt": "2026-09-09T10:28:03Z",
+    "tagName": "v0.3.0",
+    "url": "https://github.com/helenananaa/pyne-runtime/releases/tag/v0.3.0"
+  },
+  "ci": {
+    "pr": {
+      "url": "https://github.com/helenananaa/pyne-runtime/actions/runs/34339410311",
+      "headSha": "5dd5b2f35dc08b9d970ba581213c6c3d8b5eab06",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "Build package",
+          "id": 102426385325,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.13 on ubuntu-latest",
+          "id": 102426385584,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.12 on macos-latest",
+          "id": 102426385620,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.11 on macos-latest",
+          "id": 102426385633,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.13 on windows-latest",
+          "id": 102426385705,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.12 on ubuntu-latest",
+          "id": 102426385712,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.11 on windows-latest",
+          "id": 102426385721,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.12 on windows-latest",
+          "id": 102426385764,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.13 on macos-latest",
+          "id": 102426385768,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.11 on ubuntu-latest",
+          "id": 102426385770,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.11 on windows-latest",
+          "id": 102426481508,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.11 on macos-latest",
+          "id": 102426481546,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.13 on macos-latest",
+          "id": 102426481561,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.11 on ubuntu-latest",
+          "id": 102426481571,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.12 on windows-latest",
+          "id": 102426481596,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.12 on macos-latest",
+          "id": 102426481617,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.12 on ubuntu-latest",
+          "id": 102426481646,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.13 on windows-latest",
+          "id": 102426481675,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.13 on ubuntu-latest",
+          "id": 102426481680,
+          "conclusion": "success"
+        }
+      ]
+    },
+    "main": {
+      "url": "https://github.com/helenananaa/pyne-runtime/actions/runs/34339718707",
+      "headSha": "8379d6bf05f7d1abe04d2c61ff0b786878cd875a",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "Python 3.11 on macos-latest",
+          "id": 102428305802,
+          "conclusion": "success"
+        },
+        {
+          "name": "Build package",
+          "id": 102428305996,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.12 on windows-latest",
+          "id": 102428306573,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.11 on ubuntu-latest",
+          "id": 102428306704,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.13 on windows-latest",
+          "id": 102428306739,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.12 on macos-latest",
+          "id": 102428306791,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.12 on ubuntu-latest",
+          "id": 102428306858,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.13 on ubuntu-latest",
+          "id": 102428306933,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.13 on macos-latest",
+          "id": 102428306985,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.13 on windows-latest",
+          "id": 102428307387,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.11 on windows-latest",
+          "id": 102428307478,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.12 on windows-latest",
+          "id": 102428307510,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.13 on macos-latest",
+          "id": 102428307635,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.12 on macos-latest",
+          "id": 102428307800,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.11 on macos-latest",
+          "id": 102428308119,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.11 on ubuntu-latest",
+          "id": 102428336684,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.11 on windows-latest",
+          "id": 102428337729,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.12 on ubuntu-latest",
+          "id": 102428342184,
+          "conclusion": "success"
+        },
+        {
+          "name": "Python 3.13 on ubuntu-latest",
+          "id": 102428352572,
+          "conclusion": "success"
+        }
+      ]
+    },
+    "release": {
+      "url": "https://github.com/helenananaa/pyne-runtime/actions/runs/34340235873",
+      "headSha": "8379d6bf05f7d1abe04d2c61ff0b786878cd875a",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "Build package",
+          "id": 102429058440,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.11 on ubuntu-latest",
+          "id": 102429127493,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.12 on macos-latest",
+          "id": 102429127500,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.12 on ubuntu-latest",
+          "id": 102429127504,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.11 on windows-latest",
+          "id": 102429127510,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.13 on ubuntu-latest",
+          "id": 102429127515,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.13 on macos-latest",
+          "id": 102429127519,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.13 on windows-latest",
+          "id": 102429127557,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.11 on macos-latest",
+          "id": 102429127565,
+          "conclusion": "success"
+        },
+        {
+          "name": "Installed wheel Python 3.12 on windows-latest",
+          "id": 102429127631,
+          "conclusion": "success"
+        },
+        {
+          "name": "Publish verified v0.3.0",
+          "id": 102429386428,
+          "conclusion": "success"
+        }
+      ]
+    }
+  },
+  "mainFirstAttempt": {
+    "url": "https://github.com/helenananaa/pyne-runtime/actions/runs/34339718707",
+    "headSha": "8379d6bf05f7d1abe04d2c61ff0b786878cd875a",
+    "status": "completed",
+    "conclusion": "failure",
+    "jobs": [
+      {
+        "name": "Build package",
+        "id": 102427391180,
+        "conclusion": "success"
+      },
+      {
+        "name": "Python 3.13 on windows-latest",
+        "id": 102427391316,
+        "conclusion": "success"
+      },
+      {
+        "name": "Python 3.11 on macos-latest",
+        "id": 102427391323,
+        "conclusion": "failure"
+      },
+      {
+        "name": "Python 3.11 on ubuntu-latest",
+        "id": 102427391342,
+        "conclusion": "success"
+      },
+      {
+        "name": "Python 3.12 on ubuntu-latest",
+        "id": 102427391371,
+        "conclusion": "success"
+      },
+      {
+        "name": "Python 3.12 on macos-latest",
+        "id": 102427391408,
+        "conclusion": "success"
+      },
+      {
+        "name": "Python 3.12 on windows-latest",
+        "id": 102427391434,
+        "conclusion": "success"
+      },
+      {
+        "name": "Python 3.13 on ubuntu-latest",
+        "id": 102427391450,
+        "conclusion": "success"
+      },
+      {
+        "name": "Python 3.11 on windows-latest",
+        "id": 102427391523,
+        "conclusion": "success"
+      },
+      {
+        "name": "Python 3.13 on macos-latest",
+        "id": 102427391569,
+        "conclusion": "success"
+      },
+      {
+        "name": "Installed wheel Python 3.11 on macos-latest",
+        "id": 102427489834,
+        "conclusion": "success"
+      },
+      {
+        "name": "Installed wheel Python 3.13 on macos-latest",
+        "id": 102427489875,
+        "conclusion": "success"
+      },
+      {
+        "name": "Installed wheel Python 3.11 on windows-latest",
+        "id": 102427489895,
+        "conclusion": "success"
+      },
+      {
+        "name": "Installed wheel Python 3.13 on windows-latest",
+        "id": 102427489909,
+        "conclusion": "success"
+      },
+      {
+        "name": "Installed wheel Python 3.13 on ubuntu-latest",
+        "id": 102427489914,
+        "conclusion": "success"
+      },
+      {
+        "name": "Installed wheel Python 3.11 on ubuntu-latest",
+        "id": 102427489930,
+        "conclusion": "success"
+      },
+      {
+        "name": "Installed wheel Python 3.12 on macos-latest",
+        "id": 102427489986,
+        "conclusion": "success"
+      },
+      {
+        "name": "Installed wheel Python 3.12 on windows-latest",
+        "id": 102427490013,
+        "conclusion": "success"
+      },
+      {
+        "name": "Installed wheel Python 3.12 on ubuntu-latest",
+        "id": 102427490019,
+        "conclusion": "success"
+      }
+    ]
+  },
+  "performanceRerun": {
+    "environment": "macos-latest Python 3.11",
+    "check": "rolling_order_statistic_time_growth",
+    "prRatio": 2.176,
+    "firstMainRatio": 3.36,
+    "rerunRatio": 2.213,
+    "limit": 3.25,
+    "changes": [],
+    "interpretation": "Consistent with timing variability; the rerun alone does not prove the root cause."
+  },
+  "publicAssetVerification": {
+    "sha256sumsMatched": true,
+    "githubDigestsMatched": true,
+    "sizesMatched": true,
+    "wheelMetadataVersion": "0.3.0",
+    "testFixturesExcludedFromWheel": true
+  },
+  "downloadedWheelAcceptance": {
+    "platform": "Windows",
+    "python": "3.12.7",
+    "offline": true,
+    "exitCode": 0,
+    "cases": 5,
+    "pointsChecked": 5074,
+    "semanticsIdentity": 3
+  },
+  "localLogSha256": {
+    "main-macos311-attempt1.log": "08d6d9e63b6a03b1d53e2872e8cca0f67b6a47aa6c5a3954b2124850d5789b07",
+    "main-ci-34339718707-attempt2.log": "3a9222b41ff6bac2ed9848c04a1b844f46b1128e6eef4be23bd72f8d53bf8995",
+    "public-wheel-windows312.log": "7bc60003d5fafcad9a57bbc225eb2af905bebf5eb450bc0c460082df72576e36"
+  },
+  "scope": "Bounded host-agnostic Python runtime; no direct Pine source interpreter, host integration, universal script SLA or hardened multi-tenant sandbox."
+}

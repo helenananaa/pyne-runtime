@@ -4,17 +4,20 @@ This document is the current source of truth for Pyne Runtime's implemented
 capabilities and product boundaries. Roadmaps describe future intent; this page
 describes what the repository can support and substantiate now.
 
-The current source prepares **Pyne Runtime 0.3.0 as a local release candidate**,
-pending final and remote qualification. Version 0.3.0 is not published;
-the verified published package remains 0.2.0rc1. It is a host-embedded,
+**Pyne Runtime 0.3.0 is published and its public assets are verified**.
+The release tag points to `8379d6bf05f7d1abe04d2c61ff0b786878cd875a`.
+It is a host-embedded,
 Pine-like Python runtime for controlled integrations and trusted Python scripts
 where the host owns market data, rendering, and operational isolation. Stable
 support is the bounded compatibility contract; it is not a full Pine
 implementation or a production brokerage engine.
 
-The 0.3.0 code candidate has passed complete local Windows/Linux gates and
-same-wheel workflow checks, including the NumPy 1.26.0 floor. The hosted 3×3
-matrix and publication remain pending; see the
+The 0.3.0 release passed complete local Windows/Linux gates and same-wheel
+workflow checks, including the NumPy 1.26.0 floor. Hosted source and installed
+wheel checks passed on all nine supported OS/Python combinations; the release
+workflow independently passed nine installed-wheel checks before publication.
+One macOS performance check required an unchanged rerun; both results are
+retained in the
 [release readiness record](../development/release_readiness_zh.md).
 
 ## Repository Evidence Snapshot

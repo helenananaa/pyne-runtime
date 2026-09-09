@@ -60,3 +60,35 @@ def test_paired_growth_check_alternates_order_and_keeps_raw_samples(
     assert result["statistic"] == "median_paired_ratio"
     assert result["ratio"] == 2.0
     assert result["passed"] is True
+
+
+@pytest.mark.parametrize("growth,passed", [(2.0, True), (4.0, False)])
+def test_paired_growth_preserves_regression_detection_during_clock_drift(
+    monkeypatch: pytest.MonkeyPatch, growth: float, passed: bool,
+) -> None:
+    module = _load_performance_smoke()
+
+    def small() -> None:
+        return None
+
+    def large() -> None:
+        return None
+
+    calls = 0
+
+    def drifting_seconds(callback: Any) -> float:
+        nonlocal calls
+        # Both measurements in a pair share progressively slower host service.
+        scale = 1.0 + calls // 2
+        calls += 1
+        return scale * (growth if callback is large else 1.0)
+
+    monkeypatch.setattr(module, "_seconds_once", drifting_seconds)
+    result = module._paired_growth_check(
+        "drifting_host", small_callback=small, large_callback=large,
+        repeats=9, limit=3.0, unit="seconds",
+    )
+    assert result["passed"] is passed
+    assert result["ratio"] == growth
+    assert result["ratioSamples"] == [growth] * 9
+    assert calls == 18

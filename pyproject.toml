@@ -29,7 +29,7 @@ dependencies = [
 ]
 
 [tool.pyne-runtime]
-published-version = "0.2.0rc1"
+published-version = "0.3.0"
 
 [project.urls]
 Homepage = "https://github.com/helenananaa/pyne-runtime"
