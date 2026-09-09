@@ -146,7 +146,16 @@ The package smoke step uses `scripts/package_smoke.py --offline`, which installs
 the just-built wheel with `--no-deps` inside a venv that can see local system
 site packages; this keeps the gate runnable without package-index access while
 still checking wheel contents, CLI entry points, schema output, and example
-execution. The smoke subprocesses remove inherited Python source-path settings
+execution. After those CLI checks, smoke invokes
+`scripts/installed_runtime_acceptance.py` with the same temporary wheel
+interpreter and sanitized environment. That helper must not import pytest,
+`tests`, or `semantic_workload_benchmark`, must not insert repository `src` onto
+`sys.path`, and must fail if `pyne_runtime.__file__` is outside the expected
+venv prefix. It reads migration and snapshot fixtures as data and exercises
+batch/incremental ADX-DI capture, naive inspect/run failure, preview isolation,
+typed-state restore, and pre-compat snapshot rejection
+(`PYNE_SNAPSHOT_SEMANTICS_MISMATCH`) plus independent current EMA arithmetic.
+The smoke subprocesses remove inherited Python source-path settings
 and assert that `pyne_runtime.__file__` resolves inside the temporary venv, not
 the repository `src` tree.
 

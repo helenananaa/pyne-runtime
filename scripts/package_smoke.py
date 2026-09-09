@@ -120,6 +120,12 @@ def main(argv: list[str] | None = None) -> int:
         if "signals" not in payload.get("output", {}):
             raise RuntimeError("smoke run did not emit host signal output")
 
+        _run(
+            _installed_acceptance_command(python, repo_root, venv_dir),
+            cwd=tmp_path,
+            env=clean_env,
+        )
+
     return 0
 
 
@@ -166,6 +172,22 @@ def _type_marker_check_command(python: Path) -> list[str]:
             "from importlib.resources import files; "
             "raise SystemExit(0 if files('pyne_runtime').joinpath('py.typed').is_file() else 1)"
         ),
+    ]
+
+
+def _installed_acceptance_command(
+    python: Path,
+    repo_root: Path,
+    venv_dir: Path,
+) -> list[str]:
+    helper = repo_root / "scripts" / "installed_runtime_acceptance.py"
+    return [
+        str(python),
+        str(helper),
+        "--repo-root",
+        str(repo_root),
+        "--expected-prefix",
+        str(venv_dir.resolve()),
     ]
 
 

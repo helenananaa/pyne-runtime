@@ -103,8 +103,11 @@ published GitHub Release is recorded separately as
 `tool.pyne-runtime.published-version`; README install instructions must follow
 that published value until the new tag and verified assets exist. During
 development, new notes stay under `Unreleased`. The release commit moves them
-into a dated section matching `project.version` and updates the published
-version; the tag workflow must then publish and verify the matching assets.
+into a dated section matching `project.version`. Keep `published-version` and
+README installation links on the last verified release until the new tag's
+assets actually exist and their hashes have been verified. Update that published
+record and the README together in the post-publication documentation change;
+preparing a candidate or pushing a tag does not by itself prove publication.
 
 ## Changelog Rules
 

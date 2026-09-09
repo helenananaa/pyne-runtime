@@ -1,0 +1,14 @@
+{
+  "schema": "pyne.capture-reverification/1",
+  "capturedAt": "2026-09-09T05:03:53.382Z",
+  "browser": "Chrome",
+  "chartUrl": "https://www.tradingview.com/chart/Dah3Glm9/",
+  "scriptSha256": "a2b8571a58f0119c1ba924b88e39199b3b03b69e4da6c66b137b7f66ca8dbc94",
+  "rawFile": "ema_rsi_reverification_20260909.txt",
+  "rawSha256": "e6b4cacf03467cc2dafd602205df2546194b331db6345d9fef94085d3a49e90c",
+  "comparisonFile": "tests/workloads/ema_rsi.tradingview.json",
+  "rowsCompared": 18,
+  "columnsCompared": 15,
+  "result": "all rows identical including missing positions",
+  "note": "Original Pine source entered verbatim, clipboard readback matched file. New raw logs kept separately; no old capture or expected output replaced."
+}

@@ -154,6 +154,57 @@ def test_package_smoke_import_check_cannot_be_disabled_by_optimization(
     assert "wheel import escaped smoke venv" in completed.stderr
 
 
+def test_installed_acceptance_rejects_escaped_import_under_optimize(
+    tmp_path: Path,
+) -> None:
+    helper = ROOT / "scripts" / "installed_runtime_acceptance.py"
+    outside = tmp_path / "outside"
+    package = outside / "pyne_runtime"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text("code = 'escaped'\n", encoding="utf-8")
+    env = dict(os.environ)
+    env["PYTHONPATH"] = str(outside)
+    env["PYTHONOPTIMIZE"] = "1"
+    env.pop("PYTHONHOME", None)
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(helper),
+            "--repo-root",
+            str(ROOT),
+            "--expected-prefix",
+            str(tmp_path / "venv"),
+        ],
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode != 0
+    combined = completed.stderr + completed.stdout
+    assert "acceptance import escaped expected prefix" in combined
+    assert "assert " not in helper.read_text(encoding="utf-8").split("def _require_installed_origin")[1].split("def ")[0]
+
+
+def test_package_smoke_invokes_installed_acceptance_with_wheel_python(
+    tmp_path: Path,
+) -> None:
+    module = _load_package_smoke()
+    python = tmp_path / "venv" / "Scripts" / "python.exe"
+    command = module._installed_acceptance_command(python, ROOT, tmp_path / "venv")
+
+    assert command[0] == str(python)
+    assert command[1] == str(ROOT / "scripts" / "installed_runtime_acceptance.py")
+    assert command[2:6] == [
+        "--repo-root",
+        str(ROOT),
+        "--expected-prefix",
+        str((tmp_path / "venv").resolve()),
+    ]
+
+
 def test_package_smoke_resolves_console_entry_point(tmp_path: Path) -> None:
     module = _load_package_smoke()
 

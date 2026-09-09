@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Strengthened installed-wheel smoke with real migration, timestamped external
+  outputs, preview/state restore, and legacy snapshot rejection/rebuild workflows;
+  acceptance rejects imports outside the temporary environment even under Python
+  optimization. Clarified the stable 0.3 compatibility and publication-record policy.
+
 - Added a real MPL-2.0 ADX/DI migration fixture with 80 TradingView market-bar
   captures, batch/incremental and restart acceptance. Derivative fixture scripts
   retain their license and are not part of the installed runtime package.

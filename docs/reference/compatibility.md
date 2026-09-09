@@ -13,6 +13,42 @@ Stable root imports are documented in [Public API](../api/public_api.md).
 The detailed Pine-like feature matrix lives in
 [Pine-Like API Matrix](pine_like_api_matrix.md).
 
+## Stable 0.3 Release-Line Contract
+
+These are the promotion requirements for the first stable 0.3 release line,
+not a claim that the current candidate has completed release qualification.
+The [delivery ledger](../development/stable_delivery_zh.md) tracks that decision.
+
+- Supported execution is trusted Python scripts over host-supplied OHLCV using
+  the documented public API and each mode's declared capabilities. Python
+  3.11/3.12/3.13 on Windows, Linux and macOS require source and installed-wheel
+  evidence for the selected release commit. Other versions or platforms are
+  unqualified even if package installation accepts them.
+- Within 0.3.x, patch releases preserve documented package-root imports, call
+  signatures and existing CLI commands. Removing or changing those contracts
+  requires a later release line, migration documentation and focused checks.
+- Host-facing schema versions are independent. Additive fields may appear;
+  consumers should tolerate unknown optional fields. Incompatible field meanings
+  require the relevant schema version and migration instructions, not only a
+  package version change.
+- Numeric correctness fixes may change outputs in a patch release. Release notes
+  must identify the affected algorithms and required recalculation. Incompatible
+  committed-state or replay semantics must advance the computation-semantics
+  identity and reject incompatible snapshots. There is no promise of bitwise
+  output identity across a documented semantic correction.
+- The supported recovery path is compatible state restore or reconstruction from
+  authoritative input. OHLCV alone cannot reconstruct past preview visitation;
+  see [Session Recovery](../tutorials/session_recovery.md). Providers, persistence
+  and distributed coordination remain host-owned.
+- Compatibility claims are limited to the declared feature matrix and identified
+  acceptance cases. Inspectors expose requirements and advisory hints; they do
+  not certify arbitrary Python execution. Bar-based strategy replay, untrusted
+  code isolation and renderer integration retain the boundaries in
+  [Current Project Status](current_status.md).
+- Capacity reports identify workloads, source identities, settings and measured
+  hosts. They support the measured operating range, not a universal latency SLA
+  or a concurrency limit for arbitrary scripts and providers.
+
 The output schema has its own version: `PYNE_OUTPUT_SCHEMA_VERSION`.
 Script parameter schemas have their own version:
 `PYNE_PARAM_SCHEMA_VERSION`.
