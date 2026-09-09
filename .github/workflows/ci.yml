@@ -41,7 +41,7 @@ jobs:
 
       - name: Performance and session stability gates
         run: |
-          python scripts/performance_smoke.py --check
+          python scripts/performance_smoke.py --check --json
           python scripts/incremental_stability_smoke.py --check
 
       - name: Strategy capture gates
