@@ -7,6 +7,8 @@ strategy, request, and host-renderer output workflows.
 
 - [Current Project Status](reference/current_status.md): verified current
   capabilities, explicit non-capabilities, and validation evidence.
+- [Stable Delivery Acceptance](development/stable_delivery_zh.md): product
+  support commitments, representative workflows, remaining gaps, and evidence status.
 - [Quickstart](quickstart.md): install the package and run the first script.
 - [First Indicator](tutorials/first_indicator.md): write and run a basic
   indicator.
