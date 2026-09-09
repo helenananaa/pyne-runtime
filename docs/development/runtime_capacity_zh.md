@@ -1,5 +1,8 @@
 # 独立运行时长时间会话容量测量
 
+1/4/8 会话、各 4096 根的运行与原始事件独立复算已完成，见
+[容量验收与完整证据](capacity_acceptance_zh.md)。下文说明工具方法与开发时冒烟。
+
 本工具测量 standalone `pyne-runtime` 在持续 preview/确认下的资源与正确性窗口，不新增运行时能力，也不给出绝对性能门槛或优化结论。
 
 入口：`scripts/runtime_capacity.py`。

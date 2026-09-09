@@ -129,8 +129,11 @@ preview isolation and typed-state continuation. Inspector v2 exposes the existin
 advisory migration diagnostics without turning heuristics into capability blocks.
 See [migration acceptance](../development/adx_migration_acceptance_zh.md) and the
 [delivery ledger](../development/stable_delivery_zh.md). The MPL-2.0 derivative
-fixtures remain outside the installed runtime package. Long-session capacity and
-final release qualification remain separate, unfinished gates.
+fixtures remain outside the installed runtime package. The bounded 1/4/8-session,
+4096-bar capacity run passed with archived raw events and independently recomputed
+statistics; see [capacity acceptance](../development/capacity_acceptance_zh.md).
+This is a measured workload range, not a production SLA. Final release qualification
+remains unfinished.
 
 The next acceptance slice is now implemented as five first-party whole-script
 workloads: chained TA, multi-context requests, cache/state, drawings, and strategy

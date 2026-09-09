@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Qualified the frozen 1/4/8-session long-running workload through 4096 bars per
+  session, with current RSS, snapshot/continuation checks, archived raw events and
+  independently recomputed latency statistics. Results define a measured range,
+  not a production SLA or a new default concurrency limit.
+
 - Strengthened installed-wheel smoke with real migration, timestamped external
   outputs, preview/state restore, and legacy snapshot rejection/rebuild workflows;
   acceptance rejects imports outside the temporary environment even under Python
