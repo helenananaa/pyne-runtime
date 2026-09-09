@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added request-provider fault/recovery acceptance for both supported request
+  families, including poisoned-session rejection, typed-state continuation and
+  retained confirmed plot points across provider replacement. No runtime change.
+
 - Documented executable session recovery workflows: fresh-process typed-state
   continuation, preview-sensitive replay differences, and rebuilding real legacy
   snapshots from authoritative OHLCV after a semantics mismatch. Runtime behavior

@@ -79,7 +79,11 @@ U5 补充切片：新进程恢复事件敏感状态、replay-v1 的明确数值�
 [Session Recovery](../tutorials/session_recovery.md)。
 
 Grok 的 U1–U6 只读审计已完成，维护者复核后选择 U2 provider failure/confirmed
-prefix 的直接验收作为下一切片，位于独立工作树 `codex/request-recovery-acceptance`。
+prefix 的直接验收切片，来自独立工作树 `codex/request-recovery-acceptance`。
+两类 request 的故障/恢复和旧绘图点保留共 4 项通过维护者复跑；详见
+[请求恢复验收](request_recovery_acceptance_zh.md)。
+整合后新测试、既有 incremental request 与完整脚本合计 55 passed（21.66s），
+Ruff 通过；文档入口与发行文档检查 15 passed。以上不是最终发行完整门禁。
 长期容量与真实迁移流程仍待完成；不将候选缺口审计当作完整性证明。
 
 本地修改、审核提交和验证已获授权；远端推送、合并、发布须另有明确授权。
