@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- CI and release workflows now install the same built wheel across Linux,
+  Windows and macOS on Python 3.11/3.12/3.13. Publication depends on all nine
+  installed-wheel checks and consumes the verified artifact without rebuilding.
+
 - Indexed incremental provider-cache timestamps for interval lookup and skipped
   ineffective preview traversal into the already-shared runtime request facade.
   Cache coverage, eviction budgets and user-alias isolation remain unchanged.

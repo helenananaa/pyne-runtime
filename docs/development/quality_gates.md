@@ -150,6 +150,12 @@ execution. The smoke subprocesses remove inherited Python source-path settings
 and assert that `pyne_runtime.__file__` resolves inside the temporary venv, not
 the repository `src` tree.
 
+GitHub `CI` builds the wheel and source distribution once, uploads that single
+`pyne-runtime-dist` artifact, and runs `scripts/package_smoke.py --dist-dir dist`
+on Linux, Windows, and macOS for Python 3.11, 3.12, and 3.13. Each of those
+nine jobs downloads the same build artifact; they do not rebuild. Source tests
+remain a separate matrix and still use an editable install.
+
 ## Independence Check
 
 Package code must not import CandleScope application modules. The architecture
@@ -172,4 +178,6 @@ A release candidate is ready only when:
 - `python -m build` creates both wheel and source distribution;
 - `python -m twine check` passes for built artifacts;
 - `python scripts/package_smoke.py --dist-dir <dist>` passes against the built wheel;
+- GitHub installed-wheel smoke passes on Linux, Windows, and macOS for Python
+  3.11, 3.12, and 3.13 against that same built wheel;
 - documentation and changelog reflect public API changes.
