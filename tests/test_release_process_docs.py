@@ -209,22 +209,31 @@ def test_changelog_separates_unreleased_work_from_the_published_release() -> Non
     sections = _markdown_h2_sections(changelog)
 
     assert re.fullmatch(
-        r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)rc(?:0|[1-9]\d*)",
+        r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:rc(?:0|[1-9]\d*))?",
         source_version,
     )
     assert headings[0] == "Unreleased"
-    if source_version == published_version:
+    prepared = [heading for heading in headings[1:] if re.fullmatch(
+        rf"{re.escape(source_version)} - (\d{{4}}-\d{{2}}-\d{{2}})", heading
+    )]
+    if source_version == published_version or prepared:
         assert sections["Unreleased"] == ""
     else:
         assert re.search(r"^- ", sections["Unreleased"], flags=re.MULTILINE)
 
+    published = [heading for heading in headings[1:] if re.fullmatch(
+        rf"{re.escape(published_version)} - (\d{{4}}-\d{{2}}-\d{{2}})", heading
+    )]
+    assert len(published) == 1
     current_release = re.fullmatch(
-        rf"{re.escape(published_version)} - (\d{{4}}-\d{{2}}-\d{{2}})",
-        headings[1],
+        rf"{re.escape(published_version)} - (\d{{4}}-\d{{2}}-\d{{2}})", published[0]
     )
-    assert current_release is not None
     date.fromisoformat(current_release.group(1))
-    assert re.search(r"^- ", sections[headings[1]], flags=re.MULTILINE)
+    assert re.search(r"^- ", sections[published[0]], flags=re.MULTILINE)
+    if prepared:
+        assert len(prepared) == 1 and headings[1] == prepared[0]
+        date.fromisoformat(prepared[0].split(" - ")[1])
+        assert re.search(r"^- ", sections[prepared[0]], flags=re.MULTILINE)
 
     assert "0.1.0" in headings
     assert "Initial standalone Pyne Runtime package scaffold" in sections["0.1.0"]

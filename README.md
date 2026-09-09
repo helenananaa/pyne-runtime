@@ -10,7 +10,7 @@
 <p align="center">
   <a href="https://github.com/helenananaa/pyne-runtime/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/helenananaa/pyne-runtime/actions/workflows/ci.yml/badge.svg"></a>
   <img alt="Python 3.11, 3.12, and 3.13" src="https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-3776AB?logo=python&logoColor=white">
-  <img alt="Project status: alpha" src="https://img.shields.io/badge/status-alpha-F59E0B">
+  <img alt="Project status: 0.3.0 release candidate pending qualification, not publicly released" src="https://img.shields.io/badge/status-0.3.0%20RC%20pending%20qualification-F59E0B">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-2563EB"></a>
 </p>
 
@@ -133,10 +133,10 @@ script execution and the contract between the script and the host.
 The repository does not treat API names alone as compatibility evidence. Its
 release gate checks real output, package contracts, and installability.
 
-| Evidence in the current `0.3.0rc2` source candidate | Verified surface |
+| Evidence in the current `0.3.0` source candidate | Verified surface |
 | --- | --- |
 | TradingView-backed capture parity | Request **21/21**, Strategy **27/27**, and TA **10/10** captured cases, currently at **0 diff**; the external-library slice covers 8 plots and 78 checked points |
-| CI matrix | Linux, Windows, and macOS on Python 3.11, 3.12, and 3.13 |
+| Configured CI matrix | Linux, Windows, and macOS on Python 3.11, 3.12, and 3.13; current qualification status is recorded separately |
 | Contract checks | Generated project status, output schemas, public imports, capture parity, and architecture boundaries |
 | Runtime self-description | Static script inspection, versioned batch/incremental capabilities, early unsupported-call diagnostics, and bounded trace-v2 evidence |
 | Distribution checks | Wheel and source build, metadata validation, clean installed-wheel smoke, CLI, and packaged examples |
@@ -149,9 +149,13 @@ for feature-level detail.
 
 ## Know the Boundaries
 
-Pyne Runtime is an **alpha, host-embedded, Pine-like Python runtime**. It is a
-strong fit for controlled integrations and trusted Python scripts. It is not a
-complete trading platform.
+Pyne Runtime **0.3.0 is a local release candidate pending qualification, not a
+publicly released package**. Current source evidence is candidate version
+`0.3.0`. The verified GitHub Release remains `v0.2.0rc1` until
+new release assets are published and verified. Stable support is the bounded compatibility
+contract in this repository, not a claim of full Pine compatibility. It is a
+host-embedded, Pine-like Python runtime for controlled integrations and trusted
+scripts, not a complete trading platform.
 
 - Pyne executes Python; it does not parse or run TradingView `.pine` source.
 - Market data, storage, chart rendering, alerts, accounts, and broker or

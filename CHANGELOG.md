@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2026-09-09
+
 - Removed BLAS thread dispatch from weighted rolling seed reduction, fixing the
   Linux WMA growth gate without changing its 3.0 limit. The formula is unchanged,
   but unrounded accumulation can differ, so snapshot semantics advances to 3;
