@@ -19,17 +19,21 @@ lower_tf_module = importlib.import_module("pyne_runtime.request.lower_tf")
 ta_module = importlib.import_module("pyne_runtime.ta")
 
 
-def test_stdev_and_variance_match_full_valid_window_reference() -> None:
+def test_stdev_and_variance_match_present_observation_window_reference() -> None:
     source = np.array([1.0, 2.0, np.nan, 4.0, 8.0, np.inf, 32.0, 16.0, 3.0, 2.0])
     period = 3
 
-    expected_stdev = _rolling_reference(source, period, lambda window: np.std(window))
-    expected_biased = _rolling_reference(source, period, lambda window: np.var(window))
-    expected_unbiased = _rolling_reference(
-        source,
-        period,
-        lambda window: np.var(window, ddof=1),
-    )
+    expected_biased = np.full(len(source), np.nan)
+    expected_unbiased = np.full(len(source), np.nan)
+    present = []
+    for index, value in enumerate(source):
+        if not np.isnan(value):
+            present.append(value)
+        if len(present) >= period:
+            with np.errstate(invalid="ignore"):
+                expected_biased[index] = np.var(present[-period:])
+                expected_unbiased[index] = np.var(present[-period:], ddof=1)
+    expected_stdev = np.sqrt(expected_biased)
 
     module = TaModule()
     stdev = np.asarray(module.stdev(source, period))
@@ -40,6 +44,14 @@ def test_stdev_and_variance_match_full_valid_window_reference() -> None:
     _assert_same_missing_and_values(biased, expected_biased)
     _assert_same_missing_and_values(unbiased, expected_unbiased)
     assert np.all(np.isnan(module.variance(source, 1, biased=False)))
+
+    from pyne_runtime.incremental.ta import _StepVariance, _StepStdev
+
+    for helper, expected in ((_StepStdev(period), expected_stdev),
+                             (_StepVariance(period), expected_biased),
+                             (_StepVariance(period, biased=False), expected_unbiased)):
+        actual = np.asarray([helper.update(value) for value in source], dtype=float)
+        _assert_same_missing_and_values(actual, expected)
 
 
 def test_correlation_remains_stable_for_large_offsets_and_missing_windows() -> None:
@@ -84,22 +96,33 @@ def test_rolling_moment_work_is_bounded_by_chunks(monkeypatch) -> None:
     assert 0 < calls <= 100
 
 
-def test_vwma_matches_window_reference_with_nan_infinity_and_zero_weight() -> None:
+def test_vwma_matches_independent_observation_windows_with_nan_and_infinity() -> None:
     source = np.array([1.0, np.nan, 3.0, np.inf, 5.0, 6.0, 7.0, 8.0])
     volume = np.array([1.0, 1.0, 0.0, 1.0, 1.0, np.nan, -1.0, 1.0])
     period = 2
     expected = np.full(len(source), np.nan)
     with np.errstate(divide="ignore", invalid="ignore"):
         for index in range(period - 1, len(source)):
-            window = slice(index - period + 1, index + 1)
-            denominator = np.nansum(volume[window])
-            if denominator > 0.0:
-                expected[index] = np.nansum((source * volume)[window]) / denominator
+            products = (source * volume)[:index + 1]
+            weights = volume[:index + 1]
+            products = products[~np.isnan(products)][-period:]
+            weights = weights[~np.isnan(weights)][-period:]
+            if len(products) == period and len(weights) == period:
+                denominator = np.sum(weights)
+                if denominator > 0.0:
+                    expected[index] = np.sum(products) / denominator
 
     actual = np.asarray(TaModule().vwma(source, period, volume))
 
     np.testing.assert_array_equal(np.isnan(actual), np.isnan(expected))
     np.testing.assert_allclose(actual, expected, equal_nan=True)
+
+    from pyne_runtime.incremental.ta import _StepVWMA
+
+    step = _StepVWMA(period)
+    observed = [step.update(value, weight) for value, weight in zip(source, volume)]
+    np.testing.assert_allclose(
+        [np.nan if value is None else value for value in observed], expected, equal_nan=True)
 
 
 def test_rolling_nansum_recovers_after_finite_cumulative_overflow() -> None:
@@ -219,6 +242,40 @@ def test_weighted_and_regression_work_is_bounded_by_rebase_chunks(monkeypatch) -
     assert calls <= 8
 
 
+def test_wma_and_linreg_seed_does_not_call_np_dot(monkeypatch) -> None:
+    """Weighted seed must not dispatch through np.dot (BLAS thread storm)."""
+    kernels = importlib.import_module("pyne_runtime.ta_kernels")
+
+    def forbidden(*_args: Any, **_kwargs: Any) -> Any:
+        raise AssertionError("np.dot must not be used on the weighted seed path")
+
+    rng = np.random.default_rng(20260909)
+    source = 1.0e12 + rng.normal(size=256)
+    source[17] = np.nan
+    source[64] = np.inf
+    source[65] = -np.inf
+    module = TaModule()
+    period = 32
+    weights = np.arange(1, period + 1, dtype=np.float64)
+    with np.errstate(invalid="ignore"):
+        expected_wma = _rolling_reference(
+            source,
+            period,
+            lambda window: np.dot(window, weights) / weights.sum(),
+        )
+        expected_linreg = _rolling_linreg_reference(source, period, offset=7)
+    # Compute the independent reference before forbidding only the runtime path.
+    monkeypatch.setattr(kernels.np, "dot", forbidden)
+    actual_wma = np.asarray(module.wma(source, period))
+    actual_linreg = np.asarray(module.linreg(source, period, offset=7))
+    np.testing.assert_array_equal(np.isnan(actual_wma), np.isnan(expected_wma))
+    np.testing.assert_allclose(actual_wma, expected_wma, rtol=1e-14, atol=5e-4, equal_nan=True)
+    np.testing.assert_array_equal(np.isnan(actual_linreg), np.isnan(expected_linreg))
+    np.testing.assert_allclose(
+        actual_linreg, expected_linreg, rtol=1e-12, atol=5e-4, equal_nan=True
+    )
+
+
 def test_pivots_match_causal_confirmation_reference() -> None:
     source = np.array([1.0, 3.0, 2.0, 3.0, 1.0, np.nan, 5.0, 4.0, 2.0, -1.0, 2.0])
     left = 2
@@ -262,22 +319,17 @@ def test_pivot_deque_operations_grow_linearly(monkeypatch) -> None:
         assert CountingDeque.operations <= 2 * len(source)
 
 
-def test_ema_seed_search_uses_one_linear_window_count(monkeypatch) -> None:
-    calls = 0
-    original = ta_module._window_sums
-
-    def counted(values: np.ndarray, period: int) -> np.ndarray:
-        nonlocal calls
-        calls += 1
-        return original(values, period)
-
-    monkeypatch.setattr(ta_module, "_window_sums", counted)
+def test_ema_large_period_seeds_without_a_complete_contiguous_window() -> None:
     source = np.arange(20_000, dtype=np.float64)
     source[::4_999] = np.nan
 
-    ta_module._ema_skip_leading_na(source, 5_000)
-
-    assert calls == 1
+    result = ta_module._ema_skip_leading_na(source, 5_000)
+    # There is never a run of 5,000 present samples. Pine still seeds from
+    # samples 1..5001 excluding 4999, then advances across later gaps.
+    assert np.isnan(result[:5001]).all()
+    np.testing.assert_allclose(result[5001], ((5001 * 5002 / 2) - 4999) / 5000)
+    assert np.isnan(result[9998])
+    assert np.isfinite(result[9999:14997]).all()
 
 
 def test_alma_fft_path_matches_weighted_window_reference(monkeypatch) -> None:

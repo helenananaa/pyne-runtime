@@ -21,7 +21,10 @@ def _normalize_commission_type(value: str) -> str:
         "strategy.commission.cash_per_contract",
     }:
         return StrategyCommission.cash_per_contract
-    return normalized
+    raise ValueError(
+        "commission_type must be 'percent', 'cash_per_order', or 'cash_per_contract', "
+        f"got {value!r}"
+    )
 
 
 def _commission_amount(

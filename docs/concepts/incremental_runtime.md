@@ -193,6 +193,13 @@ explicit provider during restore. Replay export fails closed if the session has
 committed more bars than its `max_bars` replay bound, because a partial history
 could restore different state.
 
+Replay v1 does not record preview visits. Replayed closed bars therefore have
+`barstate.isnew=True`, even if the original live close followed a preview and
+had `isnew=False`. Use local or typed-state snapshots when committed calculations
+depend on intrabar visitation; replay equivalence applies to scripts whose
+committed state is determined by the recorded closed bars. No checkpoint format
+preserves the active, uncommitted preview overlay.
+
 For restart latency independent of replay length, opt into typed-state v2:
 
 ```python
@@ -320,3 +327,57 @@ top level. These imports continue to work:
 from pyne_runtime.incremental import PyneIncrementalSession
 from pyne_runtime import PyneIncrementalSession
 ```
+
+## Snapshot semantic compatibility
+
+Snapshots now carry a computation semantics identity independently of package
+and wire-format versions: `semantics_version` in local state and
+`payload.semanticsVersion` in portable replay-v1 and typed-state-v2 envelopes.
+The current identity is integer `2`. Identity 1 covered corrected TA observation
+windows, smoothing, OCA timing and single-bar request confirmation behavior.
+Identity 2 also scopes incremental request diagnostics to the current bar.
+
+Unmarked legacy snapshots and mismatched identities raise
+`PynePortableSnapshotError` with `code == "PYNE_SNAPSHOT_SEMANTICS_MISMATCH"`.
+Restore checks this before replacing live state; portable restore checks the
+envelope before decoding the graph or constructing/executing a session. The
+typed-state root must also carry a matching identity. Existing format names
+remain unchanged; older consumers that require exact payload fields reject new
+snapshots rather than ignoring the identity.
+
+Rebuild from authoritative OHLCV in a fresh session after an incompatible upgrade.
+Do not edit the identity to force restoration. Replay under new semantics can
+produce different results and is a rebuild, not equivalent restoration. Intrabar
+history and external provider data remain host responsibilities. Since legacy
+snapshots have no reliable semantic identity, rejection applies to all unmarked
+snapshots, including scripts that might happen to be unaffected.
+
+Contributors must bump `INCREMENTAL_SEMANTICS_VERSION` when a change makes stored
+state or replay behavior incompatible. Documentation-only and compatible changes
+do not require a bump. This identity is a compatibility contract, not an automatic
+code fingerprint or an authentication mechanism.
+
+### Incremental request diagnostic retention
+
+`meta.requestDiagnostics` contains all diagnostics generated in the current bar,
+including successful calls and ignored-invalid-symbol/timeframe diagnostics.
+Starting the next bar discards earlier entries. Batch diagnostics are unchanged.
+There is no new per-bar entry cap: this bounds lifetime history growth, not the
+number or size of requests a script can execute in one callback.
+
+When diagnostics exist or have been discarded, `meta.requestDiagnosticsInfo`
+contains `scope="current_bar"`, `barTime`, `retained` (current entry count),
+`dropped` (cumulative prior-bar entry count) and `truncated` (`dropped > 0`).
+Discarded entries include successful calls; this is not a count of missed errors.
+A bar without requests returns an empty diagnostic list and the accumulated
+discard count. A session that never requested data has neither metadata field.
+`snapshot_result()` reports diagnostics for the latest bar, even when a different
+output time range is selected; `barTime` identifies that scope explicitly.
+
+Preview starts from committed counts and reports its own current-bar diagnostics;
+repeated previews never advance committed counts. Local and typed-state snapshots
+retain the count, while replay reconstructs it. All three restore modes reject
+semantics-1 snapshots; rebuild from authoritative OHLCV after upgrading.
+Unhandled request/provider exceptions keep their existing failure behavior.
+Hosts needing complete diagnostic history must collect each confirmed result;
+bounded opt-in trace remains a separate diagnostic channel.

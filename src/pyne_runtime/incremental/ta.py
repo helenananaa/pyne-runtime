@@ -6,30 +6,89 @@ from collections import deque
 from typing import Any
 
 from ..ta_kernels import _normalize_pivot_type, _pivot_level_values
+from ..utils import require_positive_period
+from ..values import is_condition_true
 from .limits import IncrementalLimits, _LimitTracker
 
 
-class _StepSMA:
+class _StepRollingMoments:
+    """Bounded present-observation window with periodically rebased moments.
+
+    Centering avoids subtracting two price-squared values for small variance
+    around large offsets. Periodic rebasing costs O(period) every at least
+    period updates, so normal streaming work is amortized O(1).
+    """
     def __init__(self, period: int) -> None:
         self.period = max(int(period), 1)
-        self.window: deque[float | None] = deque()
+        self.window: deque[float] = deque()
+        self.anchor: float | None = None
         self.sum = 0.0
-        self.valid_count = 0
+        self.sumsq = 0.0
+        self.positive_infinity = 0
+        self.negative_infinity = 0
+        self.updates = 0
 
-    def update(self, value: Any) -> float | None:
+    def push(self, value: Any) -> None:
         number = _number_or_none(value)
+        if number is None:
+            return
+        if self.anchor is None and math.isfinite(number):
+            self.anchor = number
         self.window.append(number)
-        if number is not None:
-            self.sum += number
-            self.valid_count += 1
+        self._accumulate(number, 1)
         if len(self.window) > self.period:
-            removed = self.window.popleft()
-            if removed is not None:
-                self.sum -= removed
-                self.valid_count -= 1
-        if len(self.window) < self.period or self.valid_count < self.period:
+            self._accumulate(self.window.popleft(), -1)
+        self.updates += 1
+        if self.updates % max(self.period, 4096) == 0:
+            self._rebase()
+
+    def _accumulate(self, number: float, sign: int) -> None:
+        if number == math.inf:
+            self.positive_infinity += sign
+        elif number == -math.inf:
+            self.negative_infinity += sign
+        else:
+            centered = number - (self.anchor or 0.0)
+            self.sum += sign * centered
+            self.sumsq += sign * centered * centered
+
+    def _rebase(self) -> None:
+        finite = [value for value in self.window if math.isfinite(value)]
+        self.anchor = finite[0] if finite else None
+        centered = [value - (self.anchor or 0.0) for value in finite]
+        self.sum = sum(centered)
+        self.sumsq = sum(value * value for value in centered)
+
+    def mean_value(self) -> float | None:
+        if len(self.window) < self.period:
             return None
-        return self.sum / self.period
+        if self.positive_infinity or self.negative_infinity:
+            if self.positive_infinity and self.negative_infinity:
+                return None
+            return math.inf if self.positive_infinity else -math.inf
+        if not math.isfinite(self.sum):
+            return math.fsum(value / self.period for value in self.window)
+        return (self.anchor or 0.0) + self.sum / self.period
+
+    def variance_value(self, *, biased: bool = True) -> float | None:
+        denominator = self.period if biased else self.period - 1
+        if (len(self.window) < self.period or denominator <= 0
+                or self.positive_infinity or self.negative_infinity):
+            return None
+        centered = self.sumsq - self.sum * self.sum / self.period
+        # Rebase early after an abrupt level shift or near-total cancellation.
+        if centered < 0 or (self.sumsq > 0 and centered <= 1e-10 * self.sumsq):
+            self._rebase()
+            centered = self.sumsq - self.sum * self.sum / self.period
+        if not math.isfinite(centered):
+            return None
+        return max(centered, 0.0) / denominator
+
+
+class _StepSMA(_StepRollingMoments):
+    def update(self, value: Any) -> float | None:
+        self.push(value)
+        return self.mean_value()
 
 
 class _StepEMA:
@@ -43,20 +102,17 @@ class _StepEMA:
 
     def update(self, value: Any) -> float | None:
         number = _number_or_none(value)
+        if number is None:
+            return None
         if self.ema is not None:
-            if number is None:
-                return self.ema
             self.ema = self.alpha * number + (1 - self.alpha) * self.ema
             return self.ema
 
         self.count += 1
-        if number is not None:
-            self.seed_sum += number
-            self.seed_count += 1
-        if self.count < self.period:
+        self.seed_sum += number
+        self.seed_count += 1
+        if self.seed_count < self.period:
             return None
-        if self.seed_count == 0:
-            return self.ema
         self.ema = self.seed_sum / self.seed_count
         return self.ema
 
@@ -116,58 +172,44 @@ class _StepWMA:
 class _StepVWMA:
     def __init__(self, period: int) -> None:
         self.period = max(int(period), 1)
-        self.window: deque[tuple[float | None, float | None]] = deque()
+        self.products: deque[float] = deque()
+        self.weights: deque[float] = deque()
         self.numerator = 0.0
         self.denominator = 0.0
 
     def update(self, value: Any, volume: Any) -> float | None:
         number = _number_or_none(value)
         weight = _number_or_none(volume)
-        self.window.append((number, weight))
         if number is not None and weight is not None:
-            self.numerator += number * weight
+            product = number * weight
+            if not math.isnan(product):
+                self.products.append(product)
+                self.numerator += product
+                if len(self.products) > self.period:
+                    self.numerator -= self.products.popleft()
+                if not math.isfinite(self.numerator):
+                    self.numerator = sum(self.products)
         if weight is not None:
+            self.weights.append(weight)
             self.denominator += weight
-        if len(self.window) > self.period:
-            removed_value, removed_weight = self.window.popleft()
-            if removed_value is not None and removed_weight is not None:
-                self.numerator -= removed_value * removed_weight
-            if removed_weight is not None:
-                self.denominator -= removed_weight
-        if len(self.window) < self.period or self.denominator <= 0.0:
+            if len(self.weights) > self.period:
+                self.denominator -= self.weights.popleft()
+            if not math.isfinite(self.denominator):
+                self.denominator = sum(self.weights)
+        if (len(self.products) < self.period or len(self.weights) < self.period
+                or self.denominator <= 0.0):
             return None
         return self.numerator / self.denominator
 
 
-class _StepVariance:
+class _StepVariance(_StepRollingMoments):
     def __init__(self, period: int, *, biased: bool = True) -> None:
-        self.period = max(int(period), 1)
+        super().__init__(period)
         self.biased = bool(biased)
-        self.window: deque[float | None] = deque()
-        self.sum = 0.0
-        self.sumsq = 0.0
-        self.valid_count = 0
 
     def update(self, value: Any) -> float | None:
-        number = _number_or_none(value)
-        self.window.append(number)
-        if number is not None:
-            self.sum += number
-            self.sumsq += number * number
-            self.valid_count += 1
-        if len(self.window) > self.period:
-            removed = self.window.popleft()
-            if removed is not None:
-                self.sum -= removed
-                self.sumsq -= removed * removed
-                self.valid_count -= 1
-        if len(self.window) < self.period or self.valid_count < self.period:
-            return None
-        denominator = self.period if self.biased else self.period - 1
-        if denominator <= 0:
-            return None
-        centered = max(self.sumsq - self.sum * self.sum / self.period, 0.0)
-        return centered / denominator
+        self.push(value)
+        return self.variance_value(biased=self.biased)
 
 
 class _StepStdev(_StepVariance):
@@ -178,7 +220,7 @@ class _StepStdev(_StepVariance):
 
 class _StepChange:
     def __init__(self, period: int = 1) -> None:
-        self.period = max(int(period), 1)
+        self.period = require_positive_period(period)
         self.window: deque[float | None] = deque(maxlen=self.period + 1)
 
     def update(self, value: Any) -> float | None:
@@ -324,32 +366,17 @@ class _StepDev:
         return sum(abs(item - mean) for item in values) / self.period
 
 
-class _StepBOLL:
+class _StepBOLL(_StepRollingMoments):
     def __init__(self, period: int, multiplier: float = 2.0) -> None:
-        self.period = max(int(period), 1)
+        super().__init__(period)
         self.multiplier = float(multiplier)
-        self.window: deque[float | None] = deque()
-        self.sum = 0.0
-        self.sumsq = 0.0
-        self.valid_count = 0
 
     def update(self, value: Any) -> tuple[float | None, float | None, float | None]:
-        number = _number_or_none(value)
-        self.window.append(number)
-        if number is not None:
-            self.sum += number
-            self.sumsq += number * number
-            self.valid_count += 1
-        if len(self.window) > self.period:
-            removed = self.window.popleft()
-            if removed is not None:
-                self.sum -= removed
-                self.sumsq -= removed * removed
-                self.valid_count -= 1
-        if len(self.window) < self.period or self.valid_count < self.period:
+        self.push(value)
+        variance = self.variance_value()
+        mid = self.mean_value()
+        if variance is None or mid is None:
             return None, None, None
-        mid = self.sum / self.period
-        variance = max(self.sumsq / self.period - mid * mid, 0.0)
         std = math.sqrt(variance)
         return mid + self.multiplier * std, mid, mid - self.multiplier * std
 
@@ -391,10 +418,10 @@ class _StepRSI:
         current = _number_or_none(value)
         if current is None:
             self.prev = None
-            return self._current_value()
+            return None
         if self.prev is None:
             self.prev = current
-            return self._current_value()
+            return None
         delta = current - self.prev
         self.prev = current
         gain = max(delta, 0.0)
@@ -543,7 +570,7 @@ class _StepBarsSince:
 
     def update(self, condition: Any) -> float | None:
         self.index += 1
-        if bool(condition):
+        if is_condition_true(condition):
             self.last_true = self.index
         return None if self.last_true is None else float(self.index - self.last_true)
 
@@ -554,7 +581,7 @@ class _StepValueWhen:
         self.values: deque[Any] = deque(maxlen=self.occurrence + 1)
 
     def update(self, condition: Any, value: Any) -> Any:
-        if bool(condition):
+        if is_condition_true(condition):
             self.values.append(value)
         if len(self.values) <= self.occurrence:
             return None
@@ -1023,6 +1050,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.change('{name}') has not been initialized")
+            period = require_positive_period(period)
             self._limits.reserve_window(int(period) + 1, label=key)
             self._helpers[key] = _StepChange(period)
         return self._helpers[key]
@@ -1341,7 +1369,7 @@ class IncrementalTaNamespace:
 
 def _rsi_from_avgs(avg_gain: float, avg_loss: float) -> float:
     if avg_loss == 0:
-        return 100.0 if avg_gain > 0 else 0.0
+        return 100.0
     if avg_gain == 0:
         return 0.0
     rs = avg_gain / avg_loss

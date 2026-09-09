@@ -7,6 +7,8 @@ strategy, request, and host-renderer output workflows.
 
 - [Current Project Status](reference/current_status.md): verified current
   capabilities, explicit non-capabilities, and validation evidence.
+- [Stable Delivery Acceptance](development/stable_delivery_zh.md): product
+  support commitments, representative workflows, remaining gaps, and evidence status.
 - [Quickstart](quickstart.md): install the package and run the first script.
 - [First Indicator](tutorials/first_indicator.md): write and run a basic
   indicator.
@@ -36,6 +38,8 @@ strategy, request, and host-renderer output workflows.
 - [Host-Backed Request Security](tutorials/host_request_security.md): provide
   OHLCV data for `request.security()` and `request.security_lower_tf()`
   examples.
+- [Session Recovery](tutorials/session_recovery.md): choose state or replay
+  checkpoints and rebuild after an incompatible computation-semantics upgrade.
 - [Input API](api/input.md): expose script parameters to host UI panels.
 - [Output Schema](reference/output_schema.md): consume renderer, object,
   signal, strategy, and error output.

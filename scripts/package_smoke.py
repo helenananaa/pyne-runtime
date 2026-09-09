@@ -53,6 +53,21 @@ def main(argv: list[str] | None = None) -> int:
             env=clean_env,
         )
         python = _venv_python(venv_dir)
+        if args.offline:
+            parent_purelib, parent_platlib = _query_sysconfig_paths(
+                args.python,
+                env=clean_env,
+            )
+            child_purelib, _child_platlib = _query_sysconfig_paths(
+                python,
+                env=clean_env,
+            )
+            _write_offline_parent_site_pth(
+                parent_purelib=parent_purelib,
+                parent_platlib=parent_platlib,
+                child_purelib=child_purelib,
+                venv_dir=venv_dir,
+            )
         if not args.offline:
             _run(
                 [str(python), "-m", "pip", "install", "--upgrade", "pip"],
@@ -120,6 +135,12 @@ def main(argv: list[str] | None = None) -> int:
         if "signals" not in payload.get("output", {}):
             raise RuntimeError("smoke run did not emit host signal output")
 
+        _run(
+            _installed_acceptance_command(python, repo_root, venv_dir),
+            cwd=tmp_path,
+            env=clean_env,
+        )
+
     return 0
 
 
@@ -169,6 +190,22 @@ def _type_marker_check_command(python: Path) -> list[str]:
     ]
 
 
+def _installed_acceptance_command(
+    python: Path,
+    repo_root: Path,
+    venv_dir: Path,
+) -> list[str]:
+    helper = repo_root / "scripts" / "installed_runtime_acceptance.py"
+    return [
+        str(python),
+        str(helper),
+        "--repo-root",
+        str(repo_root),
+        "--expected-prefix",
+        str(venv_dir.resolve()),
+    ]
+
+
 def _wheel_import_check_command(
     python: Path,
     venv_dir: Path,
@@ -189,6 +226,82 @@ def _wheel_import_check_command(
             "    raise SystemExit(f'wheel smoke imported repository source: {module}')\n"
         ),
     ]
+
+
+OFFLINE_PARENT_SITE_PTH = "_pyne_runtime_offline_parent_site.pth"
+
+
+def _query_sysconfig_paths(
+    python: str | Path,
+    *,
+    env: dict[str, str],
+) -> tuple[Path, Path]:
+    result = subprocess.run(
+        [
+            str(python),
+            "-c",
+            (
+                "import json, sysconfig; "
+                "print(json.dumps({"
+                "'purelib': sysconfig.get_path('purelib'), "
+                "'platlib': sysconfig.get_path('platlib')"
+                "}))"
+            ),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    payload = json.loads(result.stdout)
+    if not isinstance(payload, dict):
+        raise RuntimeError("expected JSON object from sysconfig query")
+    purelib = payload.get("purelib")
+    platlib = payload.get("platlib")
+    if not isinstance(purelib, str) or not isinstance(platlib, str):
+        raise RuntimeError("sysconfig query did not return path strings")
+    return Path(purelib).resolve(), Path(platlib).resolve()
+
+
+def _write_offline_parent_site_pth(
+    *,
+    parent_purelib: Path,
+    parent_platlib: Path,
+    child_purelib: Path,
+    venv_dir: Path,
+) -> Path | None:
+    child_purelib = child_purelib.resolve()
+    venv_dir = venv_dir.resolve()
+    if not child_purelib.is_relative_to(venv_dir):
+        raise RuntimeError(
+            f"child purelib is outside smoke venv: {child_purelib} (venv={venv_dir})"
+        )
+
+    entries: list[str] = []
+    seen: set[str] = set()
+    child_key = str(child_purelib)
+    for candidate in (parent_purelib, parent_platlib):
+        path = candidate.resolve()
+        text = str(path)
+        if "\n" in text or "\r" in text:
+            raise RuntimeError(f"rejected newline in parent site path: {text!r}")
+        if not path.is_dir():
+            continue
+        if text == child_key:
+            continue
+        if text in seen:
+            continue
+        seen.add(text)
+        entries.append(text)
+
+    if not entries:
+        return None
+
+    destination = child_purelib / OFFLINE_PARENT_SITE_PTH
+    if not destination.parent.is_relative_to(venv_dir):
+        raise RuntimeError(f"pth destination escaped smoke venv: {destination}")
+    destination.write_text("\n".join(entries) + "\n", encoding="utf-8")
+    return destination
 
 
 def _sanitized_env(source: dict[str, str] | None = None) -> dict[str, str]:

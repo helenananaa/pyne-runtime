@@ -39,6 +39,7 @@ from .ta_kernels import (
     _rolling_linear_regression_values,
     _rolling_mean_and_mad,
     _rolling_nansum as _rolling_nansum,
+    _rolling_nonmissing_sum,
     _rolling_percentile_values,
     _rolling_weighted_average_values,
     _valid_boolean_correlation,
@@ -80,6 +81,20 @@ def _rolling_variance_values(source: np.ndarray, period: int, ddof: int) -> np.n
         variances = numerator / (period - ddof)
         variances[counts != period] = np.nan
         result[output_start:output_stop] = variances
+    return result
+
+
+def _rolling_nonmissing_variance_values(source: np.ndarray, period: int, ddof: int) -> np.ndarray:
+    """Run the stable variance kernel on present observations and restore time positions."""
+    values = np.asarray(source, dtype=np.float64)
+    present = ~np.isnan(values)
+    if np.all(present):
+        return _rolling_variance_values(values, period, ddof)
+    compact_result = _rolling_variance_values(values[present], period, ddof)
+    result = np.full(len(values), np.nan)
+    counts = np.cumsum(present)
+    seen = counts > 0
+    result[seen] = compact_result[counts[seen] - 1]
     return result
 
 
@@ -162,16 +177,7 @@ class TaModule:
         result = np.full(n, np.nan)
         if period <= 0 or period > n:
             return wrap_like(result, src)
-        clean = np.where(np.isnan(source), 0.0, source)
-        sums = np.cumsum(clean)
-        counts = np.cumsum(~np.isnan(source))
-        window_sums = sums[period - 1 :].copy()
-        window_counts = counts[period - 1 :].copy()
-        if period < n:
-            window_sums[1:] -= sums[: n - period]
-            window_counts[1:] -= counts[: n - period]
-        valid = window_counts == period
-        result[period - 1 :][valid] = window_sums[valid] / period
+        result = _rolling_nonmissing_sum(source, period) / period
         return wrap_like(result, src)
 
     def ema(self, src: PyneSeries | np.ndarray, period: int) -> PyneSeries | np.ndarray:
@@ -179,33 +185,10 @@ class TaModule:
 
         Pine equivalent: ``ta.ema(close, 20)``
 
-        Uses SMA as the seed value for the first ``period`` bars,
-        matching Pine Script / TradingView behavior.
+        Seeds from the first ``period`` non-missing observations. Missing
+        positions emit NaN without advancing the recursive state.
         """
-        source = to_numpy(src, dtype=np.float64)
-        n = len(source)
-        result = np.full(n, np.nan)
-        if period <= 0 or period > n:
-            return wrap_like(result, src)
-
-        k = 2.0 / (period + 1)
-
-        # Seed with SMA
-        window = source[:period]
-        valid = window[~np.isnan(window)]
-        if len(valid) == 0:
-            return wrap_like(result, src)
-        seed = float(np.mean(valid))
-        result[period - 1] = seed
-
-        for i in range(period, n):
-            val = source[i]
-            if np.isnan(val):
-                result[i] = result[i - 1]
-            else:
-                result[i] = val * k + result[i - 1] * (1 - k)
-
-        return wrap_like(result, src)
+        return wrap_like(_ema_skip_leading_na(to_numpy(src, dtype=np.float64), period), src)
 
     def wma(self, src: PyneSeries | np.ndarray, period: int) -> PyneSeries | np.ndarray:
         """Weighted Moving Average.
@@ -336,10 +319,10 @@ class TaModule:
             return wrap_like(result, src)
 
         pv = source * volume_arr
-        numerator = _rolling_nansum(pv, period)
-        denominator = _rolling_nansum(volume_arr, period)
+        numerator = _rolling_nonmissing_sum(pv, period)
+        denominator = _rolling_nonmissing_sum(volume_arr, period)
         with np.errstate(divide="ignore", invalid="ignore"):
-            result[period - 1 :] = np.where(
+            result[:] = np.where(
                 denominator > 0.0,
                 numerator / denominator,
                 np.nan,
@@ -606,8 +589,12 @@ class TaModule:
 
         # Where avg_loss is 0 (all gains), RSI = 100
         rsi_val = np.where(avg_loss == 0, 100.0, rsi_val)
-        # Where avg_gain is 0 (all losses), RSI = 0
-        rsi_val = np.where(avg_gain == 0, 0.0, rsi_val)
+        # Only-loss histories produce zero; the all-flat double-zero case is
+        # 100 in the captured Pine v6 contract (loss-zero branch takes priority).
+        rsi_val = np.where((avg_gain == 0) & (avg_loss > 0), 0.0, rsi_val)
+        # RMA state survives missing deltas, but RSI must not publish a stale
+        # value on a missing source or on the following non-computable delta.
+        rsi_val = np.where(np.isnan(delta), np.nan, rsi_val)
         # Preserve NaN in warmup period
         rsi_val[:period] = np.nan
 
@@ -1167,12 +1154,11 @@ class TaModule:
 
         Pine equivalent: ``ta.stdev(close, 20)``
 
-        Uses periodically rebased centered moments. Windows containing missing
-        values remain missing without forcing the rest of the series onto a
-        per-window fallback path.
+        Uses periodically rebased centered moments over the last period
+        non-missing observations. Missing inputs preserve the current window.
         """
         source = to_numpy(src, dtype=np.float64)
-        result = _rolling_variance_values(source, period, ddof=0)
+        result = _rolling_nonmissing_variance_values(source, period, ddof=0)
         np.sqrt(result, out=result)
         return wrap_like(result, src)
 
@@ -1188,7 +1174,7 @@ class TaModule:
         """
         ddof = 0 if biased else 1
         source = to_numpy(src, dtype=np.float64)
-        result = _rolling_variance_values(source, period, ddof=ddof)
+        result = _rolling_nonmissing_variance_values(source, period, ddof=ddof)
         return wrap_like(result, src)
 
     def dev(self, src: PyneSeries | np.ndarray, period: int) -> PyneSeries | np.ndarray:
@@ -1411,27 +1397,30 @@ class TaModule:
 
 
 def _ema_skip_leading_na(src: np.ndarray, period: int) -> np.ndarray:
-    """EMA helper that starts after the first complete non-NaN window."""
+    """EMA seeded by non-missing samples, with sparse output and durable state.
+
+    Shared by public EMA, MACD signal and the nested TSI smoothing path.
+    The historical name is retained for internal callers.
+    """
     source = np.asarray(src, dtype=np.float64)
     n = len(source)
     result = np.full(n, np.nan)
     if period <= 0 or period > n:
         return result
 
-    valid_counts = _window_sums((~np.isnan(source)).astype(np.int64), period)
-    complete_windows = np.flatnonzero(valid_counts == period)
-    if len(complete_windows) == 0:
+    valid_indices = np.flatnonzero(~np.isnan(source))
+    if len(valid_indices) < period:
         return result
 
-    start = int(complete_windows[0])
-    seed_index = start + period - 1
-    result[seed_index] = float(np.mean(source[start : seed_index + 1]))
+    seed_index = int(valid_indices[period - 1])
+    value = float(np.mean(source[valid_indices[:period]]))
+    result[seed_index] = value
     k = 2.0 / (period + 1)
     for idx in range(seed_index + 1, n):
-        value = source[idx]
-        if np.isnan(value):
-            result[idx] = result[idx - 1]
-        else:
-            result[idx] = value * k + result[idx - 1] * (1 - k)
+        current = source[idx]
+        if np.isnan(current):
+            continue
+        value = current * k + value * (1 - k)
+        result[idx] = value
 
     return result

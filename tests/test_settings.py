@@ -10,6 +10,20 @@ def test_settings_reject_invalid_security_mode() -> None:
         PyneSettings(security_mode="surprise")
 
 
+def test_settings_reject_unknown_executor_mode() -> None:
+    with pytest.raises(ValueError, match="executor_mode must be 'inline' or 'process'"):
+        PyneSettings(executor_mode="typo")
+
+
+def test_settings_reject_undeliverable_hard_timeout() -> None:
+    with pytest.raises(ValueError, match="require_hard_timeout"):
+        PyneSettings(executor_mode="inline", require_hard_timeout=True)
+
+    settings = PyneSettings(executor_mode="process", require_hard_timeout=True)
+    assert settings.require_hard_timeout is True
+    assert settings.executor_mode == "process"
+
+
 def test_from_env_reads_collection_limits(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("PYNE_MAX_ARRAY_SIZE", "11")
     monkeypatch.setenv("PYNE_MAX_MAP_SIZE", "12")

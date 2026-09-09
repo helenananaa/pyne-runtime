@@ -42,9 +42,20 @@ Supported executor modes:
 - `inline`
 - `process`
 
+Unknown `executor_mode` values are rejected at settings construction. Process
+mode always uses multiprocessing `spawn` and can hard-kill the worker when
+`timeout_seconds` elapses. Inline mode treats `timeout_seconds` as a best-effort
+Unix-main-thread timer and does not advertise a hard kill. Set
+`require_hard_timeout=True` only with `executor_mode='process'`; combining it
+with `inline` raises a configuration error.
+
 `data_provider` supplies host-backed OHLCV data for `request.security()`. The
 process executor requires a pickleable provider; use `inline` for local adapters
 that hold live connections or non-pickleable state.
+
+Malformed timeframe strings such as `"1h30"` or `"15min"` are rejected. Mapping
+inputs that supply both `period` and `multiplier` are rejected when those values
+conflict.
 
 Runtime metadata:
 
@@ -54,6 +65,8 @@ Runtime metadata:
 - `timeframe` supplies the Pine-like `timeframe` namespace. Common strings such
   as `"1"`, `"5"`, `"1h"`, `"1D"`, `"1W"`, and `"1M"` are parsed into
   `period`, `multiplier`, `isintraday`, `isdaily`, `isweekly`, and `ismonthly`.
+  Parse, explicit multiplier, `in_seconds()`, and last-bar `time_close` share
+  that one canonical duration.
 - `session` supplies default host-owned session flags: `ismarket`,
   `isfirstbar`, and `islastbar`.
 

@@ -1,0 +1,126 @@
+{
+  "completed": true,
+  "method": "independent raw-event count and window statistic recomputation; applicable invariant and pending-state inspection",
+  "cases": [
+    {
+      "sessions": 1,
+      "barsPerSession": 4096,
+      "events": 20480,
+      "applicableChecks": 112,
+      "rssFirstMiB": 43.6875,
+      "rssLastMiB": 45.98046875,
+      "rssMaxMiB": 45.98046875,
+      "cacheDropWindows": 7,
+      "snapshots": {
+        "requests": {
+          "snapshotBytesMin": 38827,
+          "snapshotBytesMax": 39238,
+          "restoreMedianMs": 6.1799,
+          "restoreMaxMs": 14.4697
+        }
+      },
+      "timings": {
+        "preview": {
+          "medianMs": 11.82605,
+          "p95Ms": 15.193,
+          "maxMs": 37.1823
+        },
+        "confirmed": {
+          "medianMs": 7.54645,
+          "p95Ms": 9.9917,
+          "maxMs": 29.3499
+        }
+      },
+      "rawSha256": "a195a847209e23d7bf3fb5f794af7aca960d9f02c88c546df5d3da2ff5edd259",
+      "reportSha256": "e40d614d325b358c3dca29ba845d5e715f22ab59194791d317cefce19fca4f19"
+    },
+    {
+      "sessions": 4,
+      "barsPerSession": 4096,
+      "events": 81920,
+      "applicableChecks": 469,
+      "rssFirstMiB": 45.30078125,
+      "rssLastMiB": 48.47265625,
+      "rssMaxMiB": 48.47265625,
+      "cacheDropWindows": 14,
+      "snapshots": {
+        "requests": {
+          "snapshotBytesMin": 38827,
+          "snapshotBytesMax": 39238,
+          "restoreMedianMs": 6.5405,
+          "restoreMaxMs": 22.9401
+        },
+        "strategy_cycles": {
+          "snapshotBytesMin": 44530,
+          "snapshotBytesMax": 45705,
+          "restoreMedianMs": 8.0172,
+          "restoreMaxMs": 19.101
+        },
+        "ta_chain": {
+          "snapshotBytesMin": 39326,
+          "snapshotBytesMax": 39762,
+          "restoreMedianMs": 7.03015,
+          "restoreMaxMs": 18.2676
+        }
+      },
+      "timings": {
+        "preview": {
+          "medianMs": 9.2834,
+          "p95Ms": 20.5795,
+          "maxMs": 81.9414
+        },
+        "confirmed": {
+          "medianMs": 1.8124,
+          "p95Ms": 13.901,
+          "maxMs": 74.5727
+        }
+      },
+      "rawSha256": "126c2eff0ef6ed4a6477b88201af38a9488a9b68a3b7a98a9144d88c00d53d03",
+      "reportSha256": "5e428bc150d50d5592fdd5ed67cb4d505f94a231ad76c861403adbe96c2e6f05"
+    },
+    {
+      "sessions": 8,
+      "barsPerSession": 4096,
+      "events": 163840,
+      "applicableChecks": 959,
+      "rssFirstMiB": 47.00390625,
+      "rssLastMiB": 51.765625,
+      "rssMaxMiB": 51.765625,
+      "cacheDropWindows": 21,
+      "snapshots": {
+        "requests": {
+          "snapshotBytesMin": 38827,
+          "snapshotBytesMax": 39238,
+          "restoreMedianMs": 6.5796,
+          "restoreMaxMs": 47.3693
+        },
+        "strategy_cycles": {
+          "snapshotBytesMin": 44530,
+          "snapshotBytesMax": 45705,
+          "restoreMedianMs": 7.66195,
+          "restoreMaxMs": 33.677
+        },
+        "ta_chain": {
+          "snapshotBytesMin": 39326,
+          "snapshotBytesMax": 39762,
+          "restoreMedianMs": 6.850350000000001,
+          "restoreMaxMs": 38.8963
+        }
+      },
+      "timings": {
+        "preview": {
+          "medianMs": 5.624,
+          "p95Ms": 15.3727,
+          "maxMs": 80.6469
+        },
+        "confirmed": {
+          "medianMs": 0.58875,
+          "p95Ms": 10.0316,
+          "maxMs": 48.8415
+        }
+      },
+      "rawSha256": "6862006f5b6b4c607db6b5f7874f1e0038ee411c94f0e3bb4c55408753046d20",
+      "reportSha256": "67982eb42f02b4298358b43703e1320883fdb92ff6fba72b6770300ceb25ca6d"
+    }
+  ]
+}

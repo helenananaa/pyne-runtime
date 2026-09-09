@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 import pyne_runtime as pn
 
 
@@ -79,8 +81,50 @@ def test_runtime_rejects_missing_ohlcv_fields() -> None:
     )
 
     assert not result.ok
-    assert result.code == "PYNE_RUNTIME_ERROR"
+    assert result.code == "PYNE_INVALID_OHLCV"
     assert "missing required fields" in str(result.error)
+
+
+def test_runtime_classifies_non_increasing_time_as_invalid_ohlcv() -> None:
+    result = pn.PyneRuntime().execute(
+        'plot(close, "Close")',
+        [
+            {"time": 2, "open": 1, "high": 2, "low": 1, "close": 1.5, "volume": 100},
+            {"time": 1, "open": 1, "high": 2, "low": 1, "close": 1.5, "volume": 100},
+        ],
+    )
+
+    assert not result.ok
+    assert result.code == "PYNE_INVALID_OHLCV"
+    assert "strictly increasing" in str(result.error)
+
+
+def test_run_classifies_missing_volume_as_invalid_ohlcv() -> None:
+    result = pn.run(
+        'plot(close, "Close")',
+        [{"time": 1, "open": 1, "high": 2, "low": 1, "close": 1.5}],
+        executor_mode="inline",
+    )
+
+    assert not result.ok
+    assert result.code == "PYNE_INVALID_OHLCV"
+    assert "volume" in str(result.error)
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        [{"time": 1, "open": 1, "high": 2, "low": 1, "close": "bad", "volume": 1}],
+        [None],
+        None,
+        [{"time": 1, "open": 1, "high": 2, "low": 1, "close": float("nan"), "volume": 1}],
+    ],
+)
+def test_run_classifies_all_malformed_rows_as_invalid_ohlcv(data: object) -> None:
+    result = pn.run('plot(close, "Close")', data, executor_mode="inline")
+
+    assert not result.ok
+    assert result.code == "PYNE_INVALID_OHLCV"
 
 
 def test_time_close_last_bar_uses_timeframe_duration() -> None:
@@ -183,6 +227,49 @@ def test_timeframe_parses_daily_weekly_and_monthly_periods() -> None:
     assert pn.TimeframeInfo.from_value("2W").isweekly
     assert pn.TimeframeInfo.from_value("3M").ismonthly
     assert pn.TimeframeInfo.from_value("5").multiplier == 5
+
+
+def test_timeframe_rejects_malformed_and_conflicting_inputs() -> None:
+    with pytest.raises(ValueError, match="invalid timeframe"):
+        pn.TimeframeInfo.from_value("1h30")
+    with pytest.raises(ValueError, match="invalid timeframe"):
+        pn.TimeframeInfo.from_value("15min")
+    with pytest.raises(ValueError, match="conflicts with multiplier"):
+        pn.TimeframeInfo.from_value({"period": "1h", "multiplier": 1})
+
+    hour = pn.TimeframeInfo.from_value("1h")
+    direct_hour = pn.TimeframeInfo(period="1h")
+    consistent = pn.TimeframeInfo.from_value({"period": "1h", "multiplier": 60})
+    assert hour.in_seconds() == 3600
+    assert direct_hour.in_seconds() == 3600
+    assert consistent.in_seconds() == 3600
+    assert hour.multiplier == direct_hour.multiplier == consistent.multiplier == 60
+
+    with pytest.raises(ValueError, match="conflicts with multiplier"):
+        pn.TimeframeInfo(period="1h", multiplier=1)
+    with pytest.raises(ValueError, match="must be an integer"):
+        pn.TimeframeInfo.from_value({"multiplier": 1.5})
+    with pytest.raises(ValueError, match="must be an integer"):
+        pn.TimeframeInfo.from_value({"multiplier": True})
+    with pytest.raises(ValueError, match=">= 1"):
+        pn.TimeframeInfo.from_value("0")
+
+
+def test_time_close_matches_canonical_timeframe_seconds() -> None:
+    hour = pn.TimeframeInfo.from_value("1h")
+    result = pn.run(
+        """
+plot(time_close, "Close Time")
+plot(timeframe.in_seconds(), "Seconds")
+""",
+        _bars()[:2],
+        timeframe="1h",
+        executor_mode="inline",
+    )
+
+    assert result.ok, result.error
+    assert result.values("Seconds") == [hour.in_seconds(), hour.in_seconds()]
+    assert result.values("Close Time")[-1] == _bars()[1]["time"] + hour.in_seconds()
 
 
 def test_timeframe_exposes_pine_like_type_flags_and_seconds_conversion() -> None:

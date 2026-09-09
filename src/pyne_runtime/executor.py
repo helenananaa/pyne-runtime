@@ -1,8 +1,15 @@
 """Pyne execution strategies.
 
 The process executor gives the host application a hard timeout boundary for
-untrusted or buggy scripts. Inline execution remains available for local users
-who prefer performance or long-lived ML/library state over isolation.
+untrusted or buggy scripts: the worker is terminated after ``timeout_seconds``
+plus ``process_grace_seconds``. It always starts the worker with the ``spawn``
+multiprocessing start method.
+
+Inline execution remains available for local users who prefer performance or
+long-lived ML/library state over isolation. ``timeout_seconds`` is then a
+best-effort Unix-main-thread timer (``SIGALRM``); Windows and non-main threads
+do not receive a hard interrupt. Set ``require_hard_timeout=True`` only with
+``executor_mode='process'``; inline plus a required hard timeout is rejected.
 """
 from __future__ import annotations
 
@@ -18,7 +25,7 @@ from .request.provider import DataProvider
 from .result import PyneResult
 from .runtime import PyneRuntime
 from .security import PyneSecurityPolicy
-from .settings import PyneSettings
+from .settings import PyneSettings, normalize_executor_mode
 
 
 def execute_pyne_script(
@@ -45,7 +52,14 @@ def execute_pyne_script(
         settings = replace(settings, timeframe=timeframe)
     if session is not None:
         settings = replace(settings, session=session)
-    mode = (executor_mode or settings.executor_mode or "process").strip().lower()
+    if timeout_seconds is not None:
+        settings = replace(settings, timeout_seconds=max(float(timeout_seconds), 0.0))
+    mode = normalize_executor_mode(executor_mode or settings.executor_mode)
+    if settings.require_hard_timeout and mode == "inline":
+        raise ValueError(
+            "require_hard_timeout=True cannot be delivered by executor_mode='inline'; "
+            "use executor_mode='process' for hard timeout enforcement"
+        )
     if mode == "inline":
         return PyneRuntime(settings=settings).execute(
             script=script,
@@ -186,10 +200,14 @@ def _process_serialization_error(*payloads: Any) -> PyneResult | None:
 
 
 def _multiprocessing_context():
-    try:
-        return mp.get_context("fork")
-    except ValueError:
-        return mp.get_context()
+    """Return a multiprocessing context that always uses ``spawn``.
+
+    ``spawn`` is available on every supported platform, does not inherit the
+    parent address space or file descriptors, and is the only start method that
+    this executor promises. Unix ``fork`` is intentionally not used: it can
+    deadlock a multithreaded host and is not a security boundary.
+    """
+    return mp.get_context("spawn")
 
 
 def _pyne_worker(

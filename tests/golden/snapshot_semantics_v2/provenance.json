@@ -1,0 +1,11 @@
+{
+  "commit": "14b4535affd92237110d73d120f8f0bf31d48738",
+  "semanticsVersion": 2,
+  "description": "Unmodified snapshots produced before changing weighted seed reduction. Generic EMA state, inline executor, timeframe1S, bars i=0..3 OHLC=(i+1,i+2,i,i+1), volume10. Global semantics identity applies to all snapshots.",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "476d0aac325c4b188d1dbd3aca7d2f177b5d4a4cdc3c2fd5a906acb64ae7df58",
+    "state.json": "1410b41e56bdb0c74ee0fbaf9cfc20dfd64e837057995780423b7dde8172076a"
+  },
+  "digestNormalization": "UTF-8 text with LF line endings"
+}

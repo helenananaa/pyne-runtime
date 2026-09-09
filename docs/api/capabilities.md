@@ -26,6 +26,7 @@ session or requesting host data:
 
 ```python
 report = pn.inspect_script(script, runtime_mode="incremental")
+show_diagnostics(report["migration"]["diagnostics"])
 if not report["compatibility"]["supported"]:
     show_diagnostics(report["compatibility"]["diagnostics"])
 ```
@@ -35,7 +36,17 @@ detected declaration and callbacks, TA/request/strategy/drawing requirements,
 pinned-library members, member-specific host-data requirements, resource hints,
 and dynamic-access uncertainties. It is a static Python-AST preflight, so it
 does not execute the script and does not claim to resolve computed `getattr()`
-or runtime-generated calls.
+or runtime-generated calls. Inspection does not guarantee that the script will
+execute.
+
+Heuristic Pine-to-Pyne migration hints from `pn.validate()` are advisory only.
+They appear on `report["migration"]["diagnostics"]` and must not be treated as
+capability blockers: `compatibility.supported` and
+`migration.batchToIncremental` eligibility stay independent of those hints.
+Legitimate scalar variables may shadow names such as `close`. Hosts must
+display the advisory list separately from `compatibility.diagnostics`. Syntax
+errors still report `PYNE_SYNTAX_ERROR` on compatibility, and the same
+advisory list remains present on `migration.diagnostics`.
 
 ## Mode-Aware Validation
 

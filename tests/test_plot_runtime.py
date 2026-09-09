@@ -641,3 +641,38 @@ box.new(bar_index[1], high[1], bar_index, low)
     assert not result.ok
     assert result.code == "PYNE_OUTPUT_LIMIT_EXCEEDED"
     assert "Drawing object limit exceeded" in str(result.error)
+
+
+def test_plot_colors_do_not_serialize_nan_or_whole_lists() -> None:
+    result = pn.run(
+        """
+plot(close, "NaN Color", color=np.array([float("nan"), color.green, color.red]))
+plot(close, "List Color", color=["#111111", "#222222", "#333333"])
+""",
+        _bars(),
+        executor_mode="inline",
+    )
+
+    assert result.ok, result.error
+    nan_line = next(line for line in result.lines if line["name"] == "NaN Color")
+    list_line = next(line for line in result.lines if line["name"] == "List Color")
+
+    assert nan_line["color"] != "nan"
+    assert nan_line["color"] == "#26a69a"
+    assert "[" not in str(nan_line["color"])
+    assert list_line["color"] != str(["#111111", "#222222", "#333333"])
+    assert list_line["color"] == "#111111"
+    assert "[" not in str(list_line["color"])
+
+    for line in result.lines:
+        assert "color" in line
+        assert line["color"] != "nan"
+        assert "[" not in str(line["color"])
+        for point in line.get("data", []):
+            if "color" in point:
+                assert point["color"] != "nan"
+                assert "[" not in str(point["color"])
+
+    for line in result.output.get("lines", []):
+        assert line["color"] != "nan"
+        assert "[" not in str(line["color"])

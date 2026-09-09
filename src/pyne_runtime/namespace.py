@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from types import MappingProxyType, SimpleNamespace
+from types import SimpleNamespace
 from typing import Any
 
 import numpy as np
@@ -57,6 +57,9 @@ class RuntimeServices:
             self.execution_scope = PyneExecutionScope.fresh(
                 max_items=self.settings.cache_max_items,
             )
+        from .incremental.session import _readonly_params
+
+        self.params = _readonly_params(self.params)
         self.ta = TaModule(self.ctx)
         self.input = InputModule(params=self.params, context=self.ctx)
         self.state = PyneStateNamespace()
@@ -270,7 +273,7 @@ def install_compat_namespace(namespace: dict[str, Any], services: RuntimeService
     """Install Python and legacy compatibility names."""
     namespace["np"] = np
     namespace["numpy"] = np
-    namespace["params"] = MappingProxyType(dict(services.params))
+    namespace["params"] = services.params
 
 
 def install_builtins_namespace(namespace: dict[str, Any], services: RuntimeServices) -> None:

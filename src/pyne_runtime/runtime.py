@@ -20,6 +20,7 @@ from __future__ import annotations
 from typing import Any
 
 from .context import PyneContext
+from .data import PyneOhlcvError
 from .input import InputModule, PyneInputError
 from .plot import OutputCollector
 from .request import PyneRequestError
@@ -220,6 +221,13 @@ class PyneRuntime:
                 PyneResult(ok=False, code=code, error=str(exc), hint=error_hint(code)),
                 status="error",
             )
+        except PyneOhlcvError as exc:
+            return finish(PyneResult(
+                ok=False,
+                code="PYNE_INVALID_OHLCV",
+                error=str(exc),
+                hint=error_hint("PYNE_INVALID_OHLCV"),
+            ), status="error")
         except Exception as exc:
             error_msg = f"Script error: {exc}"
             return finish(PyneResult(

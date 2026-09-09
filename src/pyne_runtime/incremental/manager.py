@@ -44,6 +44,7 @@ class PyneIncrementalSessionManager:
     ) -> None:
         self._lock = threading.RLock()
         self._sessions: dict[str, SharedPyneIncrementalSession] = {}
+        self._pending_creations: dict[str, threading.Event] = {}
         self.max_sessions = max(int(max_sessions), 1)
         self.idle_ttl_seconds = max(float(idle_ttl_seconds), 0.0)
         self._clock = clock or time.monotonic
@@ -53,24 +54,54 @@ class PyneIncrementalSessionManager:
         key: str,
         factory: Callable[[], PyneIncrementalSession],
     ) -> SharedPyneIncrementalSession:
+        while True:
+            with self._lock:
+                now = self._clock()
+                self._collect_expired_locked(now)
+                shared = self._sessions.get(key)
+                if shared is not None:
+                    shared.ref_count += 1
+                    shared.last_access_at = now
+                    shared.idle_since = None
+                    return shared
+                pending = self._pending_creations.get(key)
+                if pending is None:
+                    if len(self._sessions) >= self.max_sessions:
+                        idle = [item for item in self._sessions.values() if item.ref_count == 0]
+                        if not idle:
+                            raise PyneIncrementalSessionCapacityError(
+                                f"Incremental session capacity reached ({self.max_sessions})"
+                            )
+                    pending = threading.Event()
+                    self._pending_creations[key] = pending
+                    break
+            pending.wait()
+
+        try:
+            session = factory()
+        except BaseException:
+            with self._lock:
+                self._pending_creations.pop(key, None)
+                pending.set()
+            raise
+
         with self._lock:
             now = self._clock()
             self._collect_expired_locked(now)
-            shared = self._sessions.get(key)
-            if shared is None:
+            try:
                 self._ensure_slot_locked(now)
                 shared = SharedPyneIncrementalSession(
                     key=key,
-                    session=factory(),
-                    ref_count=0,
+                    session=session,
+                    ref_count=1,
                     created_at=now,
                     last_access_at=now,
                 )
                 self._sessions[key] = shared
-            shared.ref_count += 1
-            shared.last_access_at = now
-            shared.idle_since = None
-            return shared
+                return shared
+            finally:
+                self._pending_creations.pop(key, None)
+                pending.set()
 
     def release(self, key: str) -> None:
         with self._lock:

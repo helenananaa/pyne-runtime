@@ -1,0 +1,191 @@
+{
+  "checks": [
+    {
+      "large": 0.01040613800068968,
+      "limit": 3.25,
+      "name": "strategy_close_time_growth",
+      "passed": true,
+      "ratio": 1.823855666685897,
+      "small": 0.005705571000362397,
+      "unit": "seconds"
+    },
+    {
+      "large": 1971261.0,
+      "limit": 3.0,
+      "name": "strategy_dense_memory_growth",
+      "passed": true,
+      "ratio": 1.9315918972070587,
+      "small": 1020537.0,
+      "unit": "bytes"
+    },
+    {
+      "large": 0.0005172010005480843,
+      "limit": 3.0,
+      "name": "window_index_time_growth",
+      "passed": true,
+      "ratio": 1.9535522341733274,
+      "small": 0.00026474900005268864,
+      "unit": "seconds"
+    },
+    {
+      "large": 0.0002465590005158447,
+      "limit": 3.0,
+      "name": "rising_time_growth",
+      "passed": true,
+      "ratio": 1.1816190764811023,
+      "small": 0.00020866200065938756,
+      "unit": "seconds"
+    },
+    {
+      "large": 0.0051694339999812655,
+      "limit": 12.0,
+      "name": "stdev_nan_slow_path_penalty",
+      "passed": true,
+      "ratio": 1.596949461623404,
+      "small": 0.0032370680000894936,
+      "unit": "seconds"
+    },
+    {
+      "large": 0.024871919998986414,
+      "limit": 3.0,
+      "name": "wma_time_growth",
+      "passed": false,
+      "ratio": 5.721756385044364,
+      "small": 0.00434690300062357,
+      "unit": "seconds"
+    },
+    {
+      "large": 0.04937642400000186,
+      "limit": 3.25,
+      "name": "rolling_order_statistic_time_growth",
+      "passed": true,
+      "ratio": 2.2619706562516178,
+      "small": 0.021828941000421764,
+      "unit": "seconds"
+    },
+    {
+      "large": 0.034044512000036775,
+      "limit": 3.0,
+      "name": "pivot_time_growth",
+      "passed": true,
+      "ratio": 2.1570299784609035,
+      "small": 0.015783049999299692,
+      "unit": "seconds"
+    },
+    {
+      "large": 0.09215999799926067,
+      "limit": 3.25,
+      "name": "incremental_multi_session_time_growth",
+      "passed": true,
+      "ratio": 2.3467490942247884,
+      "small": 0.039271346999157686,
+      "unit": "seconds"
+    },
+    {
+      "large": 523442.0,
+      "limit": 3.0,
+      "name": "incremental_bounded_memory_growth",
+      "passed": true,
+      "ratio": 1.6690432309369998,
+      "small": 313618.0,
+      "unit": "bytes"
+    },
+    {
+      "large": 0.003265205999923637,
+      "limit": 3.25,
+      "name": "incremental_portable_snapshot_time_growth",
+      "passed": true,
+      "ratio": 1.913521325625542,
+      "small": 0.001706385999568738,
+      "unit": "seconds"
+    },
+    {
+      "large": 0.014155228000163333,
+      "largeSamples": [
+        0.01390356000047177,
+        0.015375954000774072,
+        0.014155228000163333
+      ],
+      "limit": 3.5,
+      "name": "incremental_portable_restore_time_growth",
+      "passed": true,
+      "ratio": 2.0212713431498095,
+      "ratioSamples": [
+        1.9062588386952906,
+        2.113185500583845,
+        2.0212713431498095
+      ],
+      "small": 0.00727619700046489,
+      "smallSamples": [
+        0.007293637001566822,
+        0.00727619700046489,
+        0.007003130998782581
+      ],
+      "statistic": "median_paired_ratio",
+      "unit": "seconds"
+    },
+    {
+      "baseline": "replay-v1",
+      "candidate": "typed-state-v2",
+      "large": 0.004079895999893779,
+      "largeSamples": [
+        0.005796835001092404,
+        0.00381187400125782,
+        0.004079895999893779
+      ],
+      "limit": 1.25,
+      "name": "incremental_typed_state_restore_vs_replay",
+      "passed": true,
+      "ratio": 0.13662879675387213,
+      "ratioMeaning": "typed-state-v2 / replay-v1",
+      "ratioSamples": [
+        0.1836120634909505,
+        0.10568750961291583,
+        0.13662879675387213
+      ],
+      "replayPayloadBytes": 25616,
+      "small": 0.031571100998917245,
+      "smallSamples": [
+        0.031571100998917245,
+        0.036067402999833575,
+        0.02986117199907312
+      ],
+      "statistic": "median_paired_ratio",
+      "typedStatePayloadBytes": 28998,
+      "unit": "seconds"
+    },
+    {
+      "baseline": "trace-disabled",
+      "candidate": "trace-v2-enabled",
+      "large": 0.03140350799912994,
+      "largeSamples": [
+        0.03140350799912994,
+        0.03738485500070965,
+        0.029129384998668684
+      ],
+      "limit": 1.5,
+      "name": "incremental_trace_v2_overhead",
+      "passed": true,
+      "ratio": 1.137489310525323,
+      "ratioMeaning": "trace-v2-enabled / trace-disabled",
+      "ratioSamples": [
+        1.137489310525323,
+        1.175803181882888,
+        0.8858436908108817
+      ],
+      "small": 0.03179516400086868,
+      "smallSamples": [
+        0.027607738998995046,
+        0.03179516400086868,
+        0.03288321100080793
+      ],
+      "statistic": "median_paired_ratio",
+      "unit": "seconds"
+    }
+  ],
+  "numpy": "2.5.3",
+  "passed": false,
+  "python": "3.12.13",
+  "repeats": 3,
+  "schema": "pyne.performance-smoke.v1"
+}

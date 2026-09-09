@@ -56,7 +56,9 @@ Before cutting a release candidate:
    - [Schema Migrations](schema_migrations.md), when host-facing schema
      contracts change.
 5. Confirm no unrelated generated files or local artifacts are staged.
-6. Merge the release commit to `main` and confirm the `CI` workflow is green.
+6. Merge the release commit to `main` and confirm the `CI` workflow is green,
+   including the nine installed-wheel jobs that consume the single built
+   `pyne-runtime-dist` artifact.
 7. Create and push an annotated tag that exactly matches `v` plus the package
    version. For example:
 
@@ -74,8 +76,12 @@ GitHub Releases are the host-application distribution channel. A release tag
 must match `project.version` exactly and the tagged commit must be contained in
 `main`; the release workflow fails closed when either condition is false.
 
-The workflow builds in a clean runner, checks both distributions with Twine,
-installs and runs the wheel in a temporary wheel environment, and publishes:
+The workflow builds once in a clean runner, checks both distributions with
+Twine, and uploads a single `pyne-runtime-dist` artifact. Nine jobs then
+download that same artifact and run `scripts/package_smoke.py --dist-dir dist`
+on Linux, Windows, and macOS for Python 3.11, 3.12, and 3.13. The publish job
+depends on every smoke job, downloads the same artifact without rebuilding, and
+only then publishes:
 
 - `pyne_runtime-<version>-py3-none-any.whl`;
 - `pyne_runtime-<version>.tar.gz`;
@@ -97,8 +103,11 @@ published GitHub Release is recorded separately as
 `tool.pyne-runtime.published-version`; README install instructions must follow
 that published value until the new tag and verified assets exist. During
 development, new notes stay under `Unreleased`. The release commit moves them
-into a dated section matching `project.version` and updates the published
-version; the tag workflow must then publish and verify the matching assets.
+into a dated section matching `project.version`. Keep `published-version` and
+README installation links on the last verified release until the new tag's
+assets actually exist and their hashes have been verified. Update that published
+record and the README together in the post-publication documentation change;
+preparing a candidate or pushing a tag does not by itself prove publication.
 
 ## Changelog Rules
 

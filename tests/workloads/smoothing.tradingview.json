@@ -1,0 +1,141 @@
+{
+  "schema": "pyne.workload-oracle/1",
+  "source": "TradingView Pine v6 runtime via Chrome Pine Logs",
+  "capturedAt": "2026-09-07T12:52:51.289Z",
+  "url": "https://cn.tradingview.com/chart/wf5lRGkJ/",
+  "scriptSha256": "3c4f9491c284c44e1994c8ee5c8aa1ea65142d315367b4a5e8ee494af4f4a2ae",
+  "logSha256": "3c0e7da1cf19614a6c176ab002e60bac11685f0b313cd2e54e1e1bb89566bb2d",
+  "columns": [
+    "Smoothed RSI",
+    "TSI"
+  ],
+  "tolerance": 1e-8,
+  "rows": [
+    {
+      "index": 0,
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "index": 1,
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "index": 2,
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "index": 3,
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "index": 4,
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "index": 5,
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "index": 6,
+      "values": [
+        null,
+        0
+      ]
+    },
+    {
+      "index": 7,
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "index": 8,
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "index": 9,
+      "values": [
+        59.7676419966,
+        0.1785714286
+      ]
+    },
+    {
+      "index": 10,
+      "values": [
+        53.0656391801,
+        -0.0738255034
+      ]
+    },
+    {
+      "index": 11,
+      "values": [
+        59.2560992387,
+        0.2652608213
+      ]
+    },
+    {
+      "index": 12,
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "index": 13,
+      "values": [
+        null,
+        null
+      ]
+    },
+    {
+      "index": 14,
+      "values": [
+        48.7469546664,
+        -0.2145735934
+      ]
+    },
+    {
+      "index": 15,
+      "values": [
+        50.8325578679,
+        -0.009375468
+      ]
+    },
+    {
+      "index": 16,
+      "values": [
+        42.6556437436,
+        -0.318306784
+      ]
+    },
+    {
+      "index": 17,
+      "values": [
+        49.8126756413,
+        0.0853553511
+      ]
+    }
+  ]
+}

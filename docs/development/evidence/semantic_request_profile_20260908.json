@@ -1,0 +1,18 @@
+[
+  {
+    "history": 64,
+    "retainedBars": 64,
+    "requestBars": 64,
+    "diagnostics": 128,
+    "stateBytes": 64530,
+    "profile": "         2881673 function calls (2623793 primitive calls) in 0.667 seconds\n\n   Ordered by: cumulative time\n   List reduced from 322 to 18 due to restriction <18>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n       32    0.001    0.000    0.587    0.018 session.py:341(_run_bar)\n       16    0.000    0.000    0.446    0.028 session.py:295(on_bar_updated)\n       32    0.000    0.000    0.346    0.011 session.py:775(_call_required)\n       32    0.000    0.000    0.346    0.011 session.py:785(_call_by_arity)\n       32    0.000    0.000    0.343    0.011 <string>:11(on_bar)\n  352/320    0.001    0.000    0.238    0.001 {built-in method builtins.next}\n  176/160    0.000    0.000    0.238    0.001 contextlib.py:132(__enter__)\n       64    0.000    0.000    0.237    0.004 session.py:463(_preview_global_scope)\n       16    0.002    0.000    0.235    0.015 session.py:1389(_clone_preview_globals)\n192607/6875    0.116    0.000    0.229    0.000 copy.py:118(deepcopy)\n       16    0.000    0.000    0.224    0.014 session.py:251(on_bar_closed)\n       32    0.000    0.000    0.205    0.006 request.py:56(security_lower_tf)\n14027/13499    0.036    0.000    0.200    0.000 copy.py:217(_deepcopy_dict)\n       64    0.001    0.000    0.192    0.003 module.py:383(_requested_context)\n       32    0.000    0.000    0.170    0.005 module.py:226(security_lower_tf)\n       96    0.010    0.000    0.157    0.002 context.py:63(from_ohlcv)\n       32    0.000    0.000    0.135    0.004 request.py:49(security)\n      336    0.003    0.000    0.130    0.000 copy.py:191(_deepcopy_list)\n\n\n"
+  },
+  {
+    "history": 1024,
+    "retainedBars": 64,
+    "requestBars": 64,
+    "diagnostics": 2048,
+    "stateBytes": 487105,
+    "profile": "         10344692 function calls (9243144 primitive calls) in 4.314 seconds\n\n   Ordered by: cumulative time\n   List reduced from 321 to 18 due to restriction <18>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n       32    0.002    0.000    3.014    0.094 session.py:341(_run_bar)\n       16    0.001    0.000    2.341    0.146 session.py:295(on_bar_updated)\n       16    0.001    0.000    1.980    0.124 session.py:251(on_bar_closed)\n962629/21209    0.914    0.000    1.920    0.000 copy.py:118(deepcopy)\n59081/58553    0.365    0.000    1.694    0.000 copy.py:217(_deepcopy_dict)\n  352/320    0.003    0.000    1.524    0.005 {built-in method builtins.next}\n  176/160    0.000    0.000    1.522    0.010 contextlib.py:132(__enter__)\n       64    0.001    0.000    1.521    0.024 session.py:463(_preview_global_scope)\n       16    0.016    0.001    1.515    0.095 session.py:1389(_clone_preview_globals)\n       32    0.000    0.000    1.482    0.046 session.py:775(_call_required)\n       32    0.001    0.000    1.481    0.046 session.py:785(_call_by_arity)\n       32    0.001    0.000    1.475    0.046 <string>:11(on_bar)\n      336    0.032    0.000    1.373    0.004 copy.py:191(_deepcopy_list)\n       32    0.000    0.000    1.245    0.039 session.py:828(_to_result)\n       32    0.008    0.000    1.245    0.039 context.py:498(to_result)\n       16    0.589    0.037    1.228    0.077 session.py:1464(_preview_copy_memo)\n       64    0.017    0.000    1.171    0.018 module.py:383(_requested_context)\n       32    0.001    0.000    1.073    0.034 request.py:56(security_lower_tf)\n\n\n"
+  }
+]

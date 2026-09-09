@@ -6,6 +6,11 @@ the most common rewrites for users moving Pine ideas into Pyne scripts.
 Pyne does not parse or run `.pine` source files directly. Write normal Python
 and use Pyne helpers where Pine syntax has no direct Python equivalent.
 
+For a complete real-source migration with captured market inputs, diagnostics,
+batch/incremental implementations and restart checks, see the
+[ADX/DI migration acceptance](../development/adx_migration_acceptance_zh.md).
+The derivative test scripts retain MPL-2.0 attribution; they are not runtime code.
+
 ## Series Conditions
 
 Pine lets a condition produce a series value across bars. Python `if` statements

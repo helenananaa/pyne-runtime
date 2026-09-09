@@ -219,6 +219,8 @@ class RequestModule:
             requested_values=requested_values,
             gaps=normalized_gaps,
             lookahead=normalized_lookahead,
+            chart_step_hint=_timeframe_seconds_from_text(self._context.timeframe.period),
+            requested_step_hint=_timeframe_seconds_from_text(timeframe_text),
         )
 
     def security_lower_tf(
@@ -558,6 +560,7 @@ class RequestModule:
                 timeframe=request_metadata["timeframe"],
                 session=request_metadata["session"],
                 allow_empty=True,
+                allow_missing_values=True,
                 require_unique_times=False,
             )
         except (TypeError, ValueError) as exc:
@@ -826,26 +829,12 @@ def _last_positive_chart_step(chart_times: list[int]) -> int | None:
 
 
 def _timeframe_seconds_from_text(timeframe: str) -> int | None:
+    from ..metadata import TimeframeInfo
+
     value = str(timeframe).strip()
     if not value:
         return None
-    if value.isdigit():
-        return int(value) * 60
-    amount_text = value[:-1] or "1"
-    unit = value[-1]
-    if not amount_text.isdigit():
+    try:
+        return int(TimeframeInfo.from_value(value).in_seconds())
+    except (TypeError, ValueError):
         return None
-    amount = int(amount_text)
-    if unit in {"s", "S"}:
-        return amount
-    if unit == "m":
-        return amount * 60
-    if unit in {"h", "H"}:
-        return amount * 3600
-    if unit in {"d", "D"}:
-        return amount * 86_400
-    if unit in {"w", "W"}:
-        return amount * 7 * 86_400
-    if unit == "M":
-        return amount * 30 * 86_400
-    return None

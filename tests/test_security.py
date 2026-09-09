@@ -68,3 +68,22 @@ barcolor(color.green)
 def test_validate_script_security_propagates_syntax_errors() -> None:
     with pytest.raises(SyntaxError):
         validate_script_security("if", PyneSecurityPolicy.from_settings(PyneSettings()))
+
+
+def test_unsafe_inline_builtins_copy_does_not_pollute_host() -> None:
+    import builtins
+
+    original_abs = builtins.abs
+    result = pn.run(
+        """
+__builtins__["abs"] = None
+plot(close, "Close")
+""",
+        _bars(),
+        security_mode="unsafe",
+        executor_mode="inline",
+    )
+
+    assert result.ok, result.error
+    assert builtins.abs is original_abs
+    assert builtins.abs(3) == 3

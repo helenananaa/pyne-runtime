@@ -1,0 +1,32 @@
+//@version=6
+indicator("Pyne EMA RSI oracle 20260907", precision=10)
+int i = bar_index
+float src = switch i % 8
+    0 => 1
+    1 => 4
+    2 => 2
+    3 => 5
+    4 => 3
+    5 => 6
+    6 => 2
+    => 4
+float leading = i < 3 ? na : src
+float holes = i == 1 or i == 7 or i == 12 ? na : src
+float e = ta.ema(src, 3)
+float el = ta.ema(leading, 3)
+float eh = ta.ema(holes, 3)
+[m, s, h] = ta.macd(holes, 2, 4, 3)
+float rf = ta.rsi(10.0, 3)
+float ru = ta.rsi(i + 1.0, 3)
+float rd = ta.rsi(100.0 - i, 3)
+float rh = ta.rsi(holes, 3)
+float rl = ta.rsi(leading, 3)
+float rb = ta.rsi(src, 3)
+f(float x) => str.tostring(x, "#.##########")
+var string rows = ""
+if i < 18
+    rows += "PYNE_EDGE|" + str.tostring(i) + "|" + f(src) + "|" + f(leading) + "|" + f(holes) + "|" + f(e) + "|" + f(el) + "|" + f(eh) + "|" + f(m) + "|" + f(s) + "|" + f(h) + "|" + f(rf) + "|" + f(ru) + "|" + f(rd) + "|" + f(rh) + "|" + f(rl) + "|" + f(rb) + ";"
+    if i % 6 == 5
+        log.info(rows)
+        rows := ""
+plot(e, "EMA")

@@ -386,6 +386,57 @@ plot(length, "Length")
     assert result.values("Length") == [5.0, 5.0, 5.0]
 
 
+def test_batch_params_nested_mutables_do_not_mutate_host_objects() -> None:
+    nested_list = [1, 2]
+    nested_dict = {"k": 1}
+    nested_set = {1}
+    host = {"values": [3]}
+
+    class Box:
+        def __init__(self) -> None:
+            self.n = 1
+
+    box = Box()
+    result = pn.run(
+        """
+try:
+    params["nested_list"].append(9)
+except Exception:
+    pass
+try:
+    params["nested_dict"]["k"] = 9
+except Exception:
+    pass
+try:
+    params["nested_set"].add(9)
+except Exception:
+    pass
+try:
+    params["box"].n = 9
+except Exception:
+    pass
+plot(1, "Ran")
+""",
+        _bars(),
+        params={
+            "nested_list": nested_list,
+            "nested_dict": nested_dict,
+            "nested_set": nested_set,
+            "box": box,
+            "host": host,
+        },
+        executor_mode="inline",
+    )
+
+    assert result.ok, result.error
+    assert result.values("Ran") == [1.0, 1.0, 1.0]
+    assert nested_list == [1, 2]
+    assert nested_dict == {"k": 1}
+    assert nested_set == {1}
+    assert box.n == 1
+    assert host == {"values": [3]}
+
+
 def test_input_source_identifies_named_derived_series() -> None:
     result = pn.run(
         """

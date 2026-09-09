@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 
 import numpy as np
+import pytest
 
 import pyne_runtime as pn
 import pyne_runtime.utils as utils
@@ -270,7 +271,7 @@ def test_vwap_prefers_recurring_host_session_open_markers() -> None:
     assert result.values("Session VWAP") == [10.0, 15.0, 30.0, 35.0]
 
 
-def test_sma_returns_nan_for_windows_containing_nan() -> None:
+def test_sma_uses_the_last_present_observations() -> None:
     source = pn.PyneSeries([1.0, float("nan"), 3.0, 4.0], name="close")
 
     result = TaModule().sma(source, 2)
@@ -278,7 +279,7 @@ def test_sma_returns_nan_for_windows_containing_nan() -> None:
     assert isinstance(result, pn.PyneSeries)
     assert math.isnan(result.values[0])
     assert math.isnan(result.values[1])
-    assert math.isnan(result.values[2])
+    assert result.values[2] == 2.0
     assert result.values[3] == 3.5
 
 
@@ -304,6 +305,35 @@ def test_highest_lowest_use_available_warmup_history() -> None:
     assert isinstance(lowest, pn.PyneSeries)
     assert list(highest.values) == [3.0, 3.0, 5.0, 5.0]
     assert list(lowest.values) == [3.0, 1.0, 1.0, 1.0]
+
+
+def test_barssince_and_valuewhen_treat_nan_as_false() -> None:
+    condition = np.array([np.nan, 0.0, 1.0])
+    source = np.array([10.0, 20.0, 30.0])
+
+    since = np.asarray(utils.barssince(condition), dtype=np.float64)
+    captured = np.asarray(utils.valuewhen(condition, source), dtype=np.float64)
+
+    assert np.isnan(since[0])
+    assert np.isnan(since[1])
+    assert since[2] == 0.0
+    assert np.isnan(captured[0])
+    assert np.isnan(captured[1])
+    assert captured[2] == 30.0
+
+
+def test_change_and_roc_require_positive_period() -> None:
+    source = pn.PyneSeries([1.0, 2.0, 3.0], name="close")
+
+    for period in (-1, 0):
+        with pytest.raises(ValueError, match="positive integer"):
+            utils.change(source, period)
+        with pytest.raises(ValueError, match="positive integer"):
+            utils.roc(source, period)
+        with pytest.raises(ValueError, match="positive integer"):
+            TaModule().change(source, period)
+        with pytest.raises(ValueError, match="positive integer"):
+            TaModule().roc(source, period)
 
 
 def test_macd_and_bollinger_outputs_are_structured() -> None:

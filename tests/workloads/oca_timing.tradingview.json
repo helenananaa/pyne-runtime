@@ -1,0 +1,325 @@
+{
+  "schema": "pyne.workload-oracle/1",
+  "source": "TradingView Pine v6 strategy broker emulator via Chrome Pine Logs",
+  "capturedAt": "2026-09-07T13:17:18.835Z",
+  "url": "https://cn.tradingview.com/chart/wf5lRGkJ/",
+  "scriptSha256": "eabb65a87b46ada52b9f0ee4311f0cc321170a0372553fec58f1f45a016d4544",
+  "logSha256": "7ccffe65f27c162950966fa6108f44c88dd052d5afdeac9d76aa287fa3c35425",
+  "columns": [
+    "time",
+    "position",
+    "openCount",
+    "S1",
+    "S2",
+    "CB",
+    "CA",
+    "AA",
+    "AB",
+    "NB",
+    "NA",
+    "R1",
+    "R2",
+    "RB",
+    "RA",
+    "QA",
+    "QB",
+    "TB",
+    "TA",
+    "PC1",
+    "PC2",
+    "PR1",
+    "PR2"
+  ],
+  "bars": [
+    {
+      "time": 1769904000,
+      "open": 78739,
+      "high": 79392.2,
+      "low": 78648,
+      "close": 79349,
+      "volume": 137.41929165
+    },
+    {
+      "time": 1769904900,
+      "open": 79346.1,
+      "high": 79422,
+      "low": 78975,
+      "close": 79095.4,
+      "volume": 76.72998318
+    },
+    {
+      "time": 1769905800,
+      "open": 79095.4,
+      "high": 79230.5,
+      "low": 78750.1,
+      "close": 78756.9,
+      "volume": 64.62495404
+    },
+    {
+      "time": 1769906700,
+      "open": 78756.9,
+      "high": 79112.8,
+      "low": 78744.6,
+      "close": 78897.6,
+      "volume": 78.63572344
+    }
+  ],
+  "orders": [
+    {
+      "id": "S1",
+      "qty": 1,
+      "group": "same",
+      "oca": "cancel",
+      "stop": null
+    },
+    {
+      "id": "S2",
+      "qty": 2,
+      "group": "same",
+      "oca": "cancel",
+      "stop": null
+    },
+    {
+      "id": "CB",
+      "qty": 2,
+      "group": "before",
+      "oca": "cancel",
+      "stop": 79400
+    },
+    {
+      "id": "CA",
+      "qty": 1,
+      "group": "before",
+      "oca": "cancel",
+      "stop": null
+    },
+    {
+      "id": "AA",
+      "qty": 1,
+      "group": "after",
+      "oca": "cancel",
+      "stop": null
+    },
+    {
+      "id": "AB",
+      "qty": 2,
+      "group": "after",
+      "oca": "cancel",
+      "stop": 79400
+    },
+    {
+      "id": "NB",
+      "qty": 2,
+      "group": "",
+      "oca": "none",
+      "stop": 79400
+    },
+    {
+      "id": "NA",
+      "qty": 1,
+      "group": "",
+      "oca": "none",
+      "stop": null
+    },
+    {
+      "id": "R1",
+      "qty": 1,
+      "group": "same_reduce",
+      "oca": "reduce",
+      "stop": null
+    },
+    {
+      "id": "R2",
+      "qty": 2,
+      "group": "same_reduce",
+      "oca": "reduce",
+      "stop": null
+    },
+    {
+      "id": "RB",
+      "qty": 3,
+      "group": "reduce_before",
+      "oca": "reduce",
+      "stop": 79400
+    },
+    {
+      "id": "RA",
+      "qty": 1,
+      "group": "reduce_before",
+      "oca": "reduce",
+      "stop": null
+    },
+    {
+      "id": "QA",
+      "qty": 1,
+      "group": "reduce_after",
+      "oca": "reduce",
+      "stop": null
+    },
+    {
+      "id": "QB",
+      "qty": 3,
+      "group": "reduce_after",
+      "oca": "reduce",
+      "stop": 79400
+    },
+    {
+      "id": "TB",
+      "qty": 2,
+      "group": "triggered",
+      "oca": "cancel",
+      "stop": "close-1"
+    },
+    {
+      "id": "TA",
+      "qty": 1,
+      "group": "triggered",
+      "oca": "cancel",
+      "stop": null
+    },
+    {
+      "id": "PC1",
+      "qty": 1,
+      "group": "pending_cancel",
+      "oca": "cancel",
+      "stop": 79400
+    },
+    {
+      "id": "PC2",
+      "qty": 2,
+      "group": "pending_cancel",
+      "oca": "cancel",
+      "stop": 79410
+    },
+    {
+      "id": "PR1",
+      "qty": 1,
+      "group": "pending_reduce",
+      "oca": "reduce",
+      "stop": 79400
+    },
+    {
+      "id": "PR2",
+      "qty": 3,
+      "group": "pending_reduce",
+      "oca": "reduce",
+      "stop": 79410
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "values": [
+        1769904000,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 1,
+      "values": [
+        1769904900,
+        30,
+        19,
+        1,
+        2,
+        2,
+        1,
+        1,
+        2,
+        2,
+        1,
+        1,
+        2,
+        3,
+        1,
+        1,
+        3,
+        2,
+        1,
+        1,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "index": 2,
+      "values": [
+        1769905800,
+        30,
+        19,
+        1,
+        2,
+        2,
+        1,
+        1,
+        2,
+        2,
+        1,
+        1,
+        2,
+        3,
+        1,
+        1,
+        3,
+        2,
+        1,
+        1,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "index": 3,
+      "values": [
+        1769906700,
+        30,
+        19,
+        1,
+        2,
+        2,
+        1,
+        1,
+        2,
+        2,
+        1,
+        1,
+        2,
+        3,
+        1,
+        1,
+        3,
+        2,
+        1,
+        1,
+        0,
+        1,
+        2
+      ]
+    }
+  ],
+  "comparison": "Settled open quantities and lifecycle after next-bar trigger; no claim of exact intrabar fill price parity",
+  "priceChoice": "79400 lies above submission bar high 79392.2 and below next high 79422; positive pending controls additionally use 79410"
+}

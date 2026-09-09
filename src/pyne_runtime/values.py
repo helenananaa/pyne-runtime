@@ -90,6 +90,27 @@ def is_na_value(value: Any) -> bool:
     return False
 
 
+def is_condition_true(value: Any) -> bool:
+    """Treat missing as false and finite nonzero values as true."""
+    if isinstance(value, np.ndarray):
+        if value.ndim != 0:
+            return False
+        value = value.item()
+    elif isinstance(value, np.generic):
+        value = value.item()
+    if is_na_value(value):
+        return False
+    if isinstance(value, (bool, np.bool_)):
+        return bool(value)
+    if isinstance(value, (int, float, np.integer, np.floating)):
+        number = float(value)
+        return bool(np.isfinite(number) and number != 0)
+    try:
+        return bool(value)
+    except (TypeError, ValueError):
+        return False
+
+
 def _is_na_array(value: np.ndarray) -> np.ndarray:
     if np.issubdtype(value.dtype, np.number):
         return np.isnan(value)

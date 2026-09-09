@@ -13,7 +13,13 @@ from ..values import is_na_value
 from .collector import OutputCollector
 from .namespace_builder import assemble_plot_namespace
 from .refs import ObjectRef, PlotRef
-from .value_helpers import PlotValueAdapter, display_options
+from .value_helpers import (
+    PlotValueAdapter,
+    collector_color,
+    display_options,
+    is_color_series,
+    serialize_color,
+)
 
 
 _MISSING = object()
@@ -156,10 +162,14 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
                 {
                     "title": title or plot_id,
                     "color_up": (
-                        str(color) if not isinstance(color, (np.ndarray, PyneSeries)) else "#26a69a"
+                        collector_color(color, default="#26a69a")
+                        if not is_color_series(color)
+                        else "#26a69a"
                     ),
                     "color_down": (
-                        str(color) if not isinstance(color, (np.ndarray, PyneSeries)) else "#ef5350"
+                        collector_color(color, default="#ef5350")
+                        if not is_color_series(color)
+                        else "#ef5350"
                     ),
                     "pane": pane,
                     "data": hist_points,
@@ -168,17 +178,10 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
             )
             return PlotRef(id=plot_id, title=title, pane=pane)
 
-        line_color_values = color.to_numpy() if isinstance(color, PyneSeries) else color
         line_entry: dict[str, Any] = {
             "id": plot_id,
             "title": title or plot_id,
-            "color": (
-                str(line_color_values)
-                if not isinstance(line_color_values, np.ndarray)
-                else str(line_color_values[0])
-                if len(line_color_values) > 0
-                else "#f59e0b"
-            ),
+            "color": collector_color(color),
             "linewidth": linewidth,
             "style": style,
             "pane": pane,
@@ -441,9 +444,7 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
         first_visible_index = 0
         if show_last is not None:
             first_visible_index = max(len(collector.times) - max(int(show_last), 0), 0)
-        entry_color = (
-            str(color) if not isinstance(color, (PyneSeries, np.ndarray, list)) else "#f59e0b"
-        )
+        entry_color = collector_color(color) if not is_color_series(color) else "#f59e0b"
 
         marks = []
         for i, (t, c) in enumerate(zip(collector.times, condition_values)):
@@ -628,8 +629,8 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
             is_up = number > 0
             color_data = colorup if is_up else colordown
             fallback_color = (
-                str(color_data)
-                if not isinstance(color_data, (PyneSeries, np.ndarray, list))
+                collector_color(color_data, default="#26a69a" if is_up else "#ef5350")
+                if not is_color_series(color_data)
                 else "#26a69a"
                 if is_up
                 else "#ef5350"
@@ -660,13 +661,13 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
             arrow_entry: dict[str, Any] = {
                 "shape": "arrow",
                 "color_up": (
-                    str(colorup)
-                    if not isinstance(colorup, (PyneSeries, np.ndarray, list))
+                    collector_color(colorup, default="#26a69a")
+                    if not is_color_series(colorup)
                     else "#26a69a"
                 ),
                 "color_down": (
-                    str(colordown)
-                    if not isinstance(colordown, (PyneSeries, np.ndarray, list))
+                    collector_color(colordown, default="#ef5350")
+                    if not is_color_series(colordown)
                     else "#ef5350"
                 ),
                 "text": "",
@@ -709,8 +710,9 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
 
         bar_colors = []
         for t, c in zip(collector.times, colors_list):
-            if not is_na_value(c) and c != "":
-                bar_colors.append({"time": t, "color": str(c)})
+            color_text = serialize_color(c)
+            if color_text:
+                bar_colors.append({"time": t, "color": color_text})
 
         if bar_colors:
             collector.barcolors.append({"data": bar_colors})

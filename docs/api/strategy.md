@@ -64,6 +64,16 @@ keeps a lifecycle record with no `commission` field. A reduced sibling charges
 commission only if it later fills, and cash-per-contract commission uses the
 reduced filled quantity rather than the original requested quantity.
 
+The additional Pine v6 OCA capture distinguishes market `strategy.order` fills
+from pending fills. In the captured cases, market orders in cancel/reduce groups
+do not alter sibling pending quantities, irrespective of submission order; both
+same-tick market siblings fill. Pending-to-pending cancel/reduce positive controls
+do apply OCA. Incremental market `order` behavior now matches the batch path and
+this evidence; the existing market `entry` path is not changed by this slice.
+OCA never retroactively cancels or reduces an already-filled sibling.
+See [OCA acceptance](../development/trend_volume_oca_acceptance_zh.md) for exact
+orders, reachability controls and the scope of quantity/lifecycle comparison.
+
 ## Configuration
 
 Prefer the Pine-like declaration form:

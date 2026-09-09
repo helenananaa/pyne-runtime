@@ -39,6 +39,11 @@ jobs:
       - name: Test
         run: python -m pytest
 
+      - name: Performance and session stability gates
+        run: |
+          python scripts/performance_smoke.py --check
+          python scripts/incremental_stability_smoke.py --check
+
       - name: Strategy capture gates
         run: |
           python scripts/strategy_capture_scaffold.py --check
@@ -70,6 +75,38 @@ jobs:
 
       - name: Check distributions
         run: python -m twine check dist/*
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v7
+        with:
+          name: pyne-runtime-dist
+          path: dist/
+          if-no-files-found: error
+
+  package-smoke:
+    name: Installed wheel Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.0
+
+      - name: Set up Python
+        uses: actions/setup-python@v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Download distributions
+        uses: actions/download-artifact@v8
+        with:
+          name: pyne-runtime-dist
+          path: dist
 
       - name: Smoke installed wheel
         run: python scripts/package_smoke.py --dist-dir dist

@@ -1,0 +1,25 @@
+//@version=6
+indicator("Pyne smoothing oracle 20260907", precision=10)
+int i = bar_index
+float src = switch i % 8
+    0 => 1
+    1 => 4
+    2 => 2
+    3 => 5
+    4 => 3
+    5 => 6
+    6 => 2
+    => 4
+float leading = i < 3 ? na : src
+float holes = i == 1 or i == 7 or i == 12 ? na : src
+float r = ta.rsi(holes, 3)
+float smoothed = ta.ema(r, 3)
+float tsi = ta.tsi(holes, 2, 3)
+f(float x) => str.tostring(x, "#.##########")
+var string rows = ""
+if i < 18
+    rows += "PYNE_SMOOTH|" + str.tostring(i) + "|" + f(smoothed) + "|" + f(tsi) + ";"
+    if i % 6 == 5
+        log.info(rows)
+        rows := ""
+plot(smoothed, "Smoothed RSI")

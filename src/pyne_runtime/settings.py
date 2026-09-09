@@ -33,6 +33,7 @@ class PyneSettings:
     security_mode: str = "safe"
     executor_mode: str = "process"
     timeout_seconds: float = 5.0
+    require_hard_timeout: bool = False
     process_grace_seconds: float = 0.5
     max_bars: int = 50_000
     max_output_series: int = 20
@@ -63,6 +64,12 @@ class PyneSettings:
         object.__setattr__(self, "security_mode", security_mode)
         object.__setattr__(self, "executor_mode", executor_mode)
         object.__setattr__(self, "timeout_seconds", max(float(self.timeout_seconds), 0.0))
+        object.__setattr__(self, "require_hard_timeout", bool(self.require_hard_timeout))
+        if self.require_hard_timeout and executor_mode == "inline":
+            raise ValueError(
+                "require_hard_timeout=True cannot be delivered by executor_mode='inline'; "
+                "use executor_mode='process' for hard timeout enforcement"
+            )
         object.__setattr__(
             self,
             "process_grace_seconds",
@@ -128,6 +135,7 @@ class PyneSettings:
             security_mode=os.getenv("PYNE_SECURITY_MODE", "safe"),
             executor_mode=os.getenv("PYNE_EXECUTOR_MODE", "process"),
             timeout_seconds=_float_env("PYNE_EXEC_TIMEOUT_SECONDS", 5.0),
+            require_hard_timeout=_bool_env("PYNE_REQUIRE_HARD_TIMEOUT", False),
             process_grace_seconds=_float_env("PYNE_PROCESS_GRACE_SECONDS", 0.5),
             max_bars=_int_env("PYNE_MAX_BARS", 50_000),
             max_output_series=_int_env("PYNE_MAX_OUTPUT_SERIES", 20),
@@ -189,7 +197,7 @@ def normalize_security_mode(mode: str | None) -> str:
 def normalize_executor_mode(mode: str | None) -> str:
     normalized = (mode or "process").strip().lower()
     if normalized not in EXECUTOR_MODES:
-        return "process"
+        raise ValueError("executor_mode must be 'inline' or 'process'")
     return normalized
 
 

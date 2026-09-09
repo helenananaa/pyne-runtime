@@ -71,6 +71,7 @@ class IncrementalContext(IncrementalDrawingMixin):
         self._current_object_events: list[dict[str, Any]] = []
         self._request_bars: list[dict[str, Any]] = []
         self._request_diagnostics: list[dict[str, Any]] = []
+        self._request_diagnostics_dropped = 0
         self._request_namespace: Any = None
         self._object_counter = 0
         self._max_drawing_objects = max(int(max_drawing_objects), 1)
@@ -99,6 +100,9 @@ class IncrementalContext(IncrementalDrawingMixin):
             "_current_markers": {},
             "_current_object_events": [],
             "_request_diagnostics": [],
+            "_request_diagnostics_dropped": (
+                self._request_diagnostics_dropped + len(self._request_diagnostics)
+            ),
             "current_bar": None,
         }
         clone = object.__new__(type(self))
@@ -189,6 +193,8 @@ class IncrementalContext(IncrementalDrawingMixin):
         last_bar_index: int,
         barstate: PyneIncrementalBarState,
     ) -> None:
+        self._request_diagnostics_dropped += len(self._request_diagnostics)
+        self._request_diagnostics = []
         self._current_series = {}
         self._current_candles = {}
         self._current_markers = {}
@@ -587,8 +593,17 @@ class IncrementalContext(IncrementalDrawingMixin):
                 "last_bar_index": self.last_bar_index,
                 "barstate": asdict(self.barstate),
                 **(
-                    {"requestDiagnostics": copy.deepcopy(self._request_diagnostics)}
-                    if self._request_diagnostics
+                    {
+                        "requestDiagnostics": copy.deepcopy(self._request_diagnostics),
+                        "requestDiagnosticsInfo": {
+                            "scope": "current_bar",
+                            "barTime": self.current_bar.time if self.current_bar else None,
+                            "retained": len(self._request_diagnostics),
+                            "dropped": self._request_diagnostics_dropped,
+                            "truncated": self._request_diagnostics_dropped > 0,
+                        },
+                    }
+                    if self._request_diagnostics or self._request_diagnostics_dropped
                     else {}
                 ),
                 **({"trace": trace_snapshot} if trace_snapshot is not None else {}),

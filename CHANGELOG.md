@@ -2,6 +2,104 @@
 
 ## Unreleased
 
+## 0.3.0 - 2026-09-09
+
+- Removed BLAS thread dispatch from weighted rolling seed reduction, fixing the
+  Linux WMA growth gate without changing its 3.0 limit. The formula is unchanged,
+  but unrounded accumulation can differ, so snapshot semantics advances to 3;
+  real semantics-2 snapshots are retained as rejection fixtures.
+- Fixed offline wheel smoke when dependencies are installed in the calling venv
+  rather than its base interpreter. Dependency paths are appended without running
+  parent editable/.pth hooks; the installed wheel still takes precedence.
+- Aligned existing performance and incremental-stability checks across PowerShell,
+  POSIX and CI entry points.
+
+- Qualified the frozen 1/4/8-session long-running workload through 4096 bars per
+  session, with current RSS, snapshot/continuation checks, archived raw events and
+  independently recomputed latency statistics. Results define a measured range,
+  not a production SLA or a new default concurrency limit.
+
+- Strengthened installed-wheel smoke with real migration, timestamped external
+  outputs, preview/state restore, and legacy snapshot rejection/rebuild workflows;
+  acceptance rejects imports outside the temporary environment even under Python
+  optimization. Clarified the stable 0.3 compatibility and publication-record policy.
+
+- Added a real MPL-2.0 ADX/DI migration fixture with 80 TradingView market-bar
+  captures, batch/incremental and restart acceptance. Derivative fixture scripts
+  retain their license and are not part of the installed runtime package.
+- Inspector v2 now exposes the existing advisory migration diagnostics under
+  `migration.diagnostics`, including syntax-error hints, without turning heuristic
+  warnings into capability blockers or changing execution/snapshot semantics.
+- Added a bounded multi-session capacity harness with current RSS, streamed raw
+  event timings, snapshot costs and continuation against the un-restored session.
+
+- Added request-provider fault/recovery acceptance for both supported request
+  families, including poisoned-session rejection, typed-state continuation and
+  retained confirmed plot points across provider replacement. No runtime change.
+
+- Documented executable session recovery workflows: fresh-process typed-state
+  continuation, preview-sensitive replay differences, and rebuilding real legacy
+  snapshots from authoritative OHLCV after a semantics mismatch. Runtime behavior
+  and snapshot semantics are unchanged.
+
+- CI and release workflows now install the same built wheel across Linux,
+  Windows and macOS on Python 3.11/3.12/3.13. Publication depends on all nine
+  installed-wheel checks and consumes the verified artifact without rebuilding.
+
+- Indexed incremental provider-cache timestamps for interval lookup and skipped
+  ineffective preview traversal into the already-shared runtime request facade.
+  Cache coverage, eviction budgets and user-alias isolation remain unchanged.
+  Snapshot semantics remains 2; paired source benchmarks compare full outputs.
+
+- Bounded incremental request diagnostic history to the current bar, preserving
+  every current request entry and exposing `meta.requestDiagnosticsInfo` with
+  cumulative prior-entry discard counts. Preview counters remain isolated;
+  silent bars disclose empty current diagnostics. Batch behavior is unchanged.
+  Snapshot semantics advances to 2; semantics-1 sessions require OHLCV rebuild.
+
+- Added a reproducible whole-script performance harness with fresh-process
+  repetitions, raw preview/confirmed and snapshot latency, separate Python
+  allocation measurements, and an active cyclic-strategy control. Recorded a
+  growing request-diagnostics hotspot under fixed retention; runtime behavior
+  and snapshot semantics are unchanged by this measurement slice.
+
+- Added independent computation semantics identity to local and portable
+  incremental snapshots. Legacy/unmarked or mismatched snapshots fail before
+  restoration with `PYNE_SNAPSHOT_SEMANTICS_MISMATCH`; rebuild from authoritative
+  OHLCV after upgrading. Tests include real snapshots emitted by `64eb354`,
+  rejection without live-state mutation, and current-semantics continuation.
+
+- Aligned SMA, variance, standard deviation and Bollinger windows to the last
+  non-missing observations, and unified incremental helpers on centered rolling
+  moments with rebasing. Added 30 capture/composition, long-stream and restore
+  cases. Two high-offset native Pine dispersion columns remain explicit numeric
+  differences checked against stable centered arithmetic, not claimed as parity.
+  Rebuild affected old rolling-statistics sessions when upgrading the candidate.
+
+- Corrected VWMA to use independent windows of non-missing products and volumes,
+  backed by native Pine v6 and explicit-volume formula captures. Confirmed and
+  retained Supertrend's first zero with a native capture. Added 36 trend/volume/
+  OCA evidence and restore cases. Fixed incremental market `strategy.order`
+  incorrectly applying OCA to pending siblings, and prevented pending OCA effects
+  from retroactively changing already-filled siblings. Rebuild affected VWMA/OCA
+  sessions when adopting these semantic corrections.
+
+- Corrected EMA/MACD seeding to count non-missing observations and emit missing
+  output on gaps while retaining recursive state. Public EMA and MACD/TSI batch
+  smoothing now share the same kernel. Corrected RSI gap outputs and flat RSI=100
+  from independent TradingView Pine v6 captures. Added 27 boundary/composition
+  and checkpoint cases; old affected sessions must be rebuilt from OHLCV rather
+  than migrated from snapshots calculated under the previous semantics.
+
+- Added five host-neutral whole-script acceptance workloads covering TA chains,
+  multi-context requests, cache/state, drawings and strategy lifecycle, with
+  preview isolation, repeated restoration, 256-bar retention and failure recovery.
+  A 40-row TradingView Pine v6 log capture independently checks the TA chain.
+- Fixed premature HTF close disclosure when chart or provider history has only
+  one bar: request alignment now falls back to timeframe duration when spacing
+  cannot be inferred. Documented replay-v1's exclusion of preview visitation and
+  the need for state snapshots for intrabar-dependent committed calculations.
+
 - Relicensed the project from GPL-3.0 to MIT with authorization from the sole
   contributor, and aligned the repository and package metadata.
 - Hardened the isolated package smoke so the installed wheel must match the

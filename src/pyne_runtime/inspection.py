@@ -17,6 +17,7 @@ from .capabilities import (
     capability_diagnostics,
 )
 from .errors import error_detail
+from .migration_diagnostics import migration_diagnostics, syntax_migration_diagnostics
 from .pine_libraries import SUPPORTED_PINE_LIBRARIES
 from .schema import PYNE_OUTPUT_SCHEMA_VERSION, PYNE_STRATEGY_REPORT_SCHEMA_VERSION
 
@@ -132,7 +133,13 @@ def inspect_script(script: str, *, runtime_mode: str | None = None) -> dict[str,
             "resourceHints": _resource_hints(ast.Module(body=[], type_ignores=[])),
             "providerRequirements": [],
             "outputRequirements": _output_requirements(ast.Module(body=[], type_ignores=[]), {}),
-            "migration": _migration_report({}, [], [], mode="unknown"),
+            "migration": _migration_report(
+                {},
+                [],
+                [],
+                mode="unknown",
+                diagnostics=syntax_migration_diagnostics(source),
+            ),
         }
 
     mode = _normalize_mode(runtime_mode) or _detect_runtime_mode(tree)
@@ -196,6 +203,7 @@ def inspect_script(script: str, *, runtime_mode: str | None = None) -> dict[str,
         external_libraries,
         dynamic_accesses,
         mode=mode,
+        diagnostics=migration_diagnostics(source),
     )
 
     return {
@@ -389,6 +397,7 @@ def _migration_report(
     dynamic_accesses: list[dict[str, Any]],
     *,
     mode: str,
+    diagnostics: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     blockers: list[dict[str, Any]] = []
     for member in sorted(requirements.get("ta", set()) - set(INCREMENTAL_TA_CAPABILITIES)):
@@ -419,7 +428,8 @@ def _migration_report(
             "applicable": mode == "batch",
             "eligible": not blockers,
             "blockers": blockers,
-        }
+        },
+        "diagnostics": list(diagnostics or []),
     }
 
 

@@ -1,0 +1,27 @@
+//@version=6
+indicator("Pyne trend volume oracle 20260907", precision=10)
+int i = bar_index
+float src = 10.0 * (i % 4 + 1)
+float holes = i == 1 or i == 7 or i == 12 ? na : src
+float leading = i < 3 ? na : src
+float weights = i % 3 + 1.0
+float missingWeights = i == 2 or i == 9 ? na : weights
+[st, direction] = ta.supertrend(2.0, 3)
+[st1, direction1] = ta.supertrend(2.0, 1)
+float atr = ta.atr(3)
+float nativeClose = ta.vwma(close, 3)
+float nativeHoles = ta.vwma(holes, 3)
+float nativeFormula = ta.sma(holes * volume, 3) / ta.sma(volume, 3)
+float nativeLeading = ta.vwma(leading, 3)
+float priceHole = ta.sma(holes * weights, 3) / ta.sma(weights, 3)
+float volumeHole = ta.sma(src * missingWeights, 3) / ta.sma(missingWeights, 3)
+float bothHole = ta.sma(holes * missingWeights, 3) / ta.sma(missingWeights, 3)
+float zeroWeight = ta.sma(src * 0.0, 3) / ta.sma(0.0, 3)
+f(float x) => str.tostring(x, "#.##########")
+var string rows = ""
+if i < 18
+    rows += "PYNE_TV|" + str.tostring(i) + "|" + str.tostring(time / 1000) + "|" + f(open) + "|" + f(high) + "|" + f(low) + "|" + f(close) + "|" + f(volume) + "|" + f(st) + "|" + f(direction) + "|" + f(st1) + "|" + f(direction1) + "|" + f(atr) + "|" + f(nativeClose) + "|" + f(nativeHoles) + "|" + f(nativeFormula) + "|" + f(nativeLeading) + "|" + f(priceHole) + "|" + f(volumeHole) + "|" + f(bothHole) + "|" + f(zeroWeight) + ";"
+    if i % 6 == 5
+        log.info(rows)
+        rows := ""
+plot(st, "Supertrend")

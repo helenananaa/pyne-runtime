@@ -12,6 +12,49 @@ from .series import PyneSeries
 from .timezone_ext import parse_timezone
 
 
+def _timeframe_fields(period: Any) -> tuple[str, int, str, bool, bool, bool, bool]:
+    """Parse one timeframe into its canonical public fields."""
+    raw = str(period or "1").strip() or "1"
+    match = re.fullmatch(r"(\d+)?([A-Za-z]?)", raw)
+    if match is None:
+        raise ValueError(f"invalid timeframe: {period!r}")
+
+    number_text, suffix = match.groups()
+    amount = int(number_text) if number_text else 1
+    if amount < 1:
+        raise ValueError(f"timeframe multiplier must be >= 1, got {amount}")
+
+    if not suffix or suffix == "m":
+        return raw, amount, "", True, False, False, False
+    if suffix in {"s", "S"}:
+        return raw, amount, "S", True, False, False, False
+    if suffix in {"h", "H"}:
+        return raw, amount * 60, "", True, False, False, False
+    if suffix in {"d", "D"}:
+        return raw, amount, "D", False, True, False, False
+    if suffix in {"w", "W"}:
+        return raw, amount, "W", False, False, True, False
+    if suffix == "M":
+        return raw, amount, "M", False, False, False, True
+    if suffix in {"t", "T"}:
+        return raw, amount, "T", True, False, False, False
+    raise ValueError(f"invalid timeframe: {period!r}")
+
+
+def _explicit_timeframe_multiplier(value: Any) -> int:
+    if isinstance(value, bool):
+        raise ValueError(f"timeframe multiplier must be an integer, got {value!r}")
+    if isinstance(value, (int, np.integer)):
+        explicit = int(value)
+    elif isinstance(value, str) and re.fullmatch(r"[+]?[0-9]+", value.strip()):
+        explicit = int(value.strip())
+    else:
+        raise ValueError(f"timeframe multiplier must be an integer, got {value!r}")
+    if explicit < 1:
+        raise ValueError(f"timeframe multiplier must be >= 1, got {explicit}")
+    return explicit
+
+
 @dataclass(frozen=True)
 class SymbolInfo:
     """Symbol metadata exposed as the Pine-like ``syminfo`` namespace."""
@@ -45,7 +88,7 @@ class TimeframeInfo:
     """Chart timeframe metadata exposed as ``timeframe``."""
 
     period: str = "1"
-    multiplier: int = 1
+    multiplier: int | None = None
     unit: str = ""
     isintraday: bool = True
     isdaily: bool = False
@@ -53,6 +96,33 @@ class TimeframeInfo:
     ismonthly: bool = False
     _times: tuple[int, ...] = field(default=(), repr=False, compare=False)
     _timezone: str = field(default="UTC", repr=False, compare=False)
+
+    def __post_init__(self) -> None:
+        (
+            period,
+            expected_multiplier,
+            unit,
+            isintraday,
+            isdaily,
+            isweekly,
+            ismonthly,
+        ) = _timeframe_fields(self.period)
+        multiplier = (
+            expected_multiplier
+            if self.multiplier is None
+            else _explicit_timeframe_multiplier(self.multiplier)
+        )
+        if multiplier != expected_multiplier:
+            raise ValueError(
+                f"timeframe period {period!r} conflicts with multiplier {multiplier}"
+            )
+        object.__setattr__(self, "period", period)
+        object.__setattr__(self, "multiplier", multiplier)
+        object.__setattr__(self, "unit", unit)
+        object.__setattr__(self, "isintraday", isintraday)
+        object.__setattr__(self, "isdaily", isdaily)
+        object.__setattr__(self, "isweekly", isweekly)
+        object.__setattr__(self, "ismonthly", ismonthly)
 
     @property
     def isseconds(self) -> bool:
@@ -77,7 +147,7 @@ class TimeframeInfo:
         timeframe comparison. Tick timeframes do not have a seconds duration.
         """
         info = self if timeframe in {None, ""} else TimeframeInfo.from_value(timeframe)
-        seconds = _timeframe_seconds(info.period)
+        seconds = _duration_seconds(info.multiplier, info.unit)
         if seconds is None:
             raise ValueError(f"timeframe {info.period!r} cannot be represented in seconds")
         return float(seconds)
@@ -116,23 +186,27 @@ class TimeframeInfo:
         if value is None:
             return cls()
         if isinstance(value, Mapping):
-            period = str(value.get("period") or value.get("timeframe") or "1").strip() or "1"
+            period_text = value.get("period") or value.get("timeframe")
+            period_provided = period_text is not None and str(period_text).strip() != ""
+            period = str(period_text).strip() if period_provided else "1"
             parsed = _parse_timeframe(period)
             multiplier = value.get("multiplier")
-            if multiplier is not None:
-                try:
-                    parsed = cls(
-                        period=parsed.period,
-                        multiplier=max(int(multiplier), 1),
-                        unit=parsed.unit,
-                        isintraday=parsed.isintraday,
-                        isdaily=parsed.isdaily,
-                        isweekly=parsed.isweekly,
-                        ismonthly=parsed.ismonthly,
-                    )
-                except (TypeError, ValueError):
-                    pass
-            return parsed
+            if multiplier is None:
+                return parsed
+            explicit = _explicit_timeframe_multiplier(multiplier)
+            if period_provided and explicit != parsed.multiplier:
+                raise ValueError(
+                    f"timeframe period {period!r} conflicts with multiplier {explicit}"
+                )
+            return cls(
+                period=str(explicit) if parsed.unit == "" else parsed.period,
+                multiplier=explicit,
+                unit=parsed.unit,
+                isintraday=parsed.isintraday,
+                isdaily=parsed.isdaily,
+                isweekly=parsed.isweekly,
+                ismonthly=parsed.ismonthly,
+            )
         return _parse_timeframe(str(value).strip() or "1")
 
 
@@ -292,73 +366,41 @@ def _has_session_flag(ohlcv: list[dict[str, Any]], *, names: tuple[str, ...]) ->
 
 
 def _parse_timeframe(period: str) -> TimeframeInfo:
-    raw = period.strip() or "1"
-    match = re.fullmatch(r"(\d+)?([A-Za-z]?)", raw)
-    if match is None:
-        return TimeframeInfo(period=raw, multiplier=1)
+    raw, multiplier, unit, isintraday, isdaily, isweekly, ismonthly = _timeframe_fields(
+        period
+    )
+    return TimeframeInfo(
+        period=raw,
+        multiplier=multiplier,
+        unit=unit,
+        isintraday=isintraday,
+        isdaily=isdaily,
+        isweekly=isweekly,
+        ismonthly=ismonthly,
+    )
 
-    number_text, suffix = match.groups()
-    amount = int(number_text) if number_text else 1
-    amount = max(amount, 1)
 
-    if not suffix:
-        return TimeframeInfo(period=raw, multiplier=amount, unit="", isintraday=True)
-
-    if suffix in {"s", "S"}:
-        return TimeframeInfo(period=raw, multiplier=amount, unit="S", isintraday=True)
-    if suffix == "m":
-        return TimeframeInfo(period=raw, multiplier=amount, unit="", isintraday=True)
-    if suffix in {"h", "H"}:
-        return TimeframeInfo(period=raw, multiplier=amount * 60, unit="", isintraday=True)
-    if suffix in {"d", "D"}:
-        return TimeframeInfo(
-            period=raw,
-            multiplier=amount,
-            unit="D",
-            isintraday=False,
-            isdaily=True,
-        )
-    if suffix in {"w", "W"}:
-        return TimeframeInfo(
-            period=raw,
-            multiplier=amount,
-            unit="W",
-            isintraday=False,
-            isweekly=True,
-        )
-    if suffix == "M":
-        return TimeframeInfo(
-            period=raw,
-            multiplier=amount,
-            unit="M",
-            isintraday=False,
-            ismonthly=True,
-        )
-    if suffix in {"t", "T"}:
-        return TimeframeInfo(period=raw, multiplier=amount, unit="T")
-    return TimeframeInfo(period=raw, multiplier=amount, unit=suffix.upper())
+def _duration_seconds(multiplier: int, unit: str) -> int | None:
+    amount = max(int(multiplier), 1)
+    if unit in {"", "m"}:
+        return amount * 60
+    if unit == "S":
+        return amount
+    if unit == "D":
+        return amount * 24 * 60 * 60
+    if unit == "W":
+        return amount * 7 * 24 * 60 * 60
+    if unit == "M":
+        return amount * 30 * 24 * 60 * 60
+    return None
 
 
 def _timeframe_seconds(period: str) -> int | None:
-    raw = str(period or "1").strip() or "1"
-    match = re.fullmatch(r"(\d+)?([A-Za-z]?)", raw)
-    if match is None:
+    try:
+        info = _parse_timeframe(str(period or "1").strip() or "1")
+    except ValueError:
         return None
-    number_text, suffix = match.groups()
-    amount = max(int(number_text) if number_text else 1, 1)
-    if not suffix or suffix == "m":
-        return amount * 60
-    if suffix in {"s", "S"}:
-        return amount
-    if suffix in {"h", "H"}:
-        return amount * 60 * 60
-    if suffix in {"d", "D"}:
-        return amount * 24 * 60 * 60
-    if suffix in {"w", "W"}:
-        return amount * 7 * 24 * 60 * 60
-    if suffix == "M":
-        return amount * 30 * 24 * 60 * 60
-    return None
+    return _duration_seconds(info.multiplier, info.unit)
 
 
 def _timeframe_from_seconds(seconds: int | float) -> str:
