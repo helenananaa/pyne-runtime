@@ -17,6 +17,7 @@
 <p align="center">
   <a href="#quickstart">Quickstart</a> &middot;
   <a href="examples/README.md">Examples</a> &middot;
+  <a href="#ecosystem">Ecosystem</a> &middot;
   <a href="docs/index.md">Documentation</a> &middot;
   <a href="https://github.com/helenananaa/pyne-runtime/releases">Releases</a>
 </p>
@@ -123,6 +124,21 @@ owns script computation and versioned output contracts. Start with the
 [data providers](docs/tutorials/host_request_security.md),
 [realtime sessions](docs/concepts/incremental_runtime.md), and
 [session recovery](docs/tutorials/session_recovery.md).
+
+## Ecosystem
+
+Pyne Runtime, Pine Compat Runtime, and CandleScope are companion projects in the
+same open-source ecosystem, maintained by [helenananaa](https://github.com/helenananaa).
+
+| Project | Role |
+| --- | --- |
+| **[Pyne Runtime](https://github.com/helenananaa/pyne-runtime)** | Write indicators and strategies in Python with Pine-inspired APIs; run standalone or embed in an application. |
+| **[Pine Compat Runtime](https://github.com/helenananaa/pine-compat-runtime)** | Execute a tested Pine-compatible source subset over your own OHLCV data, with a Rust core and Python, CLI, and WASM interfaces. |
+| **[CandleScope](https://github.com/helenananaa/CandleScope)** | A local market analysis and replay workstation with live charts, order flow, linked workspaces, and programmable indicators. |
+
+The runtimes provide computation; CandleScope provides the application experience
+and connects runtimes through adapters and plugins. Pyne Runtime remains usable
+independently of both companion projects.
 
 ## Reliability and compatibility
 
