@@ -36,7 +36,7 @@ def seal(envelope):
 
 
 @pytest.mark.parametrize("mode", ["replay", "state"])
-@pytest.mark.parametrize("folder", ["snapshot_semantics", "snapshot_semantics_v1", "snapshot_semantics_v2"])
+@pytest.mark.parametrize("folder", ["snapshot_semantics", "snapshot_semantics_v1", "snapshot_semantics_v2", "snapshot_semantics_v3", "snapshot_semantics_v4"])
 def test_real_legacy_snapshot_rejected_before_session_construction(mode, folder, monkeypatch):
     fixtures = FIXTURES.parent / folder
     provenance = json.loads((fixtures / "provenance.json").read_text())
@@ -56,7 +56,7 @@ def test_real_legacy_snapshot_rejected_before_session_construction(mode, folder,
     assert error.value.code == "PYNE_SNAPSHOT_SEMANTICS_MISMATCH"
 
 
-@pytest.mark.parametrize("version", [None, 0, 1, 2, INCREMENTAL_SEMANTICS_VERSION + 1, True, "2", 2.0,
+@pytest.mark.parametrize("version", [None, 0, 1, 2, 3, 4, INCREMENTAL_SEMANTICS_VERSION + 1, True, "2", 2.0,
                                      str(INCREMENTAL_SEMANTICS_VERSION), float(INCREMENTAL_SEMANTICS_VERSION)])
 @pytest.mark.parametrize("mode", ["replay", "state"])
 def test_unknown_or_malformed_portable_semantics_rejected(mode, version):
@@ -67,7 +67,7 @@ def test_unknown_or_malformed_portable_semantics_rejected(mode, version):
         pn.PyneIncrementalSession.from_portable_snapshot(seal(envelope), script=SCRIPT)
 
 
-@pytest.mark.parametrize("version", [None, 0, 1, 2, INCREMENTAL_SEMANTICS_VERSION + 1, True, "2", 2.0,
+@pytest.mark.parametrize("version", [None, 0, 1, 2, 3, 4, INCREMENTAL_SEMANTICS_VERSION + 1, True, "2", 2.0,
                                      str(INCREMENTAL_SEMANTICS_VERSION), float(INCREMENTAL_SEMANTICS_VERSION)])
 def test_local_rejection_preserves_committed_and_preview_state(version):
     original = session()
@@ -95,6 +95,9 @@ def test_local_factory_rejects_legacy_before_construction(monkeypatch):
 def test_relabeling_legacy_envelope_does_not_upgrade_typed_state():
     envelope = json.loads((FIXTURES / "state.json").read_text())
     envelope["payload"]["semanticsVersion"] = INCREMENTAL_SEMANTICS_VERSION
+    # Even forged current settings must not upgrade the nested legacy state.
+    from pyne_runtime.incremental.checkpoint import portable_settings_contract
+    envelope["payload"]["settings"] = portable_settings_contract(pn.PyneSettings())
     with pytest.raises(pn.PynePortableSnapshotError, match="SEMANTICS_MISMATCH"):
         pn.PyneIncrementalSession.from_portable_snapshot(seal(envelope), script=SCRIPT)
 

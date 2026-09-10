@@ -279,8 +279,8 @@ def test_incremental_limits_reject_oversized_windows() -> None:
 
     tracker.reserve_window(2, label="fast")
 
-    with pytest.raises(PyneSecurityError, match="exceeds safe-mode limit"):
+    with pytest.raises(PyneSecurityError, match="exceeds max_window_size limit"):
         tracker.reserve_window(3, label="slow")
 
-    with pytest.raises(PyneSecurityError, match="exceeding safe-mode total"):
+    with pytest.raises(PyneSecurityError, match="exceeding max_total_window_items total"):
         tracker.reserve_window(2, label="extra")

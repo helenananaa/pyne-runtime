@@ -37,7 +37,7 @@ class IncrementalRequestModule:
         self._provider = (
             _RangeCachingProvider(
                 provider,
-                max_cached_bars=settings.max_output_points,
+                max_cached_bars=settings.request_cache_max_bars,
                 max_covered_ranges=settings.cache_max_items,
             )
             if provider is not None

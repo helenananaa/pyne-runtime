@@ -1,6 +1,8 @@
 # PyneRuntime
 
-`PyneRuntime` is the host-facing execution class.
+`PyneRuntime` is the reusable execution class for standalone and hosted use.
+`pn.run()` defaults to unrestricted local Python execution with no deadline or
+input/output quota; optional limits and process execution are caller policy.
 
 ```python
 import pyne_runtime as pn

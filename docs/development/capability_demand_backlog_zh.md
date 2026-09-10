@@ -37,7 +37,7 @@ manifest 和本需求榜，不得沿用旧结论。
 5. 是否能建立可信外部或确定性证据；
 6. 实现风险和后续维护成本。
 
-没有冻结语料、文件级需求和宿主场景的功能项，不进入 P0/P1 **implement**。
+冻结语料是优先级证据之一，不是新需求的准入名单。独立 CSV、notebook、用户脚本或宿主场景都可提出需求；按真实用例、通用性、确定性验证依据与维护成本评估优先级。小型通用 helper 不要求先冻结完整工作负载。
 
 ## 审计结论（相对 Runtime core）
 
@@ -58,9 +58,7 @@ manifest 和本需求榜，不得沿用旧结论。
 `pine_like_semantics.py` 使用 batch-only 的 `strategy.entry_when` /
 `strategy.close_when`。这是已声明的 Incremental strategy 边界，不是 TA gap。
 
-本仓库不把外部产品的 `.pyne` 示例、bridge 或 workbench 纳入代表性语料，也不据此扩大
-Runtime API。适配仓库可以在自己的需求榜中追加产品脚本，但不能反向改变这里已经声明
-的语言边界。
+外部产品的脚本可以作为通用 Runtime 能力的需求证据；先提取可独立运行的最小 Pyne 用例，再评估是否纳入代表性语料。bridge、workbench 和宿主专用实现仍属于适配仓库；需求来源不改变 Python 语言定位和依赖方向。
 
 ## P0
 
@@ -109,7 +107,7 @@ Runtime API。适配仓库可以在自己的需求榜中追加产品脚本，但
 | `ctx.ta.wpr` | incremental-ta | 冻结语料未命中 | 0 | incremental | runtime | none until workload exists | state | defer |
 
 `defer` 的含义：Batch 路径保持已支持；Incremental 继续对静态可见调用 fail-closed；
-只有出现冻结的 realtime 工作负载后才允许单切片实现。
+新增 realtime 用例或其他可信需求证据后即可重新评估；实现应附带语义测试，不要求先冻结完整工作负载。
 
 ## 外部 Pine library
 

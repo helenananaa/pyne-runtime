@@ -306,7 +306,7 @@ def _incremental_multi_session_growth(repeats: int) -> dict[str, Any]:
                 pn.PyneIncrementalSession(
                     script=_INCREMENTAL_SCRIPT,
                     params={"session": index},
-                    settings=pn.PyneSettings(executor_mode="inline", max_bars=1_000),
+                    settings=pn.PyneSettings(executor_mode="inline", max_bars=1_000, replay_history_bars=1_000),
                     retention_bars=64,
                 )
                 for index in range(count)
@@ -328,7 +328,7 @@ def _incremental_multi_session_growth(repeats: int) -> dict[str, Any]:
 def _incremental_memory_growth() -> dict[str, Any]:
     pn.PyneIncrementalSession(
         script=_INCREMENTAL_SCRIPT,
-        settings=pn.PyneSettings(executor_mode="inline", max_bars=1_000),
+        settings=pn.PyneSettings(executor_mode="inline", max_bars=1_000, replay_history_bars=1_000),
         retention_bars=64,
     ).seed(_bars(16))
 
@@ -338,7 +338,7 @@ def _incremental_memory_growth() -> dict[str, Any]:
         try:
             session = pn.PyneIncrementalSession(
                 script=_INCREMENTAL_SCRIPT,
-                settings=pn.PyneSettings(executor_mode="inline", max_bars=1_000),
+                settings=pn.PyneSettings(executor_mode="inline", max_bars=1_000, replay_history_bars=1_000),
                 retention_bars=64,
             )
             session.seed(_bars(count))
@@ -360,7 +360,7 @@ def _portable_snapshot_growth(repeats: int) -> dict[str, Any]:
     def evaluate(count: int) -> float:
         session = pn.PyneIncrementalSession(
             script=_INCREMENTAL_SCRIPT,
-            settings=pn.PyneSettings(executor_mode="inline", max_bars=1_000),
+            settings=pn.PyneSettings(executor_mode="inline", max_bars=1_000, replay_history_bars=1_000),
             retention_bars=64,
         )
         session.seed(_bars(count))
@@ -377,7 +377,7 @@ def _portable_snapshot_growth(repeats: int) -> dict[str, Any]:
 
 def _portable_restore_growth(repeats: int) -> dict[str, Any]:
     def payload(count: int) -> tuple[bytes, pn.PyneSettings]:
-        settings = pn.PyneSettings(executor_mode="inline", max_bars=1_000)
+        settings = pn.PyneSettings(executor_mode="inline", max_bars=1_000, replay_history_bars=1_000)
         session = pn.PyneIncrementalSession(
             script=_INCREMENTAL_SCRIPT,
             settings=settings,
@@ -412,7 +412,7 @@ def _portable_restore_growth(repeats: int) -> dict[str, Any]:
 
 
 def _portable_typed_state_restore_ratio(repeats: int) -> dict[str, Any]:
-    settings = pn.PyneSettings(executor_mode="inline", max_bars=1_000)
+    settings = pn.PyneSettings(executor_mode="inline", max_bars=1_000, replay_history_bars=1_000)
     session = pn.PyneIncrementalSession(
         script=_INCREMENTAL_SCRIPT,
         settings=settings,
@@ -459,7 +459,7 @@ def _trace_overhead_ratio(repeats: int) -> dict[str, Any]:
             script=_INCREMENTAL_SCRIPT,
             settings=pn.PyneSettings(
                 executor_mode="inline",
-                max_bars=1_000,
+                max_bars=1_000, replay_history_bars=1_000,
                 trace_enabled=trace_enabled,
                 trace_max_events=5_000,
                 trace_slow_span_ms=1_000.0,

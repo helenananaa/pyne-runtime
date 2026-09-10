@@ -5,8 +5,8 @@ untrusted or buggy scripts: the worker is terminated after ``timeout_seconds``
 plus ``process_grace_seconds``. It always starts the worker with the ``spawn``
 multiprocessing start method.
 
-Inline execution remains available for local users who prefer performance or
-long-lived ML/library state over isolation. ``timeout_seconds`` is then a
+Inline execution is the standalone default, preserving local execution and
+long-lived ML/library state. No deadline is imposed unless configured. ``timeout_seconds`` is then a
 best-effort Unix-main-thread timer (``SIGALRM``); Windows and non-main threads
 do not receive a hard interrupt. Set ``require_hard_timeout=True`` only with
 ``executor_mode='process'``; inline plus a required hard timeout is rejected.
@@ -110,7 +110,7 @@ def execute_pyne_script_in_process(
     )
     process.start()
 
-    payload = _read_process_result(result_queue, process, timeout + grace if timeout > 0 else None)
+    payload = _read_process_result(result_queue, process, timeout + grace if timeout is not None and timeout > 0 else None)
 
     if payload is None and process.is_alive():
         process.terminate()

@@ -6,7 +6,7 @@ from typing import Any, Callable
 
 import numpy as np
 
-from ..security import PyneSecurityError
+from ..security import PyneResourceLimitError
 from ..series import PyneSeries
 from ..state import PyneVar
 from ..values import is_na_value
@@ -828,8 +828,9 @@ def _write_strategy_snapshot(
 
 def _consume_pending_order_operations(strategy: Any, count: int = 1) -> None:
     strategy._pending_order_operations += max(int(count), 0)
-    if strategy._pending_order_operations > strategy._max_pending_order_operations:
-        raise PyneSecurityError(
+    if (strategy._max_pending_order_operations is not None
+            and strategy._pending_order_operations > strategy._max_pending_order_operations):
+        raise PyneResourceLimitError(
             "Strategy pending-order operation budget exceeded "
             f"(max {strategy._max_pending_order_operations})"
         )

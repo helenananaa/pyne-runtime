@@ -479,7 +479,7 @@ def on_bar(ctx, bar):
 `ctx.request.security_lower_tf()` returns a `PyneArray` for the current chart
 bar's lower-timeframe group. The session reuses authoritative provider ranges
 across callbacks and fetches only uncovered ranges. Cached rows and covered
-ranges are bounded by the runtime output/cache limits; dropping cache coverage
+ranges are bounded by `request_cache_max_bars` and `cache_max_items`; dropping cache coverage
 only causes a later authoritative refetch.
 
 Successful calls publish the same typed entries under

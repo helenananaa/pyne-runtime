@@ -33,6 +33,8 @@ from ..plot.objects import _DrawingNamespace
 from ..request import DataProvider, barmerge
 from ..security import (
     PyneSecurityError,
+    PyneResourceLimitError,
+    PyneStateContractError,
     PyneSecurityPolicy,
     build_builtins,
     execution_timeout,
@@ -63,10 +65,11 @@ from .limits import (
     _state_payload_items,
 )
 from .result import IncrementalPyneResult
+from .restore_policy import validate_restore_settings, rebind_restored_budgets
 from .request import IncrementalRequestModule
 
 
-PYNE_INCREMENTAL_SNAPSHOT_VERSION = 2
+PYNE_INCREMENTAL_SNAPSHOT_VERSION = 3
 
 
 @dataclass(frozen=True)
@@ -84,7 +87,7 @@ class PyneIncrementalSessionSnapshot:
     script_sha256: str
     params: dict[str, Any]
     security_mode: str
-    retention_bars: int
+    retention_bars: int | None
     context: IncrementalContext | None
     meta: dict[str, Any]
     global_values: dict[str, Any]
@@ -99,6 +102,7 @@ class PyneIncrementalSessionSnapshot:
     namespace_names: tuple[str, ...] = ()
     trace: PyneTraceRecorder | None = None
     semantics_version: int | None = None
+    settings_contract: dict[str, Any] | None = None
 
 
 class PyneIncrementalSession:
@@ -120,9 +124,9 @@ class PyneIncrementalSession:
         self.params = _readonly_params(params or {})
         self.settings = settings or PyneSettings.from_env()
         self.policy = policy or PyneSecurityPolicy.from_settings(self.settings, security_mode)
-        self.retention_bars = min(
-            self.policy.max_bars,
-            max(int(retention_bars or self.settings.incremental_retention_bars), 1),
+        self.retention_bars = (
+            self.settings.incremental_retention_bars
+            if retention_bars is None else max(int(retention_bars), 1)
         )
         self.execution_scope = execution_scope or PyneExecutionScope.fresh(
             max_items=self.settings.cache_max_items,
@@ -197,9 +201,8 @@ class PyneIncrementalSession:
         end_s: int | None = None,
     ) -> IncrementalPyneResult:
         self._ensure_healthy()
-        if len(ohlcv) > self.policy.max_bars:
-            error = PyneSecurityError(f"Too many data points (max {self.policy.max_bars})")
-            self._poison(error)
+        if self.policy.max_bars is not None and len(ohlcv) > self.policy.max_bars:
+            error = PyneResourceLimitError(f"Too many data points (max {self.policy.max_bars})")
             raise error
         PyneData.from_ohlcv(ohlcv, allow_empty=True)
         self.prepare()
@@ -422,7 +425,8 @@ class PyneIncrementalSession:
 
     def _commit_retention(self, bar_time: int) -> None:
         self._retained_closed_times.append(int(bar_time))
-        if len(self._retained_closed_times) <= self.retention_bars:
+        if (self.retention_bars is None
+                or len(self._retained_closed_times) <= self.retention_bars):
             return
         del self._retained_closed_times[: -self.retention_bars]
         if self._ctx is not None:
@@ -431,7 +435,8 @@ class PyneIncrementalSession:
     def _record_portable_bar(self, bar: IncrementalBar) -> None:
         if not self._portable_complete:
             return
-        if len(self._portable_bars) >= self.policy.max_bars:
+        if (self.settings.replay_history_bars is not None
+                and len(self._portable_bars) >= self.settings.replay_history_bars):
             self._portable_bars = []
             self._portable_seed_count = 0
             self._portable_complete = False
@@ -857,6 +862,7 @@ class PyneIncrementalSession:
         return PyneIncrementalSessionSnapshot(
             schema_version=PYNE_INCREMENTAL_SNAPSHOT_VERSION,
             semantics_version=INCREMENTAL_SEMANTICS_VERSION,
+            settings_contract=portable_settings_contract(self.settings),
             script_sha256=_script_sha256(self.script),
             params=copy.deepcopy(dict(self.params.items()), memo),
             security_mode=self.security_mode,
@@ -911,7 +917,7 @@ class PyneIncrementalSession:
             )
         if not self._portable_complete:
             raise PynePortableSnapshotError(
-                "Portable snapshot history exceeded max_bars; use the process-local snapshot "
+                "Portable snapshot history exceeded replay_history_bars; use the process-local snapshot "
                 "or start a new portable checkpoint boundary"
             )
         provider_required = self.settings.data_provider is not None
@@ -949,6 +955,7 @@ class PyneIncrementalSession:
             raise ValueError("Incremental snapshot script does not match this session")
         if snapshot.security_mode != self.security_mode:
             raise ValueError("Incremental snapshot security mode does not match this session")
+        old_settings = validate_restore_settings(snapshot.settings_contract or {}, self.settings)
         if snapshot.retention_bars != self.retention_bars:
             raise ValueError("Incremental snapshot retention policy does not match this session")
         if dict(self.params.items()) != snapshot.params:
@@ -987,6 +994,14 @@ class PyneIncrementalSession:
         new_portable_bars = list(copy.deepcopy(snapshot.portable_bars, memo))
         incoming_cache = PyneCache(max_items=max(int(snapshot.cache.max_items), 1))
         incoming_cache.restore_state(snapshot.cache, memo=memo)
+        incoming_cache.configure(max_items=self.settings.cache_max_items)
+        rebind_restored_budgets(memo, old_settings, self.settings, self._limits, new_ctx)
+        if (self.settings.replay_history_bars is not None
+                and len(new_portable_bars) > self.settings.replay_history_bars):
+            raise PynePortableSnapshotError(
+                "Snapshot replay history exceeds replay_history_bars; "
+                "increase the budget or restore a typed-state snapshot"
+            )
         restored_names = set(new_global_values) | set(prepared_functions)
         stored_namespace_names = tuple(getattr(snapshot, "namespace_names", ()))
         namespace_names = (
@@ -1017,6 +1032,8 @@ class PyneIncrementalSession:
             raise ValueError(f"Incremental snapshot global is missing: {name}")
 
         self._ctx = new_ctx
+        if new_ctx is not None:
+            self._limits = new_ctx._limits
         self.trace = new_trace
         self._meta = new_meta
         self._globals.clear()
@@ -1052,6 +1069,8 @@ class PyneIncrementalSession:
         """Create a fresh session and restore a matching process-local snapshot."""
         validate_snapshot_semantics(getattr(snapshot, "semantics_version", None))
 
+        if settings is None:
+            settings = settings_from_portable_contract(snapshot.settings_contract or {})
         session = cls(
             script=script,
             params=copy.deepcopy(snapshot.params),
@@ -1159,7 +1178,7 @@ class PyneIncrementalSession:
                 continue
             if isinstance(value, FunctionType):
                 if value.__closure__:
-                    raise PyneSecurityError(
+                    raise PyneStateContractError(
                         f"Incremental snapshot cannot safely restore closure: {name}"
                     )
                 functions[name] = _FunctionStateSnapshot(
@@ -1169,7 +1188,7 @@ class PyneIncrementalSession:
                 )
                 continue
             if isinstance(value, type):
-                raise PyneSecurityError(
+                raise PyneStateContractError(
                     f"Incremental snapshot cannot safely restore script class: {name}"
                 )
             if isinstance(value, ModuleType):
@@ -1217,10 +1236,7 @@ def _portable_restore_settings(
             )
         return resolved
     resolved = replace(settings, data_provider=data_provider) if data_provider is not None else settings
-    if portable_settings_contract(resolved) != contract:
-        raise PynePortableSnapshotError(
-            "Portable incremental snapshot settings do not match this session"
-        )
+    validate_restore_settings(contract, resolved)
     if provider_required and resolved.data_provider is None:
         raise PynePortableSnapshotError("Portable snapshot restore requires a data_provider")
     return resolved
@@ -1395,7 +1411,7 @@ def _clone_preview_globals(
     class_names = _script_class_names(values, script_globals=script_globals)
     if class_names:
         names = ", ".join(class_names)
-        raise PyneSecurityError(
+        raise PyneStateContractError(
             f"Incremental preview cannot safely isolate script classes: {names}. "
             "Keep preview state in module values or ctx.varip()."
         )
@@ -1404,7 +1420,7 @@ def _clone_preview_globals(
     closure_names = sorted({func.__qualname__ for func in script_functions if func.__closure__})
     if closure_names:
         names = ", ".join(closure_names)
-        raise PyneSecurityError(
+        raise PyneStateContractError(
             f"Incremental preview cannot safely isolate function closures: {names}. "
             "Keep preview state in module values or ctx.varip()."
         )
@@ -1435,7 +1451,7 @@ def _clone_preview_globals(
             cloned.__annotations__ = copy.deepcopy(original.__annotations__, memo)
             cloned.__dict__.update(copy.deepcopy(original.__dict__, memo))
         except Exception as exc:
-            raise PyneSecurityError(
+            raise PyneStateContractError(
                 "Incremental preview cannot isolate mutable function state: "
                 f"{original.__qualname__}. Keep state in module values or ctx.varip()."
             ) from exc
@@ -1608,7 +1624,7 @@ class _PreviewModuleProxy:
 
     def __getattribute__(self, name: str) -> Any:
         if name in {"_module", "_cache", "__dict__"}:
-            raise PyneSecurityError(
+            raise PyneStateContractError(
                 "Incremental preview cannot expose mutable external module state"
             )
         if name in {"__class__", "__repr__", "__getattr__", "__setattr__", "__delattr__"}:
@@ -1625,7 +1641,7 @@ class _PreviewModuleProxy:
             cloned: Any = _PreviewModuleProxy(value)
         elif callable(value):
             if name.lower() in _RISKY_MODULE_CALLS:
-                raise PyneSecurityError(
+                raise PyneStateContractError(
                     "Incremental preview cannot call stateful external module API: "
                     f"{module.__name__}.{name}"
                 )
@@ -1636,7 +1652,7 @@ class _PreviewModuleProxy:
             try:
                 cloned = copy.deepcopy(value, _preview_copy_memo(value))
             except Exception as exc:
-                raise PyneSecurityError(
+                raise PyneStateContractError(
                     "Incremental preview cannot isolate external module attribute: "
                     f"{module.__name__}.{name}"
                 ) from exc
@@ -1645,7 +1661,7 @@ class _PreviewModuleProxy:
 
     def __setattr__(self, name: str, value: Any) -> None:
         module = object.__getattribute__(self, "_module")
-        raise PyneSecurityError(
+        raise PyneStateContractError(
             f"Incremental preview cannot mutate external module state: {module.__name__}.{name}"
         )
 

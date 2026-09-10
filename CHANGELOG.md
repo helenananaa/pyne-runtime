@@ -2,6 +2,47 @@
 
 ## Unreleased
 
+## 0.4.0 - 2026-09-10
+
+- Upgrade note: standalone defaults change from restricted/process execution to
+  full Python in the caller process with unlimited computation budgets. Hosts
+  must explicitly select import restrictions, process isolation, deadlines and
+  resource budgets. Older incremental snapshots require OHLCV rebuilding;
+  computation semantics is 5.
+
+- Distinguish resource, state-contract and failed-session diagnostics from security
+  policy errors, with actionable codes/hints and compatible exception base classes.
+  Input quotas no longer label valid OHLCV invalid; drawing quotas use output errors.
+- Add optional non-executing preview/snapshot validation targets and align CLI
+  validation with run-time import/budget settings. CLI budgets can override environment
+  values, including unlimited computation via none.
+- CSV selection ignores unselected duplicate names and lists available plots on
+  mistakes. Failed JSON/CSV file runs preserve existing results. Long inline scripts
+  and JSON parameters are no longer mistaken for filesystem paths.
+
+- Standalone execution now defaults to full Python (`unsafe`), inline execution
+  and no deadline or computation quotas. Explicit safe/research/process policies
+  remain available. Input/output/collection/state budgets accept None for unlimited.
+- Separate optional retained history and replay recording from input admission.
+  Invalid seed admission leaves healthy sessions usable. Resource policy changes
+  on restore check existing state and rebind collection/tracker capacities; timeout
+  and cache changes no longer require identical checkpoint settings.
+- Incremental semantics advances to 5; retain real semantics-4 rejection fixtures
+  and require rebuilding older state from authoritative OHLCV.
+
+- Separate drawing objects/events and strategy reports from output-series counts.
+  Add independent configurable incremental window, state, preview, table, event,
+  strategy-log and request-cache budgets in all security modes. Zero cache/new
+  budget values now report invalid configuration instead of becoming one.
+- Research defaults include computational standard libraries; restricted builtins
+  include iter/next, and unsupported class definitions have validation diagnostics.
+- Treat frozen workloads as prioritization evidence, accepting standalone and
+  external-product needs for generic runtime capabilities.
+
+- Add installed script templates shared by historical CSV and realtime sessions,
+  CSV column/time-unit options and selected-series CSV export. Document and verify
+  authoring, diagnostics, preview isolation and checkpoint continuation workflows.
+
 ## 0.3.0 - 2026-09-09
 
 - Removed BLAS thread dispatch from weighted rolling seed reduction, fixing the

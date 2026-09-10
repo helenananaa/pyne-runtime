@@ -13,7 +13,25 @@ Stable root imports are documented in [Public API](../api/public_api.md).
 The detailed Pine-like feature matrix lives in
 [Pine-Like API Matrix](pine_like_api_matrix.md).
 
-## Stable 0.3 Release-Line Contract
+## 0.4 Release-Line Contract
+
+Version 0.4 changes the standalone defaults to full Python in the caller process,
+with no default deadline or computation quotas. Hosts upgrading from 0.3 must
+explicitly select their import policy, process isolation, and resource budgets;
+see [execution policies](../concepts/security_modes.md).
+
+- Within 0.4.x, patch releases preserve documented package-root imports, call
+  signatures, and existing CLI commands. Numeric fixes may require recalculation
+  and must be identified in the changelog.
+- Computation semantics is 5, separate from package and wire-format versions.
+  Older incompatible snapshots are rejected; rebuild from authoritative OHLCV.
+- Resource policy is independent of computation identity. Compatible state may
+  restore under a new budget when it fits; restored objects adopt that budget.
+- Source and installed-wheel qualification, supported platforms, and workload
+  evidence for each release are recorded in [current status](current_status.md).
+  The declared API matrix remains the compatibility boundary.
+
+## Historical 0.3 Release-Line Contract
 
 These are the promotion requirements for the first stable 0.3 release line,
 not a claim that the current candidate has completed release qualification.

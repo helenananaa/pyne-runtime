@@ -23,6 +23,9 @@ pn.PyneBarState
 pn.PyneIncrementalBarState
 pn.PyneResult
 pn.PyneSettings
+pn.PyneResourceLimitError
+pn.PyneStateContractError
+pn.PyneSecurityError
 pn.PyneSeries
 pn.PyneStateNamespace
 pn.PyneVar
@@ -213,3 +216,23 @@ result.get_series("Close")
 result.values("Close")
 result.latest("Close")
 ```
+
+## Validate for a use case
+
+```python
+pn.validate(script, settings=settings, runtime_mode="incremental")
+pn.validate(script, settings=settings, target="preview")
+pn.validate(script, settings=settings, target="snapshot")
+```
+
+Validation does not run the script or fetch data. `target` implies incremental
+execution and identifies statically visible module-class state that cannot be
+isolated/restored. Overwritten or deleted classes are not rejected; dynamic
+callback/global construction is left to runtime checks. An empty diagnostic
+list does not certify dynamic closures, object graphs, providers or successful
+execution. Ordinary batch classes remain supported.
+
+Direct resource/state exceptions expose `.code` and `.hint`. The descriptive
+`PyneResourceLimitError` and `PyneStateContractError` remain subclasses of
+`PyneSecurityError` for existing exception handlers. Use specific codes for user
+messages rather than displaying every legacy-base exception as a security failure.

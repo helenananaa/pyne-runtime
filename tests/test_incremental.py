@@ -688,7 +688,7 @@ def on_bar(ctx, bar):
     result = pn.run(script, _bars(), executor_mode="inline")
 
     assert not result.ok
-    assert result.code == "PYNE_SECURITY_ERROR"
+    assert result.code == "PYNE_STATE_CONTRACT_ERROR"
     assert "state() can only be used inside incremental callbacks" in result.error
 
 
@@ -706,7 +706,7 @@ def on_bar(ctx, bar):
     result = pn.run(script, _bars(), executor_mode="inline")
 
     assert not result.ok
-    assert result.code == "PYNE_SECURITY_ERROR"
+    assert result.code == "PYNE_STATE_CONTRACT_ERROR"
     assert "varip() can only be used inside incremental callbacks" in result.error
 
 
@@ -1024,7 +1024,7 @@ def on_bar(ctx, bar):
     )
 
     assert not result.ok
-    assert result.code == "PYNE_RUNTIME_ERROR"
+    assert result.code == "PYNE_OUTPUT_LIMIT_EXCEEDED"
     assert "Drawing object limit exceeded" in str(result.error)
 
 

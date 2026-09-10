@@ -421,7 +421,7 @@ strategy.cancel("missing", when=False)
 
     assert one_replay.ok
     assert not repeated_replay.ok
-    assert repeated_replay.code == "PYNE_SECURITY_ERROR"
+    assert repeated_replay.code == "PYNE_RESOURCE_LIMIT_EXCEEDED"
     assert "pending-order operation budget exceeded (max 15)" in str(repeated_replay.error)
 
 

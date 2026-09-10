@@ -309,7 +309,7 @@ def emit_event(stream: TextIO, payload: dict[str, Any]) -> None:
 
 
 def output_point_budget(retention: int, cache_bars: int) -> int:
-    # max_output_points is both request max_cached_bars and plot/strategy budget.
+    # Preserve the historical output budget; request cache has its own setting.
     return max(int(cache_bars), int(retention) * 32)
 
 
@@ -321,7 +321,9 @@ def build_settings(*, max_bars: int, cache_bars: int, retention: int, horizon: i
         syminfo={"tickerid": "TEST:ASSET"},
         data_provider=_BENCHMARK.Provider(horizon),
         max_bars=max_bars,
+        replay_history_bars=max_bars,
         max_output_points=applied,
+        request_cache_max_bars=cache_bars,
         trace_enabled=False,
     ), applied
 
@@ -507,7 +509,8 @@ def run_worker(args: argparse.Namespace) -> dict[str, Any]:
     deadline = time.monotonic() + float(args.timeout_seconds)
     horizon = (bars + 8) * 10
     settings, applied_cache_limit = build_settings(
-        max_bars=max_bars, cache_bars=cache_bars, retention=retention, horizon=horizon
+        max_bars=max_bars,
+        cache_bars=cache_bars, retention=retention, horizon=horizon
     )
     assignments = [WORKLOADS[index % len(WORKLOADS)] for index in range(sessions_count)]
     harness_rss = current_process_rss()

@@ -26,7 +26,7 @@ def test_security_error_classification() -> None:
 def test_runtime_error_detail_includes_docs_url() -> None:
     result = pn.run("import os\nplot(close)", [
         {"time": 1, "open": 1, "high": 2, "low": 1, "close": 1.5, "volume": 100},
-    ], executor_mode="inline")
+    ], executor_mode="inline", security_mode="safe")
 
     assert not result.ok
     assert result.error_detail["code"] == "PYNE_IMPORT_BLOCKED"

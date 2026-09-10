@@ -1,10 +1,30 @@
 # Quickstart
 
-Install Pyne Runtime from this repository:
+The published stable version is 0.3.0. Install its verified wheel:
+
+```bash
+python -m pip install "https://github.com/helenananaa/pyne-runtime/releases/download/v0.3.0/pyne_runtime-0.3.0-py3-none-any.whl"
+```
+
+The script generator and CSV export described in
+[One script: CSV to realtime](tutorials/csv_to_realtime.md) require the
+0.4.0 development source (not yet a published release). From that checkout:
 
 ```bash
 python -m pip install -e .[dev]
 ```
+
+Create a script from the installed development package without copying examples:
+
+```bash
+pyne new trend.py --template trend
+pyne inspect trend.py --runtime-mode incremental
+pyne run trend.py --ohlcv bars.csv --format csv --out indicators.csv
+```
+
+`bars.csv` is your data, with `time,open,high,low,close,volume` columns by default.
+This same `trend.py` can run in a realtime session; no second indicator implementation
+is needed. Templates `volatility` and `state` cover rolling bands and explicit state.
 
 Run a script from Python:
 

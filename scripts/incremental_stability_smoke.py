@@ -49,7 +49,7 @@ def _values(result: Any, title: str) -> list[float]:
 def build_report(*, session_count: int = 16, bar_count: int = 256) -> dict[str, Any]:
     count = max(int(session_count), 2)
     bars = max(int(bar_count), 8)
-    settings = pn.PyneSettings(executor_mode="inline", max_bars=max(bars, 512))
+    settings = pn.PyneSettings(executor_mode="inline", max_bars=max(bars, 512), replay_history_bars=max(bars, 512))
     sessions = [
         pn.PyneIncrementalSession(
             script=SCRIPT,

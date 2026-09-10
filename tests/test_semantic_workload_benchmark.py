@@ -32,7 +32,7 @@ def test_benchmark_distinguishes_unavailable_replay_from_zero_cost():
     module = load_benchmark()
     report = module.measure("strategy_cycles", 32, 2, 16, 16)
     assert report["checkpoints"]["replay"]["available"] is False
-    assert "history exceeded max_bars" in report["checkpoints"]["replay"]["reason"]
+    assert "history exceeded replay_history_bars" in report["checkpoints"]["replay"]["reason"]
     assert "restore" not in report["checkpoints"]["replay"]
     assert report["preview"]["count"] == 4
     assert report["confirmed"]["count"] == 2

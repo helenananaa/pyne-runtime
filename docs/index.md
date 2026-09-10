@@ -5,11 +5,16 @@ strategy, request, and host-renderer output workflows.
 
 ## Start Here
 
+- [Diagnose and Fix a Script](tutorials/diagnose_script.md): match validation to
+  execution, interpret resource/state errors, and preserve successful results.
+
 - [Current Project Status](reference/current_status.md): verified current
   capabilities, explicit non-capabilities, and validation evidence.
 - [Stable Delivery Acceptance](development/stable_delivery_zh.md): product
   support commitments, representative workflows, remaining gaps, and evidence status.
 - [Quickstart](quickstart.md): install the package and run the first script.
+- [One Script: CSV to Realtime](tutorials/csv_to_realtime.md): generate a script,
+  map data columns, export calculations, and reuse the source in a live session.
 - [First Indicator](tutorials/first_indicator.md): write and run a basic
   indicator.
 - [Pine-to-Pyne Cookbook](tutorials/pine_to_pyne_cookbook.md): migrate common

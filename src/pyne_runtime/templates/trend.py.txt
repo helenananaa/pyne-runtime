@@ -1,0 +1,16 @@
+# One script for pyne run (historical CSV) and PyneIncrementalSession (realtime).
+indicator("Trend", mode="incremental", overlay=True)
+fast_length = int(params.get("Fast", 3))
+slow_length = int(params.get("Slow", 5))
+if fast_length < 1 or slow_length <= fast_length:
+    raise ValueError("Require 1 <= Fast < Slow")
+
+
+def on_bar(ctx, bar):
+    # Stable names identify independent state. Update each helper once per bar.
+    fast = ctx.ta.ema("fast", fast_length).update(bar.close)
+    slow = ctx.ta.ema("slow", slow_length).update(bar.close)
+    ctx.plot("Fast EMA", fast)
+    ctx.plot("Slow EMA", slow)
+    ready = fast is not None and slow is not None
+    ctx.plot("Trend", (1 if fast > slow else -1 if fast < slow else 0) if ready else None)

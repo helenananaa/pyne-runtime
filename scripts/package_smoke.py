@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
 import subprocess
@@ -134,6 +135,23 @@ def main(argv: list[str] | None = None) -> int:
             raise RuntimeError(f"smoke run failed: {payload.get('error')}")
         if "signals" not in payload.get("output", {}):
             raise RuntimeError("smoke run did not emit host signal output")
+
+        # Templates must be available from the wheel, without a source checkout.
+        for template, series in (("trend", "Fast EMA"), ("volatility", "Middle"),
+                                 ("state", "Cumulative change")):
+            generated = tmp_path / f"{template}.py"
+            exported = tmp_path / f"{template}.csv"
+            _run([str(pyne), "new", str(generated), "--template", template],
+                 cwd=tmp_path, env=clean_env)
+            _run([str(pyne), "inspect", str(generated), "--runtime-mode", "incremental"],
+                 cwd=tmp_path, env=clean_env)
+            _run([str(pyne), "run", str(generated), "--ohlcv", str(ohlcv),
+                  "--executor-mode", "inline", "--format", "csv", "--series", series,
+                  "--out", str(exported)], cwd=tmp_path, env=clean_env)
+            with exported.open(encoding="utf-8", newline="") as handle:
+                rows = list(csv.DictReader(handle))
+            if not rows or list(rows[0]) != ["time", series] or not rows[-1][series]:
+                raise RuntimeError(f"installed template CSV failed: {template}")
 
         _run(
             _installed_acceptance_command(python, repo_root, venv_dir),

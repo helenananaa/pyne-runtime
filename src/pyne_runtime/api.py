@@ -4,6 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from .authoring_checks import VALIDATION_TARGETS, target_diagnostics
 from .capabilities import capability_diagnostics
 from .data import PyneData, PyneOhlcvError, coerce_ohlcv
 from .errors import classify_security_error, error_detail, error_hint
@@ -72,8 +73,21 @@ def validate(
     *,
     settings: PyneSettings | None = None,
     runtime_mode: str | None = None,
+    target: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Return diagnostics for syntax/security validation."""
+    """Check syntax, selected policy and optional incremental target without execution.
+
+    target='preview' or 'snapshot' enables conservative static readiness checks.
+    An empty result does not certify dynamic object graphs or provider behavior.
+    """
+    if target is not None:
+        if target not in VALIDATION_TARGETS:
+            raise ValueError("target must be 'preview' or 'snapshot'")
+        if runtime_mode not in (None, "incremental"):
+            raise ValueError("preview/snapshot targets require runtime_mode='incremental'")
+        runtime_mode = "incremental"
+    if runtime_mode not in (None, "batch", "incremental"):
+        raise ValueError("runtime_mode must be 'batch' or 'incremental'")
     script_text = _read_script(script)
     diagnostics: list[dict[str, Any]] = []
     try:
@@ -90,6 +104,7 @@ def validate(
 
     diagnostics.extend(migration_diagnostics(script_text))
     diagnostics.extend(capability_diagnostics(script_text, runtime_mode=runtime_mode))
+    diagnostics.extend(target_diagnostics(script_text, runtime_mode=runtime_mode, target=target))
 
     policy = PyneSecurityPolicy.from_settings(settings or PyneSettings.from_env())
     try:
@@ -109,7 +124,12 @@ def _read_script(script: str | Path) -> str:
         return script.read_text(encoding="utf-8")
     if isinstance(script, str):
         path = Path(script)
-        if "\n" not in script and path.exists():
-            return path.read_text(encoding="utf-8")
+        if "\n" not in script:
+            try:
+                is_file = path.is_file()
+            except OSError:
+                is_file = False  # A long one-line Python program is not a filesystem path.
+            if is_file:
+                return path.read_text(encoding="utf-8")
         return script
     raise TypeError("script must be a string or path")

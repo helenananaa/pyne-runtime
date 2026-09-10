@@ -1488,7 +1488,7 @@ plot(strategy.position_size, "Position")
         "mintick": 0.1,
         "commission_type": "percent",
         "commission_value": 1,
-        "securityMode": "safe",
+        "securityMode": "unsafe",
     }
     assert result.lines[0]["pane"] == "separate"
     assert result.output["strategy"]["orders"] == [

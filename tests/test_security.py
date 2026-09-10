@@ -15,7 +15,7 @@ def _bars() -> list[dict[str, float]]:
 
 
 def test_safe_mode_blocks_imports() -> None:
-    result = pn.run("import os\nplot(close)", _bars(), executor_mode="inline")
+    result = pn.run("import os\nplot(close)", _bars(), executor_mode="inline", security_mode="safe")
 
     assert not result.ok
     assert result.code == "PYNE_IMPORT_BLOCKED"
@@ -67,7 +67,7 @@ barcolor(color.green)
 
 def test_validate_script_security_propagates_syntax_errors() -> None:
     with pytest.raises(SyntaxError):
-        validate_script_security("if", PyneSecurityPolicy.from_settings(PyneSettings()))
+        validate_script_security("if", PyneSecurityPolicy.from_settings(PyneSettings(security_mode="safe")))
 
 
 def test_unsafe_inline_builtins_copy_does_not_pollute_host() -> None:
