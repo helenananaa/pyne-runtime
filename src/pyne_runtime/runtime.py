@@ -104,12 +104,12 @@ class PyneRuntime:
         try:
             policy = PyneSecurityPolicy.from_settings(self.settings, security_mode)
 
-            if len(ohlcv) > policy.max_bars:
+            if policy.max_bars is not None and len(ohlcv) > policy.max_bars:
                 return finish(PyneResult(
                     ok=False,
-                    code="PYNE_INVALID_OHLCV",
+                    code="PYNE_RESOURCE_LIMIT_EXCEEDED",
                     error=f"Too many data points (max {policy.max_bars})",
-                    hint="Reduce the history window or increase max_bars for trusted workloads.",
+                    hint="Increase max_bars or set it to None; CLI: --limit max_bars=none.",
                 ), status="error")
 
             with trace.span("security.validate", category="security"):

@@ -1,229 +1,216 @@
 <h1 align="center">Pyne Runtime</h1>
 
-<p align="center"><strong>Write trading logic in Python. Think in bars. Ship chart-ready output.</strong></p>
+<p align="center"><strong>Pine-inspired computation. Native Python.</strong></p>
 
 <p align="center">
-  A Pine-inspired runtime for OHLCV indicators, deterministic strategies,<br>
-  multi-timeframe data, and realtime host sessions&mdash;without leaving Python.
+  Compute indicators, replay strategies, and process realtime bars.<br>
+  Start with OHLCV data or embed Pyne in your application.
 </p>
 
 <p align="center">
   <a href="https://github.com/helenananaa/pyne-runtime/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/helenananaa/pyne-runtime/actions/workflows/ci.yml/badge.svg"></a>
-  <img alt="Python 3.11, 3.12, and 3.13" src="https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13-3776AB?logo=python&logoColor=white">
-  <img alt="Project status: 0.3.0 stable release" src="https://img.shields.io/badge/status-0.3.0%20stable-16A34A">
-  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-2563EB"></a>
+  <a href="#quickstart"><img alt="Development line: 0.4" src="https://img.shields.io/badge/development-0.4-0d9488"></a>
+  <img alt="Python 3.11, 3.12, and 3.13" src="https://img.shields.io/badge/python-3.11%20%E2%80%93%203.13-3776ab">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-64748b"></a>
 </p>
 
 <p align="center">
-  <a href="docs/quickstart.md">Quickstart</a> &middot;
+  <a href="#quickstart">Quickstart</a> &middot;
   <a href="examples/README.md">Examples</a> &middot;
   <a href="docs/index.md">Documentation</a> &middot;
-  <a href="https://github.com/helenananaa/pyne-runtime/releases">Releases</a> &middot;
-  <a href="docs/reference/current_status.md">Current status</a> &middot;
-  <a href="docs/reference/pine_like_api_matrix.md">API matrix</a>
+  <a href="https://github.com/helenananaa/pyne-runtime/releases">Releases</a>
 </p>
 
----
 
-If you have ever wanted chart-script ergonomics without giving up Python, this
-is the missing layer. Pyne Runtime brings the bar-by-bar mental model and
-chart-oriented APIs that make Pine-style scripting productive into a normal
-Python package. Give it OHLCV data and a Python script; get back versioned,
-structured output for charts, scanners, notebooks, research tools, or your own
-trading application.
+Write Python scripts with Pine-inspired APIs such as `ta.sma`, `input`, and
+`plot`. Supply OHLCV data from Python or CSV and receive named series, drawings,
+signals, and strategy reports. The package runs independently with NumPy as its
+only core dependency; applications can supply additional data and rendering.
 
-```text
-OHLCV + host data provider
-            │
-            ▼
-   Pine-like Python script  ──►  Pyne Runtime
-                                      │
-                                      └─► plots · markers · drawings · signals
-                                          strategy reports · diagnostics
-```
+The **0.4 development line** makes standalone execution ordinary Python: run in
+the caller process with full imports and no default deadline or computation
+quotas. Hosts explicitly choose isolation, restricted imports, and resource
+budgets when embedding the runtime.
 
-## See It in 60 Seconds
+Pyne executes **Python**, with explicit helpers and state for bar-based logic.
+TradingView `.pine` source requires translation.
 
-Pyne Runtime is distributed as a universal wheel on GitHub Releases. Pin the
-release tag and exact asset when installing it into a host application:
+## Quickstart
+
+Use the current development checkout on Python 3.11–3.13:
 
 ```bash
-python -m pip install "https://github.com/helenananaa/pyne-runtime/releases/download/v0.3.0/pyne_runtime-0.3.0-py3-none-any.whl"
-pyne --version
+python -m pip install -e .
 ```
 
-Each release also includes the source distribution and `SHA256SUMS`. Host
-applications should verify the pinned wheel hash before installation. The core
-install depends only on NumPy; Pandas and Matplotlib integrations stay optional.
+> **Version status:** this README describes the 0.4 development direction.
+> The current checkout identifies itself as 0.4.0; the latest published
+> release is 0.3.0. The standalone defaults and new CLI workflows below require
+> this development checkout. Version metadata and release publication remain
+> separate from this documentation update.
 
-To run the repository examples, clone the matching tag and install the optional
-development dependencies:
-
-```bash
-git clone --branch v0.3.0 --depth 1 https://github.com/helenananaa/pyne-runtime.git
-cd pyne-runtime
-python -m pip install -e ".[dev,pandas]"
-pyne run examples/ma_cross.py --ohlcv examples/sample_ohlcv.csv --out result.json
-```
-
-Or use the runtime directly from Python:
+Copy this into a Python file or notebook and run it. All input data is included:
 
 ```python
 import pyne_runtime as pn
 
-bars = pn.read_ohlcv("examples/sample_ohlcv.csv")
+bars = [
+    {"time": 1704067200 + i * 60, "open": c - 1, "high": c + 1,
+     "low": c - 2, "close": c, "volume": 1000}
+    for i, c in enumerate([100, 102, 104, 106, 108])
+]
 
 result = pn.run(
-    """
-indicator("EMA Cross", overlay=True)
-
-fast = ta.ema(close, 3)
-slow = ta.ema(close, 5)
-
-plot(fast, "Fast EMA", color=color.orange)
-plot(slow, "Slow EMA", color=color.blue)
-marker(crossover(fast, slow), text="Buy", color=color.green)
-marker(crossunder(fast, slow), text="Sell", color=color.red)
-""",
+    '''
+indicator("Moving average", overlay=True)
+plot(ta.sma(close, 3), "SMA")
+''',
     bars,
-    executor_mode="inline",  # convenient for trusted scripts and notebooks
 )
-
 if not result.ok:
     raise RuntimeError(result.error)
 
-print(result.values("Fast EMA")[-3:])
-print(result.output.keys())
+print(result.values("SMA")[-3:])
 ```
 
-That result is not a screenshot or an opaque callback. It is a host-facing
-contract containing renderable series, markers, drawing objects, signals,
-strategy state, request diagnostics, and schema versions.
+```text
+[102.0, 104.0, 106.0]
+```
 
-## Why Pyne Runtime?
+The first two bars warm up the three-bar average. `plot` records a named output
+series that you can inspect, export, or pass to your own renderer.
 
-| You want | Pyne gives you |
-| --- | --- |
-| Familiar chart-script ergonomics | `ta.*`, history references such as `close[1]`, `input.*`, `plot()`, markers, colors, drawings, and explicit state |
-| Python-native workflows | Lists, CSV, optional Pandas integration, normal Python files, tests, packaging, and the rest of the Python ecosystem |
-| Multi-timeframe analysis | Host-backed `request.security()` and `request.security_lower_tf()` with alignment, tuples, metadata, caching, and structured diagnostics |
-| Deterministic strategy research | Entries, orders, exits, OCA behavior, pyramiding, costs, risk rules, trade ledgers, and lifecycle reports over OHLCV bars |
-| Realtime host integration | Incremental sessions with history seeding, isolated preview updates, confirmed-bar commits, snapshots, and shared session management |
-| A stable renderer boundary | Versioned schemas for inputs, parameters, renderables, drawing events, request providers, and strategy reports |
+**Use your own data:** replace `bars` with `pn.read_ohlcv("bars.csv")`.
+The default columns are `time,open,high,low,close,volume`.
+See the [quickstart guide](docs/quickstart.md) for CLI and parameter examples.
 
-Pyne does not force a chart UI, data vendor, database, or broker onto your
-architecture. Your host owns those choices; the runtime owns deterministic
-script execution and the contract between the script and the host.
+### Create a script and export CSV
 
-## Pick Your Path
-
-| Goal | Start here |
-| --- | --- |
-| Build your first indicator | [Quickstart](docs/quickstart.md) and [First Indicator](docs/tutorials/first_indicator.md) |
-| Translate Pine-style ideas into Python | [Pine-to-Pyne Cookbook](docs/tutorials/pine_to_pyne_cookbook.md) |
-| Use Pyne from a charting or research host | [Host Integration Guide](docs/tutorials/host_integration_guide.md) |
-| Supply higher- or lower-timeframe data | [Host-Backed `request.security()`](docs/tutorials/host_request_security.md) |
-| Process preview and confirmed realtime bars | [Incremental Runtime](docs/concepts/incremental_runtime.md) |
-| Preflight a script or inspect decisions | [Runtime Capabilities](docs/api/capabilities.md), `pyne inspect`, and [Execution Trace](docs/concepts/execution_trace.md) |
-| Consume every renderer and strategy field | [Output Schema](docs/reference/output_schema.md) |
-| Explore runnable scripts | [Packaged Examples](examples/README.md) |
-
-## Built on Verifiable Behavior
-
-The repository does not treat API names alone as compatibility evidence. Its
-release gate checks real output, package contracts, and installability.
-
-| Evidence for the `0.3.0` release | Verified surface |
-| --- | --- |
-| TradingView-backed capture parity | Request **21/21**, Strategy **27/27**, and TA **10/10** captured cases, currently at **0 diff**; the external-library slice covers 8 plots and 78 checked points |
-| Passed CI and installed-wheel matrix | Linux, Windows, and macOS on Python 3.11, 3.12, and 3.13; results and the performance rerun are recorded in the release readiness report |
-| Contract checks | Generated project status, output schemas, public imports, capture parity, and architecture boundaries |
-| Runtime self-description | Static script inspection, versioned batch/incremental capabilities, early unsupported-call diagnostics, and bounded trace-v2 evidence |
-| Distribution checks | Wheel and source build, metadata validation, clean installed-wheel smoke, CLI, and packaged examples |
-
-Capture parity applies to the checked-in fixtures and cases; it is evidence for
-that covered surface, not a claim of exhaustive Pine compatibility. See the
-[Current Project Status](docs/reference/current_status.md) for the verified
-capability boundary and the [Pine-Like API Matrix](docs/reference/pine_like_api_matrix.md)
-for feature-level detail.
-
-## Know the Boundaries
-
-Pyne Runtime **0.3.0 is a published stable release**. Its GitHub Release wheel,
-source distribution, and checksums have been downloaded and verified after the
-three-OS/three-Python qualification. See the
-[release readiness record](docs/development/release_readiness_zh.md).
-Stable support is the bounded compatibility
-contract in this repository, not a claim of full Pine compatibility. It is a
-host-embedded, Pine-like Python runtime for controlled integrations and trusted
-scripts, not a complete trading platform.
-
-- Pyne executes Python; it does not parse or run TradingView `.pine` source.
-- Market data, storage, chart rendering, alerts, accounts, and broker or
-  exchange connectivity belong to the host application.
-- Strategy replay is deterministic and bar-based. It does not invent tick
-  paths, order-book queue position, or real partial fills that OHLCV data does
-  not contain.
-- Multi-context requests require a host data provider; the core package does
-  not silently fetch from an exchange.
-- `safe` and `research` modes restrict the Python environment, but they are not
-  a hardened multi-tenant sandbox. Isolate untrusted code at the process,
-  container, or operating-system level.
-
-These limits are deliberate: they keep the runtime composable, testable, and
-honest about what its inputs can prove.
-
-## CLI at a Glance
+With your own `bars.csv`, generate an editable indicator and run it:
 
 ```bash
-pyne --version
-pyne validate examples/ma_cross.py
-pyne run examples/ma_cross.py --ohlcv examples/sample_ohlcv.csv --out result.json
-pyne schema
+pyne new trend.py --template trend
+pyne inspect trend.py --runtime-mode incremental
+pyne run trend.py --ohlcv bars.csv --format csv --out indicators.csv
 ```
 
-The same commands are available through `python -m pyne_runtime`.
+Templates cover trend, volatility, and explicit state. Use the same callback
+script for historical data and realtime sessions. CSV options support column
+mapping, seconds or milliseconds, and selected plot names; failed calculations
+preserve existing output files. See [CSV to realtime](docs/tutorials/csv_to_realtime.md)
+and [diagnose a script](docs/tutorials/diagnose_script.md).
 
-## Documentation
+<details>
+<summary>Need the published stable release instead?</summary>
 
-- [Documentation Home](docs/index.md) — the complete guide and API map
-- [Current Project Status](docs/reference/current_status.md) — what works now,
-  what does not, and the evidence behind each claim
-- [Public API](docs/api/public_api.md) — stable package-root imports
-- [Compatibility](docs/reference/compatibility.md) — supported semantics and
-  known differences
-- [Schema Migrations](docs/reference/schema_migrations.md) — versioning rules
-  for host-facing contracts
-- [Quality Gates](docs/development/quality_gates.md) — local and release checks
-- [Long-Term Direction](docs/development/python_package_long_term_plan_zh.md) —
-  package maturity roadmap
+Version 0.3.0 has different execution defaults and does not include the new
+template/export workflow above. Install its pinned wheel:
 
-Historical execution plans remain under `docs/development/`; they preserve how
-earlier slices were delivered but do not override the current status page.
+```bash
+python -m pip install "https://github.com/helenananaa/pyne-runtime/releases/download/v0.3.0/pyne_runtime-0.3.0-py3-none-any.whl"
+```
 
-## Development
+Use the [0.3.0 documentation](https://github.com/helenananaa/pyne-runtime/tree/v0.3.0/docs)
+for that version's API and commands.
 
-Install the editable package and development tools:
+</details>
+
+## What you can build
+
+| Task | Runtime support |
+| --- | --- |
+| **Indicators and scanners** | TA helpers, history references, parameters, explicit state, plots, drawings, and signals |
+| **Strategy research** | Deterministic OHLCV replay with orders, exits, costs, risk rules, and trade reports |
+| **Multi-timeframe analysis** | Provider-backed `request.security()` and `request.security_lower_tf()` with alignment and diagnostics |
+| **Realtime applications** | History seeding, isolated preview updates, confirmed-bar commits, bounded retention, and snapshot recovery |
+
+Batch and incremental modes have declared capability sets. Use
+[`pn.runtime_capabilities()`](docs/api/capabilities.md) and
+[`pyne inspect`](docs/reference/cli.md) to check a script's requirements before
+integrating it.
+
+## Start standalone. Integrate when ready.
+
+**For script authors:** calculate from CSV or Python data, inspect results in a
+notebook, and build reusable indicators. Begin with the
+[first indicator tutorial](docs/tutorials/first_indicator.md),
+[runnable examples](examples/README.md), or the
+[Pine-to-Pyne cookbook](docs/tutorials/pine_to_pyne_cookbook.md).
+
+**For application developers:** embed Pyne behind your adapter. Your application
+supplies data, renders output, and owns persistence and process lifecycle; Pyne
+owns script computation and versioned output contracts. Start with the
+[host integration guide](docs/tutorials/host_integration_guide.md), then explore
+[data providers](docs/tutorials/host_request_security.md),
+[realtime sessions](docs/concepts/incremental_runtime.md), and
+[session recovery](docs/tutorials/session_recovery.md).
+
+## Reliability and compatibility
+
+The **0.3.0 release** is backed by source and installed-wheel checks on Windows,
+Linux, and macOS across Python 3.11, 3.12, and 3.13. Release qualification includes
+independent package installation, representative full-script workflows,
+snapshot continuation, preview isolation, and bounded performance checks.
+See the [release acceptance record](docs/development/release_readiness_zh.md)
+for results, workload limits, and the retained macOS performance rerun.
+
+Checked-in TradingView reference captures cover 21 request, 27 strategy, and
+10 TA cases, with zero differences in the release capture gates. Compatibility
+applies to those cases and the documented feature surface. The
+[current status](docs/reference/current_status.md) and
+[API matrix](docs/reference/pine_like_api_matrix.md) describe that scope.
+
+Those release results describe **0.3.0**, not qualification of the current
+development tree. Check the
+[current status](docs/reference/current_status.md) for development evidence.
+
+Current incremental computation semantics is **5**. Older incompatible snapshots
+require rebuilding from authoritative OHLCV; changing operational budgets alone
+does not require recalculation when existing state fits the selected policy.
+Restored objects adopt that policy. Read the
+[compatibility policy](docs/reference/compatibility.md),
+[schema migrations](docs/reference/schema_migrations.md), and
+[changelog](CHANGELOG.md) when upgrading.
+
+Release assets include a wheel, source archive, and `SHA256SUMS`.
+Pin the version and verify the wheel checksum for reproducible deployments.
+
+### Execution boundaries
+
+Standalone calls default to full Python in the caller process, with no execution
+deadline or computation quotas. Hosts select restricted execution and resource
+budgets explicitly; see [execution policies](docs/concepts/security_modes.md).
+`None` means unlimited computation budgets. Input admission, retained history,
+and replay recording are independent settings; bounded caches can evict
+recoverable entries without rejecting valid computation.
+
+- Python control flow follows Python semantics. Use the documented helpers and
+  callback/state patterns for per-bar behavior.
+- Multi-timeframe requests need a data provider. Market feeds, chart UI, alerts,
+  accounts, and broker connectivity belong to the application.
+- Strategy replay uses OHLCV bars; it cannot establish intrabar tick paths,
+  order-book queue position, or real partial fills.
+- `safe` and `research` modes restrict the Python environment. Untrusted scripts
+  additionally require host-managed process or operating-system isolation.
+
+## Documentation and contributing
+
+Browse the [documentation index](docs/index.md) for tutorials and API guides,
+the [public API](docs/api/public_api.md) for supported imports, and the
+[output schema](docs/reference/output_schema.md) for integration contracts.
+Report reproducible bugs through [GitHub Issues](https://github.com/helenananaa/pyne-runtime/issues).
+
+From a source checkout, install the development tools:
 
 ```bash
 python -m pip install -e ".[dev,pandas]"
 ```
 
-Run the complete repository gate before submitting changes:
-
-```powershell
-.\scripts\check.ps1
-```
-
-```bash
-./scripts/check.sh
-```
-
-The gate covers compilation, linting, tests, capture parity, package builds,
-metadata checks, and an offline installed-wheel smoke test. See
-[Contributing Quality Gates](docs/development/quality_gates.md) and the
-[Release Process](docs/reference/release_process.md) for details.
+Run `./scripts/check.ps1` on Windows or `./scripts/check.sh` on Linux/macOS.
+The full gate covers lint, tests, capture parity, builds, metadata, and isolated
+wheel installation. See [quality gates](docs/development/quality_gates.md) and
+the [release process](docs/reference/release_process.md) for details.
 
 ## License
 
-Pyne Runtime is licensed under the [MIT License](LICENSE).
+[MIT](LICENSE).

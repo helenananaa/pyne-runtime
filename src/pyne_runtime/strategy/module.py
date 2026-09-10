@@ -66,7 +66,7 @@ class StrategyModule:
         context: PyneContext,
         collector: OutputCollector,
         *,
-        max_pending_order_operations: int = 1_000_000,
+        max_pending_order_operations: int | None = None,
     ) -> None:
         self._context = context
         self._collector = collector
@@ -110,7 +110,7 @@ class StrategyModule:
         self._intrabar_path = StrategyIntrabarPath.same_bar_priority
         self._margin_long = 0.0
         self._margin_short = 0.0
-        self._max_pending_order_operations = max(int(max_pending_order_operations), 1)
+        self._max_pending_order_operations = max_pending_order_operations
         self._pending_order_operations = 0
 
     def __call__(self, title: str = "", overlay: bool = True, **kwargs: Any) -> None:

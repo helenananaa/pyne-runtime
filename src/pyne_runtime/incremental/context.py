@@ -38,7 +38,7 @@ class IncrementalContext(IncrementalDrawingMixin):
         syminfo: SymbolInfo | None = None,
         timeframe: TimeframeInfo | None = None,
         session: SessionInfo | None = None,
-        max_drawing_objects: int = 500,
+        max_drawing_objects: int | None = None,
         trace: PyneTraceRecorder | None = None,
     ) -> None:
         self.params = params
@@ -74,7 +74,7 @@ class IncrementalContext(IncrementalDrawingMixin):
         self._request_diagnostics_dropped = 0
         self._request_namespace: Any = None
         self._object_counter = 0
-        self._max_drawing_objects = max(int(max_drawing_objects), 1)
+        self._max_drawing_objects = max_drawing_objects
         self.trace = trace or PyneTraceRecorder()
         self.current_bar: IncrementalBar | None = None
         self.bar_index = -1
@@ -314,9 +314,9 @@ class IncrementalContext(IncrementalDrawingMixin):
         if not self._limits.enabled:
             return
         key_count = len(self._states) + len(self._varip_states)
-        if key_count >= self._limits.max_state_keys:
+        if self._limits.max_state_keys is not None and key_count >= self._limits.max_state_keys:
             raise PyneSecurityError(
-                f"Incremental state keys exceed safe-mode limit {self._limits.max_state_keys}"
+                f"Incremental state keys exceed max_state_keys limit {self._limits.max_state_keys}"
             )
 
     def window(self, name: str, size: int) -> Window:

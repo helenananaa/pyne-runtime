@@ -429,7 +429,7 @@ def on_bar(ctx, bar):
 ''',
         settings=pn.PyneSettings(
             executor_mode="inline",
-            max_array_size=32,
+            max_preview_payload_items=32,
         ),
     )
 

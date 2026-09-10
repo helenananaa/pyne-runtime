@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass, field
-from types import SimpleNamespace
+from types import MappingProxyType, SimpleNamespace
 from typing import Any
 
 import numpy as np
@@ -59,7 +60,8 @@ class RuntimeServices:
             )
         from .incremental.session import _readonly_params
 
-        self.params = _readonly_params(self.params)
+        self.params = (MappingProxyType(copy.deepcopy(dict(self.params)))
+                       if self.policy.mode == "unsafe" else _readonly_params(self.params))
         self.ta = TaModule(self.ctx)
         self.input = InputModule(params=self.params, context=self.ctx)
         self.state = PyneStateNamespace()

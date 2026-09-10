@@ -2,11 +2,18 @@
 
 This repository builds and ships the standalone `pyne-runtime` Python package. Although the package is developed primarily for use by CandleScope, it is not a CandleScope host-integration repository.
 
+## Product identity
+
+The language is Python with Pine-inspired syntax conventions and computation
+semantics. Direct execution of TradingView `.pine` source is not a product goal.
+The core must work both inside a host and independently with supplied data such
+as CSV, producing calculation results without a chart or CandleScope service.
+
 ## Ownership boundary
 
 `pyne-runtime` owns:
 
-- Pyne/Pine language parsing, validation, semantics, and execution.
+- Pyne Python parsing, validation, Pine-inspired semantics, and execution.
 - Runtime state and package-level execution contracts.
 - Stable, host-agnostic public APIs and capability declarations.
 - Generic extension points, protocols, callbacks, and execution-context abstractions that allow a host to supply capabilities.
@@ -43,3 +50,20 @@ CandleScope or another host -> host adapter -> pyne-runtime
 
 - Incompatible changes to incremental committed state or replay semantics must bump `INCREMENTAL_SEMANTICS_VERSION` in `incremental/checkpoint.py`, with upgrade rejection and same-version continuation tests.
 - Keep computation semantics identity separate from package and wire-format versions. Never relabel old snapshots to bypass incompatibility; document rebuilding from authoritative host-supplied OHLCV.
+
+## Standalone execution and host policy
+
+- Independent computation defaults to full Python in the caller process, with no
+  imposed execution deadline or input/output/collection/state quotas. `None`
+  denotes unlimited computation budgets; do not substitute large sentinel numbers.
+- Hosts select restricted imports, process isolation, deadlines, concurrency and
+  display/transport budgets explicitly. Generic enforcement hooks may live here;
+  CandleScope-specific policy and orchestration remain outside the package.
+- Keep input admission, retained result/state history and replay recording budgets
+  independent. Bounded caches may evict recoverable entries without rejecting a
+  valid computation; history truncation must be explicit and disclosed.
+- Snapshot compatibility checks computation semantics separately from resource
+  policy. Operational changes must not require recalculation when existing state
+  fits the new budget. Rebind restored runtime objects to the selected budget.
+- Reject invalid input before mutation without poisoning a healthy session.
+  Preserve preview isolation, confirmed-history immutability and atomic restore.

@@ -12,7 +12,7 @@
 - 复用 `scripts/semantic_workload_benchmark.py` 的 bar 公式与 `Provider`（导入该脚本的辅助函数），工作负载为第一方 `requests`、`strategy_cycles`、`ta_chain`。没有用空转或 idle 脚本替换真实组合语义。
 - 一次子进程内按 round-robin **顺序**推进多个会话，会话工作负载按上述三者循环分配。这是单进程顺序推进，**不是**并行 CPU 吞吐。
 - 每个 `--sessions` 取值是一个独立 case，父进程拉起全新子进程，避免上一 case 的 RSS 残留。
-- 默认确认 4096 根、每根 4 次 preview、每 256 根一个窗口；`retention=64`、`max_bars=256`。`--cache-bars` 默认 2048，写入 `PyneSettings.max_output_points`（请求 range cache 的 `max_cached_bars` 与输出点预算共用该字段）。若 `retention * 32` 更大，则上调输出预算以免绘图/策略点先被打满；报告同时记录请求值与实际 `appliedMaxOutputPoints`。
+- 默认确认 4096 根、每根 4 次 preview、每 256 根一个窗口；`retention=64`、`max_bars=256`。`--cache-bars` 默认 2048，写入 `PyneSettings.request_cache_max_bars`。输出点预算独立设置；为保持既有测量口径，harness 仍使用两者的较大值计算输出预算。若 `retention * 32` 更大，则上调输出预算以免绘图/策略点先被打满；报告同时记录请求值与实际 `appliedMaxOutputPoints`。
 - 输入 bar 按序号即时生成，不保留增长中的 OHLCV 数组。原始 preview/确认耗时在计时结束后写入 JSONL；内存中只保留**当前窗口**样本。RSS 在窗口内、事件计时之外、typed-state 编码之前采样。
 - 当前 RSS：Windows 为 `GetProcessMemoryInfo` 的 `WorkingSetSize`；Linux 为 `/proc/self/statm` 常驻页 × 页大小。其他平台明确 `unsupported`。**不会**把 `ru_maxrss` 标成当前 RSS。进程 RSS 包含 Python、harness、provider 与会话；报告同时给出创建会话前的 harness 基线。不是 tracemalloc。
 - 窗口检查 typed-state（`snapshot_portable(mode="state")`）字节与编码/恢复耗时；恢复后的已提交输出与独立 clone 的下一根确认延续相对照，**不推进被测会话**，也不把当前运行时重算当作外部 oracle。

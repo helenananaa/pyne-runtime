@@ -1,0 +1,12 @@
+indicator("Volatility", mode="incremental", overlay=True)
+length = int(params.get("Length", 5))
+if length < 1:
+    raise ValueError("Length must be >= 1")
+
+
+def on_bar(ctx, bar):
+    middle = ctx.ta.sma("middle", length).update(bar.close)
+    deviation = ctx.ta.stdev("deviation", length).update(bar.close)
+    ctx.plot("Middle", middle)
+    ctx.plot("Upper", middle + 2 * deviation if deviation is not None else None)
+    ctx.plot("Lower", middle - 2 * deviation if deviation is not None else None)

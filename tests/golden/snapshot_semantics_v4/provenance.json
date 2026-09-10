@@ -1,0 +1,8 @@
+{
+  "description": "Captured from semantics v4 before standalone execution defaults and recovery policy changes.",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "706069f583c809950eb78048bcb515a0da2c30454bf75fdeefd3bdf7fec6e686",
+    "state.json": "8593f2c4a5fae4378c156d3b640e921604640a0b9d8eb7cfccdbfb6d6cc6aa0f"
+  }
+}

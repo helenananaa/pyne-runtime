@@ -23,10 +23,10 @@ functions, compatibility names, and policy-controlled builtins.
 This keeps `runtime.py` focused on execution flow:
 
 - choose batch or incremental execution
-- validate security policy and input limits
+- validate any explicitly selected security policy and input limits
 - build the OHLCV context
 - call the namespace builder
-- execute the script under timeout and output limits
+- execute the script with any explicitly configured timeout and output limits
 - convert collector state into `PyneResult`
 
 New top-level script names should be added through a namespace installer in

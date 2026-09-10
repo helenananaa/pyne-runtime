@@ -4,7 +4,7 @@ from __future__ import annotations
 from types import ModuleType
 from typing import Any, Iterable
 
-from .security import PyneSecurityError
+from .security import PyneResourceLimitError, PyneStateContractError
 from .values import is_na_value
 
 
@@ -868,7 +868,7 @@ def _normalize_limit(limit: int | None) -> int | None:
 
 def _enforce_limit(label: str, size: int, limit: int | None) -> None:
     if limit is not None and size > limit:
-        raise PyneSecurityError(f"{label} {size} exceeds limit {limit}")
+        raise PyneResourceLimitError(f"{label} {size} exceeds limit {limit}")
 
 
 def _validate_map_key(key: Any) -> None:
@@ -902,7 +902,7 @@ def _validate_collection_assignment(
 
 def _enforce_acyclic_collection_value(value: Any) -> None:
     if _collection_has_cycle(value):
-        raise PyneSecurityError("recursive collection values are unsupported")
+        raise PyneStateContractError("recursive collection values are unsupported")
 
 
 def _enforce_no_recursive_collection_value(
@@ -910,7 +910,7 @@ def _enforce_no_recursive_collection_value(
     value: Any,
 ) -> None:
     if _collection_references(value, id(container)) or _collection_has_cycle(value):
-        raise PyneSecurityError("recursive collection values are unsupported")
+        raise PyneStateContractError("recursive collection values are unsupported")
 
 
 def _snapshot_value(value: Any, seen: set[int]) -> Any:
@@ -926,7 +926,7 @@ def _snapshot_value(value: Any, seen: set[int]) -> Any:
 def _snapshot_array(value: PyneArray, seen: set[int]) -> PyneArray:
     identity = id(value)
     if identity in seen:
-        raise PyneSecurityError("recursive collection snapshots are not supported")
+        raise PyneStateContractError("recursive collection snapshots are not supported")
     child_seen = {*seen, identity}
     return PyneArray(
         (_snapshot_value(item, child_seen) for item in value.to_list()),
@@ -938,7 +938,7 @@ def _snapshot_array(value: PyneArray, seen: set[int]) -> PyneArray:
 def _snapshot_map(value: PyneMap, seen: set[int]) -> PyneMap:
     identity = id(value)
     if identity in seen:
-        raise PyneSecurityError("recursive collection snapshots are not supported")
+        raise PyneStateContractError("recursive collection snapshots are not supported")
     child_seen = {*seen, identity}
     return PyneMap(
         {key: _snapshot_value(item, child_seen) for key, item in value.to_dict().items()},
@@ -951,7 +951,7 @@ def _snapshot_map(value: PyneMap, seen: set[int]) -> PyneMap:
 def _snapshot_matrix(value: PyneMatrix, seen: set[int]) -> PyneMatrix:
     identity = id(value)
     if identity in seen:
-        raise PyneSecurityError("recursive collection snapshots are not supported")
+        raise PyneStateContractError("recursive collection snapshots are not supported")
     child_seen = {*seen, identity}
     return PyneMatrix.from_rows(
         [
@@ -969,7 +969,7 @@ def _enforce_child_depth(value: Any, limit: int | None) -> None:
         return
     depth = 1 + _collection_depth(value)
     if depth > limit:
-        raise PyneSecurityError(f"collection nesting depth {depth} exceeds limit {limit}")
+        raise PyneResourceLimitError(f"collection nesting depth {depth} exceeds limit {limit}")
 
 
 def _collection_depth(value: Any, seen: set[int] | None = None) -> int:

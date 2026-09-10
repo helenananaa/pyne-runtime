@@ -1,19 +1,24 @@
 # Incremental Runtime
 
-Batch scripts are the default. Incremental scripts define `on_bar(ctx, bar)` and can maintain state across bars.
+Batch scripts are the default. For a single script shared by historical data and
+realtime sessions, define `on_bar(ctx, bar)`: `pn.run()` evaluates it over supplied
+history and `PyneIncrementalSession` continues the same logic on live bars.
+See [CSV to realtime](../tutorials/csv_to_realtime.md) for the complete workflow.
 
 ```python
 indicator("Incremental MA", mode="incremental", overlay=True)
 
-def init(ctx):
-    ctx.ta.sma("ma", period=20)
-
 def on_bar(ctx, bar):
-    value = ctx.ta.sma("ma").update(bar.close)
+    value = ctx.ta.sma("ma", period=20).update(bar.close)
     ctx.plot("MA", value, color=color.orange)
 ```
 
 Incremental mode is useful for realtime hosts because updates can avoid recomputing the full history.
+
+Named helpers initialize on first use; `init()` remains optional for explicit
+registration. Keep names and parameters stable and update each helper once per
+bar, even when its result is used conditionally. This does not automatically
+translate vectorized batch scripts or extend the incremental capability surface.
 
 Callback context exposes Pine-like scalar clock values for the current event:
 
@@ -143,12 +148,12 @@ current = session.snapshot_result()
 Use it when a UI reconnects, when a viewport range changes, or after a host
 needs to discard a preview overlay and redraw the last committed state.
 
-Committed runtime-managed history is rolling rather than lifetime-bounded.
-`retention_bars` defaults to `PyneSettings.incremental_retention_bars` (10,000)
-and caps retained plot points, markers, object events, strategy logs, and state
-history. `meta.totalCommittedBars` remains an absolute lifetime counter, while
+Committed history is unlimited by default. `retention_bars` defaults to
+`PyneSettings.incremental_retention_bars` (`None`). An explicit positive value
+retains a rolling window of plot points, markers, object events, strategy logs
+and state history. `meta.totalCommittedBars` remains an absolute lifetime counter, while
 `meta.retainedBars` and `meta.retentionBars` disclose the current window. The
-initial seed is still bounded by `max_bars`. TA windows, open trades, pending
+initial seed has an optional, independent `max_bars` admission budget. TA windows, open trades, pending
 orders, and live drawing objects remain as active state even when old report
 history is trimmed.
 
@@ -190,7 +195,7 @@ SHA-256 checksum. Decode and restore enforce byte, nesting-depth, and node-count
 limits before replaying the retained committed bars. The data provider is never
 serialized; a provider-backed session must receive matching settings or an
 explicit provider during restore. Replay export fails closed if the session has
-committed more bars than its `max_bars` replay bound, because a partial history
+committed more bars than its explicitly configured `replay_history_bars` recording bound, because a partial history
 could restore different state.
 
 Replay v1 does not record preview visits. Replayed closed bars therefore have
@@ -245,7 +250,7 @@ Incremental callbacks also expose `ctx.request.security()` and
 to the current chart bar; the second returns a `PyneArray` containing the current
 bar's lower-timeframe group. Provider diagnostics are published under
 `result.meta["requestDiagnostics"]`, and authoritative provider ranges are
-cached across callbacks within the runtime output/cache limits. Preview
+cached across callbacks within the `request_cache_max_bars` / `cache_max_items` limits. Preview
 diagnostics stay temporary, while fetched provider evidence may warm that
 bounded cache for the matching confirmed callback.
 
@@ -333,9 +338,15 @@ from pyne_runtime import PyneIncrementalSession
 Snapshots now carry a computation semantics identity independently of package
 and wire-format versions: `semantics_version` in local state and
 `payload.semanticsVersion` in portable replay-v1 and typed-state-v2 envelopes.
-The current identity is integer `2`. Identity 1 covered corrected TA observation
+The current identity is integer `5`. Identity 5 makes standalone execution
+unrestricted by default, separates history policies and allows resource-policy
+changes on restore when existing state fits. Identity 4 separates configurable resource
+budgets from import permissions and persists them in checkpoint settings. Identity 1 covered corrected TA observation
 windows, smoothing, OCA timing and single-bar request confirmation behavior.
 Identity 2 also scopes incremental request diagnostics to the current bar.
+Identity 3 changes weighted-seed accumulation order to avoid BLAS dispatch
+overhead. Semantics-4 and older snapshots must be rebuilt; see
+[schema migrations](../reference/schema_migrations.md).
 
 Unmarked legacy snapshots and mismatched identities raise
 `PynePortableSnapshotError` with `code == "PYNE_SNAPSHOT_SEMANTICS_MISMATCH"`.

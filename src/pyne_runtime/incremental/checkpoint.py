@@ -21,7 +21,7 @@ DEFAULT_PORTABLE_SNAPSHOT_MAX_NODES = 1_000_000
 
 # Independent of package and wire-format versions. Bump when committed state or
 # replay semantics change incompatibly; legacy unmarked checkpoints are unknown.
-INCREMENTAL_SEMANTICS_VERSION = 3
+INCREMENTAL_SEMANTICS_VERSION = 5
 
 
 class PynePortableSnapshotError(ValueError):
@@ -47,7 +47,7 @@ class PortableCheckpoint:
     script_sha256: str
     params: dict[str, Any]
     settings: dict[str, Any]
-    retention_bars: int
+    retention_bars: int | None
     bars: tuple[dict[str, Any], ...]
     seed_count: int
     provider_required: bool
@@ -80,7 +80,7 @@ def encode_portable_checkpoint(
             max_depth=max_depth,
             budget=budget,
         ),
-        "retentionBars": int(checkpoint.retention_bars),
+        "retentionBars": checkpoint.retention_bars,
         "bars": _encode_value(
             list(checkpoint.bars),
             depth=0,
@@ -160,7 +160,8 @@ def decode_portable_checkpoint(
         raise PynePortableSnapshotError("Portable snapshot params/settings must be mappings")
     if not isinstance(bars, list) or not all(isinstance(item, dict) for item in bars):
         raise PynePortableSnapshotError("Portable snapshot bars must be a list of mappings")
-    retention_bars = _positive_int(payload["retentionBars"], "retentionBars")
+    retention_bars = (None if payload["retentionBars"] is None
+                      else _positive_int(payload["retentionBars"], "retentionBars"))
     seed_count = _nonnegative_int(payload["seedCount"], "seedCount")
     if seed_count > len(bars):
         raise PynePortableSnapshotError("Portable snapshot seedCount exceeds bar count")
@@ -334,6 +335,17 @@ def portable_settings_contract(settings: PyneSettings) -> dict[str, Any]:
         "maxCollectionDepth": settings.max_collection_depth,
         "maxStrategyPendingOperations": settings.max_strategy_pending_operations,
         "cacheMaxItems": settings.cache_max_items,
+        "replayHistoryBars": settings.replay_history_bars,
+        "incrementalRetentionBars": settings.incremental_retention_bars,
+        "maxWindowSize": settings.max_window_size,
+        "maxTotalWindowItems": settings.max_total_window_items,
+        "maxStateKeys": settings.max_state_keys,
+        "maxObjectEvents": settings.max_object_events,
+        "maxStrategyLogEntries": settings.max_strategy_log_entries,
+        "maxStatePayloadItems": settings.max_state_payload_items,
+        "maxPreviewPayloadItems": settings.max_preview_payload_items,
+        "maxTableCells": settings.max_table_cells,
+        "requestCacheMaxBars": settings.request_cache_max_bars,
         "allowedImports": list(settings.allowed_imports),
         "syminfo": asdict(settings.syminfo),
         "timeframe": asdict(settings.timeframe),
@@ -346,17 +358,28 @@ def settings_from_portable_contract(contract: Mapping[str, Any]) -> PyneSettings
         return PyneSettings(
             security_mode=str(contract["securityMode"]),
             executor_mode="inline",
-            timeout_seconds=float(contract["timeoutSeconds"]),
-            max_bars=int(contract["maxBars"]),
-            max_output_series=int(contract["maxOutputSeries"]),
-            max_output_points=int(contract["maxOutputPoints"]),
-            max_drawing_objects=int(contract["maxDrawingObjects"]),
-            max_array_size=int(contract["maxArraySize"]),
-            max_map_size=int(contract["maxMapSize"]),
-            max_matrix_cells=int(contract["maxMatrixCells"]),
-            max_collection_depth=int(contract["maxCollectionDepth"]),
-            max_strategy_pending_operations=int(contract["maxStrategyPendingOperations"]),
+            timeout_seconds=contract["timeoutSeconds"],
+            max_bars=contract["maxBars"],
+            max_output_series=contract["maxOutputSeries"],
+            max_output_points=contract["maxOutputPoints"],
+            max_drawing_objects=contract["maxDrawingObjects"],
+            max_array_size=contract["maxArraySize"],
+            max_map_size=contract["maxMapSize"],
+            max_matrix_cells=contract["maxMatrixCells"],
+            max_collection_depth=contract["maxCollectionDepth"],
+            max_strategy_pending_operations=contract["maxStrategyPendingOperations"],
             cache_max_items=int(contract["cacheMaxItems"]),
+            replay_history_bars=contract["replayHistoryBars"],
+            incremental_retention_bars=contract["incrementalRetentionBars"],
+            max_window_size=contract["maxWindowSize"],
+            max_total_window_items=contract["maxTotalWindowItems"],
+            max_state_keys=contract["maxStateKeys"],
+            max_object_events=contract["maxObjectEvents"],
+            max_strategy_log_entries=contract["maxStrategyLogEntries"],
+            max_state_payload_items=contract["maxStatePayloadItems"],
+            max_preview_payload_items=contract["maxPreviewPayloadItems"],
+            max_table_cells=contract["maxTableCells"],
+            request_cache_max_bars=int(contract["requestCacheMaxBars"]),
             allowed_imports=tuple(str(item) for item in contract["allowedImports"]),
             syminfo=contract["syminfo"],
             timeframe=contract["timeframe"],

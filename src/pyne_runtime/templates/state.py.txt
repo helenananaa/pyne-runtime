@@ -1,0 +1,11 @@
+indicator("Running price changes", mode="incremental", overlay=False)
+
+
+def on_bar(ctx, bar):
+    previous = ctx.state("previous", None)
+    total = ctx.state("total", 0.0)
+    change = 0.0 if previous.value is None else bar.close - previous.value
+    total.value += change
+    previous.value = bar.close
+    ctx.plot("Change", change)
+    ctx.plot("Cumulative change", total.value)

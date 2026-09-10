@@ -10,6 +10,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Any, Iterator
 
+from .errors import classify_security_error, error_hint
 from .schema import OUTPUT_KEYS
 from .settings import PyneSettings
 
@@ -29,6 +30,8 @@ SAFE_BUILTINS: dict[str, Any] = {
     "int": int,
     "isinstance": isinstance,
     "len": len,
+    "iter": iter,
+    "next": next,
     "list": list,
     "map": map,
     "max": max,
@@ -53,15 +56,24 @@ SAFE_BUILTINS: dict[str, Any] = {
 class PyneSecurityPolicy:
     mode: str
     allowed_imports: tuple[str, ...] = field(default_factory=tuple)
-    timeout_seconds: float = 5.0
-    max_bars: int = 50_000
-    max_output_series: int = 20
-    max_output_points: int = 1_000_000
-    max_array_size: int = 100_000
-    max_map_size: int = 100_000
-    max_matrix_cells: int = 100_000
-    max_collection_depth: int = 8
-    max_strategy_pending_operations: int = 1_000_000
+    timeout_seconds: float | None = None
+    max_bars: int | None = None
+    max_output_series: int | None = None
+    max_output_points: int | None = None
+    max_array_size: int | None = None
+    max_map_size: int | None = None
+    max_matrix_cells: int | None = None
+    max_collection_depth: int | None = None
+    max_strategy_pending_operations: int | None = None
+    max_window_size: int | None = None
+    max_total_window_items: int | None = None
+    max_state_keys: int | None = None
+    max_object_events: int | None = None
+    max_strategy_log_entries: int | None = None
+    max_state_payload_items: int | None = None
+    max_preview_payload_items: int | None = None
+    max_table_cells: int | None = None
+    request_cache_max_bars: int = 1_000_000
 
     @classmethod
     def from_settings(
@@ -83,6 +95,15 @@ class PyneSecurityPolicy:
             max_matrix_cells=settings.max_matrix_cells,
             max_collection_depth=settings.max_collection_depth,
             max_strategy_pending_operations=settings.max_strategy_pending_operations,
+            max_window_size=settings.max_window_size,
+            max_total_window_items=settings.max_total_window_items,
+            max_state_keys=settings.max_state_keys,
+            max_object_events=settings.max_object_events,
+            max_strategy_log_entries=settings.max_strategy_log_entries,
+            max_state_payload_items=settings.max_state_payload_items,
+            max_preview_payload_items=settings.max_preview_payload_items,
+            max_table_cells=settings.max_table_cells,
+            request_cache_max_bars=settings.request_cache_max_bars,
         )
 
     @classmethod
@@ -103,11 +124,33 @@ class PyneSecurityPolicy:
             "maxMatrixCells": self.max_matrix_cells,
             "maxCollectionDepth": self.max_collection_depth,
             "maxStrategyPendingOperations": self.max_strategy_pending_operations,
+            "maxWindowSize": self.max_window_size,
+            "maxTotalWindowItems": self.max_total_window_items,
+            "maxStateKeys": self.max_state_keys,
+            "maxObjectEvents": self.max_object_events,
+            "maxStrategyLogEntries": self.max_strategy_log_entries,
+            "maxStatePayloadItems": self.max_state_payload_items,
+            "maxPreviewPayloadItems": self.max_preview_payload_items,
+            "maxTableCells": self.max_table_cells,
+            "requestCacheMaxBars": self.request_cache_max_bars,
         }
 
 
 class PyneSecurityError(RuntimeError):
-    """Raised when a script violates the selected security policy."""
+    """Compatibility base for policy, resource and state-contract exceptions."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.code = classify_security_error(message)
+        self.hint = error_hint(self.code)
+
+
+class PyneResourceLimitError(PyneSecurityError):
+    """An explicitly configured resource budget was exceeded."""
+
+
+class PyneStateContractError(PyneSecurityError):
+    """An operation cannot preserve incremental state/preview contracts."""
 
 
 class PyneTimeoutError(RuntimeError):
@@ -115,7 +158,7 @@ class PyneTimeoutError(RuntimeError):
 
 
 def normalize_security_mode(mode: str | None) -> str:
-    normalized = (mode or "safe").strip().lower()
+    normalized = (mode or "unsafe").strip().lower()
     if normalized not in SECURITY_MODES:
         raise PyneSecurityError("securityMode must be 'safe', 'research', or 'unsafe'")
     return normalized
@@ -128,6 +171,12 @@ def validate_script_security(script: str, policy: PyneSecurityPolicy) -> None:
     tree = ast.parse(script)
 
     for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef):
+            raise PyneSecurityError(
+                "Class definitions are not supported in safe/research mode; "
+                "use functions and dictionaries, or unsafe mode for trusted batch code. "
+                "Incremental preview and portable state have additional type restrictions."
+            )
         if isinstance(node, ast.Import):
             modules = [alias.name for alias in node.names]
             _validate_imports(modules, policy)
@@ -148,14 +197,21 @@ def build_builtins(policy: PyneSecurityPolicy) -> Any:
 
 
 def enforce_output_limits(output: dict[str, Any], policy: PyneSecurityPolicy) -> None:
-    series_count = _count_output_collections(output)
-    if series_count > policy.max_output_series:
+    series_count = _count_output_collections(output) if policy.max_output_series is not None else 0
+    if policy.max_output_series is not None and series_count > policy.max_output_series:
         raise PyneSecurityError(
             f"Too many output series ({series_count}, max {policy.max_output_series})"
         )
 
-    point_count = _count_output_points(output)
-    if point_count > policy.max_output_points:
+    events = output.get("object_events", [])
+    if (policy.max_object_events is not None and isinstance(events, list)
+            and len(events) > policy.max_object_events):
+        raise PyneSecurityError(
+            f"Drawing object events exceed max_object_events ({policy.max_object_events})"
+        )
+
+    point_count = _count_output_points(output) if policy.max_output_points is not None else 0
+    if policy.max_output_points is not None and point_count > policy.max_output_points:
         raise PyneSecurityError(
             f"Too many output points ({point_count}, max {policy.max_output_points})"
         )
@@ -164,13 +220,11 @@ def enforce_output_limits(output: dict[str, Any], policy: PyneSecurityPolicy) ->
 def _count_output_collections(output: dict[str, Any]) -> int:
     count = 0
     for key in OUTPUT_KEYS:
+        if key in {"objects", "object_events", "strategy"}:
+            continue
         value = output.get(key)
         if isinstance(value, list):
             count += len(value)
-        elif key == "objects" and isinstance(value, dict):
-            count += sum(len(items) for items in value.values() if isinstance(items, list))
-        elif key == "strategy" and value:
-            count += 1
     return count
 
 
@@ -189,14 +243,14 @@ def _count_output_points(value: Any) -> int:
 
 
 @contextmanager
-def execution_timeout(seconds: float) -> Iterator[None]:
+def execution_timeout(seconds: float | None) -> Iterator[None]:
     """Best-effort timeout for local script execution.
 
     ``signal.setitimer`` only works in the main thread on Unix-like systems.
     When unavailable, execution proceeds without a hard interrupt; the policy is
     still exposed so a future process-based runner can enforce it everywhere.
     """
-    if seconds <= 0 or threading.current_thread() is not threading.main_thread():
+    if seconds is None or seconds <= 0 or threading.current_thread() is not threading.main_thread():
         yield
         return
     if not (

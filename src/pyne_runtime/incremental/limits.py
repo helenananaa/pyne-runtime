@@ -1,4 +1,4 @@
-"""Incremental runtime safe-mode limits and state containers."""
+"""Incremental resource budgets and state containers."""
 from __future__ import annotations
 
 import copy
@@ -10,7 +10,7 @@ from itertools import chain
 from typing import Any
 
 from ..collections import PyneArray, PyneMap, PyneMatrix
-from ..security import PyneSecurityError, PyneSecurityPolicy
+from ..security import PyneResourceLimitError, PyneStateContractError, PyneSecurityPolicy
 
 SAFE_MAX_WINDOW_SIZE = 10_000
 SAFE_MAX_TOTAL_WINDOW_ITEMS = 50_000
@@ -29,8 +29,8 @@ _IMMUTABLE_STATE_TYPES = (type(None), bool, int, float, complex, str, bytes)
 _STATE_HISTORY_TOKEN = object()
 
 
-class IncrementalResourceLimitError(RuntimeError):
-    """Resource limit that preserves the runtime-error compatibility surface."""
+class IncrementalResourceLimitError(PyneResourceLimitError):
+    """Drawing budget error; still catchable as RuntimeError or PyneSecurityError."""
 
 
 class _StateHistory:
@@ -84,7 +84,7 @@ class _StateHistory:
     @staticmethod
     def _require_token(token: object) -> None:
         if token is not _STATE_HISTORY_TOKEN:
-            raise PyneSecurityError("StateCell history is read-only")
+            raise PyneStateContractError("StateCell history is read-only")
 
 
 class StateCell:
@@ -184,7 +184,7 @@ class StateCell:
         history_writable = object.__getattribute__(self, "_StateCell__history_writable")
         limit_tracker = object.__getattribute__(self, "_StateCell__limit_tracker")
         if not history_writable:
-            raise PyneSecurityError("Incremental preview state history is read-only")
+            raise PyneStateContractError("Incremental preview state history is read-only")
 
         payload_items = 0
         released_items = 0
@@ -262,17 +262,17 @@ class Window:
 @dataclass
 class IncrementalLimits:
     enabled: bool = False
-    max_window_size: int = SAFE_MAX_WINDOW_SIZE
-    max_total_window_items: int = SAFE_MAX_TOTAL_WINDOW_ITEMS
-    max_state_keys: int = SAFE_MAX_STATE_KEYS
-    max_state_history: int = SAFE_MAX_STATE_HISTORY
-    max_output_series: int = SAFE_MAX_OUTPUT_SERIES
-    max_output_points: int = SAFE_MAX_OUTPUT_POINTS
-    max_object_events: int = SAFE_MAX_OBJECT_EVENTS
-    max_strategy_log_entries: int = SAFE_MAX_STRATEGY_LOG_ENTRIES
-    max_state_payload_items: int = SAFE_MAX_STATE_PAYLOAD_ITEMS
-    max_table_cells: int = SAFE_MAX_TABLE_CELLS
-    max_preview_payload_items: int = SAFE_MAX_PREVIEW_PAYLOAD_ITEMS
+    max_window_size: int | None = None
+    max_total_window_items: int | None = None
+    max_state_keys: int | None = None
+    max_state_history: int | None = None
+    max_output_series: int | None = None
+    max_output_points: int | None = None
+    max_object_events: int | None = None
+    max_strategy_log_entries: int | None = None
+    max_state_payload_items: int | None = None
+    max_table_cells: int | None = None
+    max_preview_payload_items: int | None = None
     retention_enabled: bool = False
 
     @classmethod
@@ -282,24 +282,20 @@ class IncrementalLimits:
         *,
         retention_bars: int | None = None,
     ) -> "IncrementalLimits":
-        history_limit = min(
-            policy.max_bars,
-            max(int(retention_bars or policy.max_bars), 1),
-        )
         return cls(
-            enabled=policy.mode == "safe",
+            enabled=True,
+            max_window_size=policy.max_window_size,
+            max_total_window_items=policy.max_total_window_items,
+            max_state_keys=policy.max_state_keys,
             retention_enabled=True,
-            max_state_history=history_limit,
+            max_state_history=retention_bars,
             max_output_series=policy.max_output_series,
             max_output_points=policy.max_output_points,
-            max_object_events=policy.max_output_points,
-            max_strategy_log_entries=policy.max_output_points,
-            max_table_cells=policy.max_matrix_cells,
-            max_preview_payload_items=policy.max_array_size,
-            max_state_payload_items=max(
-                policy.max_output_points,
-                SAFE_MAX_STATE_PAYLOAD_ITEMS,
-            ),
+            max_object_events=policy.max_object_events,
+            max_strategy_log_entries=policy.max_strategy_log_entries,
+            max_table_cells=policy.max_table_cells,
+            max_preview_payload_items=policy.max_preview_payload_items,
+            max_state_payload_items=policy.max_state_payload_items,
         )
 
 
@@ -307,6 +303,7 @@ class _LimitTracker:
     def __init__(self, limits: IncrementalLimits) -> None:
         self.limits = limits
         self.total_window_items = 0
+        self.largest_window_size = 0
         self.output_series = 0
         self.output_series_keys: set[str] = set()
         self.output_points = 0
@@ -324,18 +321,19 @@ class _LimitTracker:
         if not self.limits.enabled:
             return
         normalized = max(int(size), 1)
-        if normalized > self.limits.max_window_size:
-            raise PyneSecurityError(
-                f"Incremental window '{label}' size {normalized} exceeds safe-mode limit "
+        if self.limits.max_window_size is not None and normalized > self.limits.max_window_size:
+            raise PyneResourceLimitError(
+                f"Incremental window '{label}' size {normalized} exceeds max_window_size limit "
                 f"{self.limits.max_window_size}"
             )
         next_total = self.total_window_items + normalized
-        if next_total > self.limits.max_total_window_items:
-            raise PyneSecurityError(
-                f"Incremental windows need {next_total} items, exceeding safe-mode total "
+        if self.limits.max_total_window_items is not None and next_total > self.limits.max_total_window_items:
+            raise PyneResourceLimitError(
+                f"Incremental windows need {next_total} items, exceeding max_total_window_items total "
                 f"limit {self.limits.max_total_window_items}"
             )
         self.total_window_items = next_total
+        self.largest_window_size = max(self.largest_window_size, normalized)
 
     def reserve_output_point(self, *, series_key: str) -> None:
         if not self.retention_enabled:
@@ -344,12 +342,12 @@ class _LimitTracker:
         new_series = normalized_key not in self.output_series_keys
         next_series = self.output_series + (1 if new_series else 0)
         next_points = self.output_points + 1
-        if next_series > self.limits.max_output_series:
-            raise PyneSecurityError(
+        if self.limits.max_output_series is not None and next_series > self.limits.max_output_series:
+            raise PyneResourceLimitError(
                 f"Too many output series ({next_series}, max {self.limits.max_output_series})"
             )
-        if next_points > self.limits.max_output_points:
-            raise PyneSecurityError(
+        if self.limits.max_output_points is not None and next_points > self.limits.max_output_points:
+            raise PyneResourceLimitError(
                 f"Too many output points ({next_points}, max {self.limits.max_output_points})"
             )
         self.output_series = next_series
@@ -365,8 +363,8 @@ class _LimitTracker:
         if not self.retention_enabled:
             return
         next_total = self.object_events + 1
-        if next_total > self.limits.max_object_events:
-            raise PyneSecurityError(
+        if self.limits.max_object_events is not None and next_total > self.limits.max_object_events:
+            raise PyneResourceLimitError(
                 "Incremental object events exceed retention limit "
                 f"{self.limits.max_object_events}"
             )
@@ -376,8 +374,8 @@ class _LimitTracker:
         if not self.retention_enabled:
             return
         next_total = self.strategy_log_entries + 1
-        if next_total > self.limits.max_strategy_log_entries:
-            raise PyneSecurityError(
+        if self.limits.max_strategy_log_entries is not None and next_total > self.limits.max_strategy_log_entries:
+            raise PyneResourceLimitError(
                 "Incremental strategy log exceeds retention limit "
                 f"{self.limits.max_strategy_log_entries}"
             )
@@ -390,8 +388,8 @@ class _LimitTracker:
             int(added),
             0,
         )
-        if next_total + self.varip_payload_items > self.limits.max_state_payload_items:
-            raise PyneSecurityError(
+        if self.limits.max_state_payload_items is not None and next_total + self.varip_payload_items > self.limits.max_state_payload_items:
+            raise PyneResourceLimitError(
                 "Incremental state history payload exceeds retention limit "
                 f"{self.limits.max_state_payload_items}"
             )
@@ -401,8 +399,8 @@ class _LimitTracker:
         if not self.retention_enabled:
             return
         normalized = max(int(total), 0)
-        if self.state_payload_items + normalized > self.limits.max_state_payload_items:
-            raise PyneSecurityError(
+        if self.limits.max_state_payload_items is not None and self.state_payload_items + normalized > self.limits.max_state_payload_items:
+            raise PyneResourceLimitError(
                 "Incremental varip payload exceeds retention limit "
                 f"{self.limits.max_state_payload_items}"
             )
@@ -412,8 +410,8 @@ class _LimitTracker:
         if not self.retention_enabled:
             return
         next_total = self.table_cells + 1
-        if next_total > self.limits.max_table_cells:
-            raise PyneSecurityError(
+        if self.limits.max_table_cells is not None and next_total > self.limits.max_table_cells:
+            raise PyneResourceLimitError(
                 "Incremental table cells exceed retention limit "
                 f"{self.limits.max_table_cells}"
             )
@@ -423,8 +421,8 @@ class _LimitTracker:
         if not self.retention_enabled:
             return
         normalized = max(int(items), 0)
-        if normalized > self.limits.max_preview_payload_items:
-            raise PyneSecurityError(
+        if self.limits.max_preview_payload_items is not None and normalized > self.limits.max_preview_payload_items:
+            raise PyneResourceLimitError(
                 "Incremental preview globals exceed payload limit "
                 f"{self.limits.max_preview_payload_items}"
             )

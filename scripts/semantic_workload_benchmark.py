@@ -89,7 +89,7 @@ def measure(name, history, samples, retention, max_bars):
     data = bars(history + samples + 1)
     settings = pn.PyneSettings(
         executor_mode="inline", timeframe="10S", syminfo={"tickerid": "TEST:ASSET"},
-        data_provider=Provider((len(data) + 6) * 10), max_bars=max_bars,
+        data_provider=Provider((len(data) + 6) * 10), max_bars=max_bars, replay_history_bars=max_bars,
         trace_enabled=False,
     )
 
@@ -120,7 +120,7 @@ def measure(name, history, samples, retention, max_bars):
             try:
                 subject.snapshot_portable(mode=mode)
             except pn.PynePortableSnapshotError as exc:
-                if "history exceeded max_bars" not in str(exc):
+                if "history exceeded replay_history_bars" not in str(exc):
                     raise
                 checkpoints[mode] = {"available": False, "reason": str(exc)}
                 continue

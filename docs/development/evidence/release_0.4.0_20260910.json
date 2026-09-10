@@ -1,0 +1,25 @@
+{
+  "version": "0.4.0",
+  "semanticsIdentity": 5,
+  "date": "2026-09-10",
+  "python": "3.12.7",
+  "numpy": "2.4.6",
+  "windowsFullGate": {
+    "exitCode": 0,
+    "testsPassed": 1236,
+    "warnings": 1,
+    "log": "build\\release-0.4.0\\windows-gate.log",
+    "sha256": "2379bf443390c1ee4783741af713f03ef393140efda5f23ba5db09c7c298ffc9"
+  },
+  "captureFixtures": {
+    "request": 21,
+    "strategy": 27,
+    "ta": 10,
+    "differences": 0
+  },
+  "installedAcceptance": {
+    "cases": 9,
+    "pointsChecked": 55075
+  },
+  "publication": "pending"
+}

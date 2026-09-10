@@ -115,7 +115,8 @@ def main(argv: list[str] | None = None) -> int:
     for name, digest in provenance["sha256"].items():
         verify_hash(legacy / name, digest)
     legacy_script = (legacy / "indicator.pyne").read_text(encoding="utf-8")
-    for folder in ("snapshot_semantics", "snapshot_semantics_v1", "snapshot_semantics_v2"):
+    for folder in ("snapshot_semantics", "snapshot_semantics_v1", "snapshot_semantics_v2",
+                   "snapshot_semantics_v3", "snapshot_semantics_v4"):
         old = legacy.parent / folder
         old_provenance = json.loads((old / "provenance.json").read_text(encoding="utf-8"))
         for name, digest in old_provenance["sha256"].items():
@@ -137,7 +138,53 @@ def main(argv: list[str] | None = None) -> int:
     require(plot_points(rebuilt.snapshot_result())["EMA"][-1]["value"] == 3., "rebuild seed mismatch")
     require(plot_points(rebuilt.on_bar_closed(rebuild_bars[4]))["EMA"][-1]["value"] == 4.,
             "rebuild continuation mismatch")
-    print(json.dumps({"ok": True, "cases": 5, "pointsChecked": points,
+    # Exercise standalone defaults in the actual installed wheel.
+    defaults = pn.PyneSettings()
+    require(defaults.executor_mode == "inline" and defaults.security_mode == "unsafe",
+            "standalone execution defaults are not active")
+    require(defaults.timeout_seconds is None and defaults.max_bars is None,
+            "standalone limits unexpectedly enabled")
+    large_bars = [dict(time=i, open=1., high=2., low=1., close=1.5, volume=1.)
+                  for i in range(50_001)]
+    standalone = pn.run("import math\nplot(close + math.sqrt(4))", large_bars)
+    require(standalone.ok, str(standalone.error))
+    require(len(standalone.lines[0]["data"]) == 50_001, "standalone input/output was capped")
+    points += len(standalone.lines[0]["data"])
+    source = "def on_bar(ctx, bar):\n    ctx.plot('Close', bar.close)"
+    subject = pn.PyneIncrementalSession(script=source, settings=pn.PyneSettings(max_output_points=1))
+    subject.seed(large_bars[:1])
+    subject = pn.PyneIncrementalSession.from_portable_snapshot(subject.snapshot_portable_state(),
+        script=source, settings=pn.PyneSettings(timeout_seconds=30, cache_max_items=64))
+    require(subject.on_bar_closed(large_bars[1]).ok, "restored budget was not relaxed")
+    require(len(subject.snapshot_result().lines[0]["data"]) == 2, "restored output was capped")
+    # Verify user-facing diagnostics and CLI parsing from the installed package.
+    import io
+    from contextlib import redirect_stdout, redirect_stderr
+    from pyne_runtime.cli import main as cli_main
+
+    class_source = "class Helper: pass\ndef on_bar(ctx, bar): ctx.plot('C', bar.close)"
+    require(not pn.validate(class_source), "ordinary classes were blocked")
+    require(pn.validate(class_source, target="snapshot")[0]["code"] == "PYNE_STATE_CONTRACT_ERROR",
+            "snapshot preflight omitted retained class")
+    quota = pn.run("array.new_float(3, 0)", large_bars[:1], settings=pn.PyneSettings(max_array_size=2))
+    require(quota.code == "PYNE_RESOURCE_LIMIT_EXCEEDED" and "None" in quota.hint,
+            "resource diagnostic is not actionable")
+    feedback_script = Path.cwd() / "feedback-workflow.py"
+    feedback_script.write_text("import math\nplot(close, 'Keep')\nplot(open, 'Other')\nplot(high, 'Other')",
+                               encoding="utf-8")
+    stdout, stderr = io.StringIO(), io.StringIO()
+    policy_args = ["--security-mode", "research", "--allowed-import", "math"]
+    with redirect_stdout(stdout), redirect_stderr(stderr):
+        code = cli_main(["validate", str(feedback_script), *policy_args])
+    require(code == 0 and json.loads(stdout.getvalue())["ok"], "CLI policy validation failed")
+    stdout = io.StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
+        code = cli_main(["run", str(feedback_script), "--ohlcv",
+            str(root / "examples" / "sample_ohlcv.csv"), *policy_args,
+            "--limit", "max_bars=none", "--timeout-seconds", "none",
+            "--format", "csv", "--series", "Keep"])
+    require(code == 0 and stdout.getvalue().startswith("time,Keep\n"), "selected CSV export failed")
+    print(json.dumps({"ok": True, "cases": 9, "pointsChecked": points,
                       "packageVersion": pn.__version__, "importPath": str(origin),
                       "semanticsIdentity": INCREMENTAL_SEMANTICS_VERSION}))
     return 0

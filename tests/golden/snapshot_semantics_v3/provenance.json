@@ -1,0 +1,8 @@
+{
+  "description": "Captured before resource-budget decoupling from unmodified semantics v3 runtime.",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "e705683611ab21f8f3075522502013b247b2a82a9caeb6065854cf7ed45fa2fd",
+    "state.json": "d58d3c396aebf6bb725682fee3f8729d7a4ccaead597151b8d20b59d47226720"
+  }
+}

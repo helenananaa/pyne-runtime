@@ -274,7 +274,7 @@ array.push(values, values)
     )
 
     assert not result.ok
-    assert result.code == "PYNE_SECURITY_ERROR"
+    assert result.code == "PYNE_STATE_CONTRACT_ERROR"
     assert "recursive collection values are unsupported" in str(result.error)
 
 
@@ -289,7 +289,7 @@ map.put(levels, "self", levels)
     )
 
     assert not result.ok
-    assert result.code == "PYNE_SECURITY_ERROR"
+    assert result.code == "PYNE_STATE_CONTRACT_ERROR"
     assert "recursive collection values are unsupported" in str(result.error)
 
 
@@ -304,7 +304,7 @@ matrix.set(grid, 0, 0, grid)
     )
 
     assert not result.ok
-    assert result.code == "PYNE_SECURITY_ERROR"
+    assert result.code == "PYNE_STATE_CONTRACT_ERROR"
     assert "recursive collection values are unsupported" in str(result.error)
 
 
@@ -383,7 +383,7 @@ array.push(values, 3.0)
     )
 
     assert not result.ok
-    assert result.code == "PYNE_SECURITY_ERROR"
+    assert result.code == "PYNE_RESOURCE_LIMIT_EXCEEDED"
     assert "array size 3 exceeds limit 2" in str(result.error)
 
 
@@ -585,7 +585,7 @@ map.put(levels, "slow", 20)
     )
 
     assert not result.ok
-    assert result.code == "PYNE_SECURITY_ERROR"
+    assert result.code == "PYNE_RESOURCE_LIMIT_EXCEEDED"
     assert "map size 2 exceeds limit 1" in str(result.error)
 
 
@@ -602,7 +602,7 @@ map.put_all(target, source)
     )
 
     assert not result.ok
-    assert result.code == "PYNE_SECURITY_ERROR"
+    assert result.code == "PYNE_RESOURCE_LIMIT_EXCEEDED"
     assert "map size 2 exceeds limit 1" in str(result.error)
 
 
@@ -621,7 +621,7 @@ map.put(levels, "too_deep", middle)
     )
 
     assert not result.ok
-    assert result.code == "PYNE_SECURITY_ERROR"
+    assert result.code == "PYNE_RESOURCE_LIMIT_EXCEEDED"
     assert "collection nesting depth 3 exceeds limit 2" in str(result.error)
 
 
@@ -811,7 +811,7 @@ matrix.new_float(2, 2, 0.0)
     )
 
     assert not result.ok
-    assert result.code == "PYNE_SECURITY_ERROR"
+    assert result.code == "PYNE_RESOURCE_LIMIT_EXCEEDED"
     assert "matrix cells 4 exceeds limit 3" in str(result.error)
 
 
@@ -829,5 +829,5 @@ matrix.new(1, 1, middle)
     )
 
     assert not result.ok
-    assert result.code == "PYNE_SECURITY_ERROR"
+    assert result.code == "PYNE_RESOURCE_LIMIT_EXCEEDED"
     assert "collection nesting depth 3 exceeds limit 2" in str(result.error)

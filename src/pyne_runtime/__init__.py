@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from ._version import __version__
 from .api import from_pandas, read_ohlcv, run, schema, validate
+from .security import PyneResourceLimitError, PyneStateContractError, PyneSecurityError
 from .barstate import PyneBarState, PyneIncrementalBarState
 from .cache import PyneExecutionScope, pyne_cache
 from .capabilities import (
@@ -117,6 +118,9 @@ from .utils import fixnan, nz
 from .values import na
 
 __all__ = [
+    "PyneResourceLimitError",
+    "PyneStateContractError",
+    "PyneSecurityError",
     "__version__",
     "ArrayNamespace",
     "BarMergeNamespace",

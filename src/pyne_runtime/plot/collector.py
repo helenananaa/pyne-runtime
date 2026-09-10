@@ -14,9 +14,9 @@ class OutputCollector:
     the JSON response.
     """
 
-    def __init__(self, times: list[int], max_drawing_objects: int = 500) -> None:
+    def __init__(self, times: list[int], max_drawing_objects: int | None = None) -> None:
         self.times = times
-        self.max_drawing_objects = max(int(max_drawing_objects), 1)
+        self.max_drawing_objects = max_drawing_objects
         self.lines: list[dict[str, Any]] = []
         self.candles: list[dict[str, Any]] = []
         self.histograms: list[dict[str, Any]] = []
@@ -58,7 +58,7 @@ class OutputCollector:
             + len(self._object_linefills)
             + len(self._object_polylines)
         )
-        if total >= self.max_drawing_objects:
+        if self.max_drawing_objects is not None and total >= self.max_drawing_objects:
             raise PyneSecurityError(
                 f"Drawing object limit exceeded (max {self.max_drawing_objects})"
             )

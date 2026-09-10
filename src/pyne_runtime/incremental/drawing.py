@@ -556,7 +556,7 @@ class IncrementalDrawingMixin:
             + len(self._object_linefills)
             + len(self._object_polylines)
         )
-        if total >= self._max_drawing_objects:
+        if self._max_drawing_objects is not None and total >= self._max_drawing_objects:
             raise IncrementalResourceLimitError(
                 f"Drawing object limit exceeded (max {self._max_drawing_objects})"
             )

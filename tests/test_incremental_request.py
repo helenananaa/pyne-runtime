@@ -162,7 +162,8 @@ def on_bar(ctx, bar):
             data_provider=provider,
             syminfo={"tickerid": "TEST:BTCUSD"},
             timeframe="10S",
-            max_output_points=2,
+            max_output_points=100,
+            request_cache_max_bars=2,
             cache_max_items=1,
         ),
     )

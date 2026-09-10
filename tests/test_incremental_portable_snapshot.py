@@ -122,13 +122,13 @@ def test_portable_snapshot_enforces_size_and_json_value_boundaries() -> None:
         invalid_params.snapshot_portable()
 
 
-def test_portable_snapshot_fails_after_exact_replay_history_exceeds_max_bars() -> None:
-    settings = _settings(max_bars=2)
+def test_portable_snapshot_fails_after_exact_replay_history_exceeds_replay_history_budget() -> None:
+    settings = _settings(max_bars=2, replay_history_bars=2)
     session = pn.PyneIncrementalSession(script=SCRIPT, settings=settings)
     session.seed([_bar(1, 1), _bar(2, 2)])
     session.on_bar_closed(_bar(3, 3))
 
-    with pytest.raises(pn.PynePortableSnapshotError, match="history exceeded max_bars"):
+    with pytest.raises(pn.PynePortableSnapshotError, match="history exceeded replay_history_bars"):
         session.snapshot_portable()
 
     state_payload = session.snapshot_portable(mode="state")
