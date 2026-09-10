@@ -4,10 +4,11 @@ This document is the current source of truth for Pyne Runtime's implemented
 capabilities and product boundaries. Roadmaps describe future intent; this page
 describes what the repository can support and substantiate now.
 
-**Pyne Runtime 0.4.0 is prepared for release; publication is pending.**
-The last verified public release remains 0.3.0 until the new assets are published.
+**Pyne Runtime 0.4.0 is published and its public assets are verified.**
+Tag `v0.4.0` points to `b1f55c8817a05509ca8a06ea8fbc809f86239fda`.
+The release is neither a draft nor a prerelease.
 
-The 0.4.0 source defaults to full Python in the caller process with no imposed
+Version 0.4.0 defaults to full Python in the caller process with no imposed
 execution deadline or computation quotas. Hosts select restricted imports,
 process isolation, and resource budgets explicitly. It includes installed
 script templates, CSV column/time-unit mapping and selected-series export,
@@ -17,8 +18,9 @@ snapshots require rebuilding from authoritative OHLCV.
 
 The current Windows full gate passed 1,236 tests, performance/stability checks,
 58 capture fixtures with zero differences, distribution checks, and installed
-wheel acceptance with nine workflows and 55,075 comparison points. Hosted
-qualification and publication are tracked in the
+wheel acceptance with nine workflows and 55,075 comparison points. PR and main CI each passed all 19 checks; the release workflow passed all
+11 jobs, including nine installed-wheel combinations. Public wheel and source
+archive hashes match SHA256SUMS. Details are tracked in the
 [0.4.0 release record](../development/release_0.4.0_zh.md).
 
 Pyne is a standalone Pine-inspired Python runtime with host-neutral extension

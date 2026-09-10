@@ -63,8 +63,8 @@ Before cutting a release candidate:
    version. For example:
 
    ```bash
-   git tag -a v0.3.0 -m "pyne-runtime 0.3.0"
-   git push origin v0.3.0
+   git tag -a v0.4.0 -m "pyne-runtime 0.4.0"
+   git push origin v0.4.0
    ```
 
 8. Wait for `.github/workflows/release.yml` to finish, then verify the GitHub
@@ -95,7 +95,7 @@ Host applications should pin the tag, exact wheel filename, and SHA-256 rather
 than follow a moving `latest` URL. For example:
 
 ```bash
-python -m pip install "https://github.com/helenananaa/pyne-runtime/releases/download/v0.3.0/pyne_runtime-0.3.0-py3-none-any.whl"
+python -m pip install "https://github.com/helenananaa/pyne-runtime/releases/download/v0.4.0/pyne_runtime-0.4.0-py3-none-any.whl"
 ```
 
 `project.version` identifies the source/build candidate. The latest actually

@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="https://github.com/helenananaa/pyne-runtime/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/helenananaa/pyne-runtime/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="#quickstart"><img alt="Development line: 0.4" src="https://img.shields.io/badge/development-0.4-0d9488"></a>
+  <a href="https://github.com/helenananaa/pyne-runtime/releases/tag/v0.4.0"><img alt="Stable release: 0.4.0" src="https://img.shields.io/badge/release-0.4.0-0d9488"></a>
   <img alt="Python 3.11, 3.12, and 3.13" src="https://img.shields.io/badge/python-3.11%20%E2%80%93%203.13-3776ab">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-64748b"></a>
 </p>
@@ -21,13 +21,12 @@
   <a href="https://github.com/helenananaa/pyne-runtime/releases">Releases</a>
 </p>
 
-
 Write Python scripts with Pine-inspired APIs such as `ta.sma`, `input`, and
 `plot`. Supply OHLCV data from Python or CSV and receive named series, drawings,
 signals, and strategy reports. The package runs independently with NumPy as its
 only core dependency; applications can supply additional data and rendering.
 
-The **0.4 development line** makes standalone execution ordinary Python: run in
+**Pyne Runtime 0.4** makes standalone execution ordinary Python: run in
 the caller process with full imports and no default deadline or computation
 quotas. Hosts explicitly choose isolation, restricted imports, and resource
 budgets when embedding the runtime.
@@ -37,17 +36,11 @@ TradingView `.pine` source requires translation.
 
 ## Quickstart
 
-Use the current development checkout on Python 3.11–3.13:
+Install **0.4.0** on Python 3.11–3.13:
 
 ```bash
-python -m pip install -e .
+python -m pip install "https://github.com/helenananaa/pyne-runtime/releases/download/v0.4.0/pyne_runtime-0.4.0-py3-none-any.whl"
 ```
-
-> **Version status:** this README describes the 0.4 development direction.
-> The current checkout identifies itself as 0.4.0; the latest published
-> release is 0.3.0. The standalone defaults and new CLI workflows below require
-> this development checkout. Version metadata and release publication remain
-> separate from this documentation update.
 
 Copy this into a Python file or notebook and run it. All input data is included:
 
@@ -100,20 +93,6 @@ mapping, seconds or milliseconds, and selected plot names; failed calculations
 preserve existing output files. See [CSV to realtime](docs/tutorials/csv_to_realtime.md)
 and [diagnose a script](docs/tutorials/diagnose_script.md).
 
-<details>
-<summary>Need the published stable release instead?</summary>
-
-Version 0.3.0 has different execution defaults and does not include the new
-template/export workflow above. Install its pinned wheel:
-
-```bash
-python -m pip install "https://github.com/helenananaa/pyne-runtime/releases/download/v0.3.0/pyne_runtime-0.3.0-py3-none-any.whl"
-```
-
-Use the [0.3.0 documentation](https://github.com/helenananaa/pyne-runtime/tree/v0.3.0/docs)
-for that version's API and commands.
-
-</details>
 
 ## What you can build
 
@@ -147,23 +126,20 @@ owns script computation and versioned output contracts. Start with the
 
 ## Reliability and compatibility
 
-The **0.3.0 release** is backed by source and installed-wheel checks on Windows,
-Linux, and macOS across Python 3.11, 3.12, and 3.13. Release qualification includes
-independent package installation, representative full-script workflows,
-snapshot continuation, preview isolation, and bounded performance checks.
-See the [release acceptance record](docs/development/release_readiness_zh.md)
-for results, workload limits, and the retained macOS performance rerun.
+The **0.4.0 release** passed the full Windows quality gate and the hosted source
+and installed-wheel matrix on Windows, Linux, and macOS across Python 3.11,
+3.12, and 3.13. The release workflow independently checks the same wheel on all
+nine combinations before publication. See the
+[0.4.0 release record](docs/development/release_0.4.0_zh.md) for evidence.
 
-Checked-in TradingView reference captures cover 21 request, 27 strategy, and
-10 TA cases, with zero differences in the release capture gates. Compatibility
-applies to those cases and the documented feature surface. The
-[current status](docs/reference/current_status.md) and
-[API matrix](docs/reference/pine_like_api_matrix.md) describe that scope.
+Validation includes representative full-script workflows, preview isolation,
+snapshot continuation, and bounded performance checks. The capture gates cover
+21 request, 27 strategy, and 10 TA cases with zero differences. These cases
+support the documented surface; see [current status](docs/reference/current_status.md)
+and the [API matrix](docs/reference/pine_like_api_matrix.md).
 
-Those release results describe **0.3.0**, not qualification of the current
-development tree. Check the
-[current status](docs/reference/current_status.md) for development evidence.
-
+Within **0.4.x**, patch releases preserve documented public imports, signatures,
+and existing CLI commands. Numeric corrections may require recalculation.
 Current incremental computation semantics is **5**. Older incompatible snapshots
 require rebuilding from authoritative OHLCV; changing operational budgets alone
 does not require recalculation when existing state fits the selected policy.

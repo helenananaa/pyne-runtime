@@ -1,20 +1,15 @@
 # Quickstart
 
-The published stable version is 0.3.0. Install its verified wheel:
+Install the published **0.4.0** wheel on Python 3.11–3.13:
 
 ```bash
-python -m pip install "https://github.com/helenananaa/pyne-runtime/releases/download/v0.3.0/pyne_runtime-0.3.0-py3-none-any.whl"
+python -m pip install "https://github.com/helenananaa/pyne-runtime/releases/download/v0.4.0/pyne_runtime-0.4.0-py3-none-any.whl"
 ```
 
-The script generator and CSV export described in
-[One script: CSV to realtime](tutorials/csv_to_realtime.md) require the
-0.4.0 development source (not yet a published release). From that checkout:
+Standalone execution uses full Python in the caller process without default
+computation quotas. No development dependencies or source checkout are needed.
 
-```bash
-python -m pip install -e .[dev]
-```
-
-Create a script from the installed development package without copying examples:
+Create an editable script from the installed package:
 
 ```bash
 pyne new trend.py --template trend

@@ -1,7 +1,7 @@
 # One script: CSV to realtime
 
-These commands require the 0.4.0 development package. Version 0.3.0 remains
-the published stable release. Install this checkout with `python -m pip install -e .`.
+These commands are included in **Pyne Runtime 0.4.0**.
+Install the [published wheel](../quickstart.md), then run the commands below.
 No CandleScope process, chart, broker, Pandas or data service is required.
 
 ## Create and calculate

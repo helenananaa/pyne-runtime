@@ -10,8 +10,8 @@ python -m pyne_runtime --version
 
 ## Run
 
-The `new` command and CSV options below are available in development version
-0.4.0; the published 0.3.0 wheel does not yet include them.
+The `new` command, CSV options, and validation targets below are included in
+**0.4.0**. See the [quickstart](../quickstart.md) for installation.
 
 ```bash
 pyne new indicator.py --template trend
