@@ -12,7 +12,7 @@ from ..barstate import PyneIncrementalBarState
 from ..metadata import SessionInfo, SymbolInfo, TimeframeInfo
 from ..security import PyneSecurityError
 from ..trace import PyneTraceRecorder
-from .bar import IncrementalBar, _session_info_for_bar
+from .bar import IncrementalBar, _session_info_for_bar, copy_bar_payload
 from .drawing import IncrementalDrawingMixin, _filter_object_events
 from .limits import (
     IncrementalLimits,
@@ -239,7 +239,7 @@ class IncrementalContext(IncrementalDrawingMixin):
     def commit_request_bar(self) -> None:
         if self.current_bar is None:
             return
-        current = copy.deepcopy(self.current_bar.raw)
+        current = copy_bar_payload(self.current_bar.raw)
         if self._request_bars and int(self._request_bars[-1]["time"]) == self.current_bar.time:
             self._request_bars[-1] = current
         else:

@@ -2,10 +2,19 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import copy
 from typing import Any
 
 from ..data import PyneData
 from ..metadata import SessionInfo, normalize_session_info
+
+
+def copy_bar_payload(raw: dict[str, Any]) -> dict[str, Any]:
+    """Copy canonical scalar bars cheaply, retaining deepcopy for custom data."""
+    if type(raw) is dict and all(type(key) is str and type(value) in (int, float, str, bool, type(None))
+                                 for key, value in raw.items()):
+        return raw.copy()
+    return copy.deepcopy(raw)
 
 
 @dataclass

@@ -42,7 +42,7 @@ from ..security import (
 )
 from ..settings import PyneSettings
 from ..trace import PyneTraceRecorder, bounded_trace_value
-from .bar import IncrementalBar
+from .bar import IncrementalBar, copy_bar_payload
 from .checkpoint import (
     DEFAULT_PORTABLE_SNAPSHOT_MAX_BYTES,
     INCREMENTAL_SEMANTICS_VERSION,
@@ -245,7 +245,7 @@ class PyneIncrementalSession:
             self.last_closed_time = bar.time
             self._closed_count = index + 1
             self._commit_retention(bar.time)
-            portable_bars.append(copy.deepcopy(bar.raw))
+            portable_bars.append(copy_bar_payload(bar.raw))
         self._portable_bars = portable_bars
         self._portable_seed_count = len(portable_bars)
         self._portable_complete = True
@@ -793,18 +793,28 @@ class PyneIncrementalSession:
         ctx: IncrementalContext,
         bar: IncrementalBar | None = None,
     ) -> None:
-        signature = inspect.signature(func)
-        params = list(signature.parameters.values())
-        has_varargs = any(item.kind == inspect.Parameter.VAR_POSITIONAL for item in params)
+        if (isinstance(func, FunctionType)
+                and not any(hasattr(func, name) for name in ("__signature__", "__wrapped__", "__text_signature__"))):
+            # Ordinary script callbacks expose their parameter layout directly.
+            # Read the current code each call, so code replacement is observable;
+            # no cached signature/state needs snapshotting or invalidation.
+            code = func.__code__
+            has_varargs = bool(code.co_flags & inspect.CO_VARARGS)
+            parameter_count = code.co_argcount + code.co_kwonlyargcount + int(has_varargs) + int(bool(code.co_flags & inspect.CO_VARKEYWORDS))
+        else:
+            signature = inspect.signature(func)
+            params = list(signature.parameters.values())
+            has_varargs = any(item.kind == inspect.Parameter.VAR_POSITIONAL for item in params)
+            parameter_count = len(params)
         if bar is None:
-            if len(params) == 0 and not has_varargs:
+            if parameter_count == 0 and not has_varargs:
                 func()
             else:
                 func(ctx)
             return
-        if has_varargs or len(params) >= 2:
+        if has_varargs or parameter_count >= 2:
             func(ctx, bar)
-        elif len(params) == 1:
+        elif parameter_count == 1:
             func(bar)
         else:
             func()
