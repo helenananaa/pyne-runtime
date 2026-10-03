@@ -38,7 +38,7 @@ def compare_capture(result: Any, rows: list[dict[str, Any]]) -> int:
     actual = plot_points(result)
     count = 0
     for index, title in enumerate(("DI+", "DI-", "ADX")):
-        expected = [{"time": row["time"], "value": round(row["values"][index], 8)}
+        expected = [{"time": row["time"], "value": row["values"][index]}
                     for row in rows if row["values"][index] is not None]
         observed = actual.get(title, [])
         require([p["time"] for p in observed] == [p["time"] for p in expected],

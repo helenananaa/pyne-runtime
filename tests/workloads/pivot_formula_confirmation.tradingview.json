@@ -1,0 +1,604 @@
+{
+  "schema": "pyne.workload-oracle/1",
+  "source": "TradingView Pine v6 runtime via Chrome Pine Logs",
+  "capturedAt": "2026-09-30T12:44:49.447Z",
+  "url": "https://www.tradingview.com/chart/K1m3gqVM/",
+  "symbol": "COINBASE:BTCUSD",
+  "timeframe": "1D",
+  "scriptSha256": "bb7b652507c68d9d0987c7a78800e13ee4045f5f08a3eb869f6fc3c651d98c1d",
+  "logSha256": "06c9494dfd60a784e82be551ac1f59b755cf10221265076ec292b07ac8b656d1",
+  "columns": [
+    "source",
+    "Pivot high 3 2",
+    "Formula high 3 2",
+    "Pivot low 3 2",
+    "Formula low 3 2",
+    "Pivot high 0 2",
+    "Formula high 0 2",
+    "Pivot low 0 2",
+    "Formula low 0 2",
+    "Pivot high 2 0",
+    "Formula high 2 0",
+    "Pivot low 2 0",
+    "Formula low 2 0"
+  ],
+  "tolerance": 1e-8,
+  "rows": [
+    {
+      "index": 0,
+      "values": [
+        -4,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 1,
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 2,
+      "values": [
+        -3,
+        null,
+        null,
+        null,
+        null,
+        -4,
+        -4,
+        -4,
+        -4,
+        -3,
+        -3,
+        -3,
+        -3
+      ]
+    },
+    {
+      "index": 3,
+      "values": [
+        4,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        4,
+        4,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 4,
+      "values": [
+        -2,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        -3,
+        -3,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 5,
+      "values": [
+        5,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        5,
+        5,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 6,
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        -2,
+        -2,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 7,
+      "values": [
+        6,
+        5,
+        5,
+        null,
+        null,
+        5,
+        5,
+        5,
+        5,
+        6,
+        6,
+        6,
+        6
+      ]
+    },
+    {
+      "index": 8,
+      "values": [
+        3,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        3,
+        3
+      ]
+    },
+    {
+      "index": 9,
+      "values": [
+        3,
+        6,
+        6,
+        null,
+        null,
+        6,
+        6,
+        null,
+        null,
+        null,
+        null,
+        3,
+        3
+      ]
+    },
+    {
+      "index": 10,
+      "values": [
+        3,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "index": 11,
+      "values": [
+        8,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        8,
+        8,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 12,
+      "values": [
+        null,
+        null,
+        null,
+        3,
+        3,
+        null,
+        null,
+        3,
+        3,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 13,
+      "values": [
+        -4,
+        8,
+        8,
+        null,
+        null,
+        8,
+        8,
+        8,
+        8,
+        -4,
+        -4,
+        -4,
+        -4
+      ]
+    },
+    {
+      "index": 14,
+      "values": [
+        3,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        3,
+        3,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 15,
+      "values": [
+        -3,
+        null,
+        null,
+        -4,
+        -4,
+        null,
+        null,
+        -4,
+        -4,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 16,
+      "values": [
+        4,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        4,
+        4,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 17,
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        -3,
+        -3,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 18,
+      "values": [
+        5,
+        4,
+        4,
+        null,
+        null,
+        4,
+        4,
+        4,
+        4,
+        5,
+        5,
+        5,
+        5
+      ]
+    },
+    {
+      "index": 19,
+      "values": [
+        3,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        3,
+        3
+      ]
+    },
+    {
+      "index": 20,
+      "values": [
+        3,
+        5,
+        5,
+        null,
+        null,
+        5,
+        5,
+        null,
+        null,
+        null,
+        null,
+        3,
+        3
+      ]
+    },
+    {
+      "index": 21,
+      "values": [
+        3,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "index": 22,
+      "values": [
+        7,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        7,
+        7,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 23,
+      "values": [
+        null,
+        null,
+        null,
+        3,
+        3,
+        null,
+        null,
+        3,
+        3,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 24,
+      "values": [
+        8,
+        7,
+        7,
+        null,
+        null,
+        7,
+        7,
+        7,
+        7,
+        8,
+        8,
+        8,
+        8
+      ]
+    },
+    {
+      "index": 25,
+      "values": [
+        2,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        2,
+        2
+      ]
+    },
+    {
+      "index": 26,
+      "values": [
+        -4,
+        8,
+        8,
+        null,
+        null,
+        8,
+        8,
+        null,
+        null,
+        null,
+        null,
+        -4,
+        -4
+      ]
+    },
+    {
+      "index": 27,
+      "values": [
+        3,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        3,
+        3,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 28,
+      "values": [
+        null,
+        null,
+        null,
+        -4,
+        -4,
+        null,
+        null,
+        -4,
+        -4,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 29,
+      "values": [
+        4,
+        null,
+        null,
+        null,
+        null,
+        3,
+        3,
+        3,
+        3,
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "index": 30,
+      "values": [
+        3,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        3,
+        3
+      ]
+    },
+    {
+      "index": 31,
+      "values": [
+        3,
+        4,
+        4,
+        null,
+        null,
+        4,
+        4,
+        null,
+        null,
+        null,
+        null,
+        3,
+        3
+      ]
+    }
+  ]
+}

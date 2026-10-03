@@ -9,7 +9,8 @@ from .barstate import PyneIncrementalBarState
 
 class HistoricalSession:
     def __init__(self, source, bars, *, params=None, settings=None):
-        if not bars: raise ValueError("history cannot be empty")
+        if not bars:
+            raise ValueError("history cannot be empty")
         PyneData.from_ohlcv(bars)
         if not is_incremental_pyne_script(source):
             raise ValueError("fixed history requires init/on_bar script")

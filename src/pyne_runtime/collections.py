@@ -1,8 +1,12 @@
 """Pine-like mutable collection helpers."""
 from __future__ import annotations
 
+from collections.abc import MutableSequence
+import math
 from types import ModuleType
 from typing import Any, Iterable
+
+import numpy as np
 
 from .security import PyneResourceLimitError, PyneStateContractError
 from .values import is_na_value
@@ -28,6 +32,9 @@ class PyneArray:
         self._max_size = _normalize_limit(max_size)
         self._max_depth = _normalize_limit(max_depth)
         self._values = list(values) if values is not None else []
+        # Retain string construction intent even when every value is missing.
+        # This is a conversion hint, not a restriction on Python payload types.
+        self._string_values = any(isinstance(item, str) for item in self._values)
         _enforce_limit("array size", len(self._values), self._max_size)
         for item in self._values:
             _validate_collection_assignment(self, item, self._max_depth)
@@ -45,7 +52,9 @@ class PyneArray:
         return list(self._values)
 
     def copy(self) -> PyneArray:
-        return PyneArray(self._values, max_size=self._max_size, max_depth=self._max_depth)
+        result = PyneArray(self._values, max_size=self._max_size, max_depth=self._max_depth)
+        result._string_values = self._string_values
+        return result
 
     def snapshot(self) -> PyneArray:
         return _snapshot_array(self, set())
@@ -118,11 +127,11 @@ class PyneArray:
     def slice(self, index_from: int, index_to: int | None = None) -> PyneArray:
         start = int(index_from)
         stop = None if index_to is None else int(index_to)
-        return PyneArray(
-            self._values[start:stop],
-            max_size=self._max_size,
-            max_depth=self._max_depth,
-        )
+        start, stop, _ = slice(start, stop).indices(len(self._values))
+        window = PyneArray(max_size=self._max_size, max_depth=self._max_depth)
+        window._values = _ArraySliceStorage(self, start, max(start, stop))
+        window._string_values = self._string_values
+        return window
 
     def fill(self, value: Any, index_from: int = 0, index_to: int | None = None) -> None:
         _validate_collection_assignment(self, value, self._max_depth)
@@ -136,15 +145,22 @@ class PyneArray:
 
     def sort(self, order: str | None = None, *, reverse: bool = False) -> None:
         descending = _sort_descending(order, reverse)
-        self._values.sort(reverse=descending)
+        # Sort a temporary list so incomparable valid collection values cannot
+        # partially mutate the array when Python raises a comparison error.
+        ordered = sorted(self._values, key=_array_sort_key, reverse=descending)
+        self._values[:] = ordered
 
     def sort_indices(self, order: str | None = None, *, reverse: bool = False) -> PyneArray:
         descending = _sort_descending(order, reverse)
-        indices = sorted(range(len(self._values)), key=self._values.__getitem__, reverse=descending)
+        indices = sorted(range(len(self._values)), key=lambda index: _array_sort_key(self._values[index]))
+        if descending:
+            # Native descending indices reverse the ascending permutation,
+            # including the original indices within equal/missing values.
+            indices.reverse()
         return PyneArray(indices, max_size=self._max_size, max_depth=self._max_depth)
 
-    def join(self, separator: str = ",") -> str:
-        return str(separator).join("" if is_na_value(item) else str(item) for item in self._values)
+    def join(self, separator: str = "") -> str:
+        return str(separator).join(_array_join_value(item, self._string_values) for item in self._values)
 
     def sum(self) -> float | None:
         numbers = _numeric_values(self._values)
@@ -161,6 +177,65 @@ class PyneArray:
     def max(self) -> float | None:
         numbers = _numeric_values(self._values)
         return float(max(numbers)) if numbers else None
+
+
+class _ArraySliceStorage(MutableSequence):
+    """A fixed index window; edits through this window resize its own range."""
+
+    def __init__(self, parent: PyneArray, start: int, stop: int) -> None:
+        self.parent = parent
+        self.start = start
+        self.stop = stop
+
+    def __len__(self) -> int:
+        return max(min(self.stop, len(self.parent)) - self.start, 0)
+
+    def __repr__(self) -> str:
+        return repr(list(self))
+
+    def __getitem__(self, index: Any) -> Any:
+        if isinstance(index, slice):
+            return [self[idx] for idx in range(*index.indices(len(self)))]
+        idx = _resolve_index(index, len(self))
+        return self.parent.get(self.start + idx)
+
+    def __setitem__(self, index: Any, value: Any) -> None:
+        if isinstance(index, slice):
+            indices = list(range(*index.indices(len(self))))
+            values = list(value)
+            if len(indices) != len(values):
+                raise ValueError("array slice replacement must preserve size")
+            parent = self.parent
+            while True:
+                for item in values:
+                    _validate_collection_assignment(parent, item, parent._max_depth)
+                if not isinstance(parent._values, _ArraySliceStorage):
+                    break
+                parent = parent._values.parent
+            for idx, item in zip(indices, values, strict=True):
+                self.parent.set(self.start + idx, item)
+            return
+        idx = _resolve_index(index, len(self))
+        self.parent.set(self.start + idx, value)
+
+    def __delitem__(self, index: Any) -> None:
+        if isinstance(index, slice):
+            indices = list(range(*index.indices(len(self))))
+            for idx in sorted(indices, reverse=True):
+                self.parent.remove(self.start + idx)
+            self.stop -= len(indices)
+            return
+        idx = _resolve_index(index, len(self))
+        self.parent.remove(self.start + idx)
+        self.stop -= 1
+
+    def insert(self, index: int, value: Any) -> None:
+        idx = max(0, min(int(index), len(self)))
+        self.parent.insert(self.start + idx, value)
+        self.stop += 1
+
+    def clear(self) -> None:
+        del self[:]
 
 
 class PyneMap:
@@ -183,6 +258,7 @@ class PyneMap:
             _validate_collection_assignment(self, value, self._max_depth)
             self._values[key] = value
         _enforce_limit("map size", len(self._values), self._max_size)
+        self._string_values = any(isinstance(item, str) for item in self._values.values())
 
     def __len__(self) -> int:
         return len(self._values)
@@ -197,12 +273,14 @@ class PyneMap:
         return dict(self._values)
 
     def copy(self) -> PyneMap:
-        return PyneMap(
+        result = PyneMap(
             self._values,
             max_size=self._max_size,
             array_max_size=self._array_max_size,
             max_depth=self._max_depth,
         )
+        result._string_values = self._string_values
+        return result
 
     def snapshot(self) -> PyneMap:
         return _snapshot_map(self, set())
@@ -216,10 +294,21 @@ class PyneMap:
             _enforce_limit("map size", len(self._values) + 1, self._max_size)
         _validate_collection_assignment(self, value, self._max_depth)
         self._values[key] = value
+        self._string_values = self._string_values or isinstance(value, str)
 
     def put_all(self, other: PyneMap) -> None:
-        for key, value in _map(other).to_dict().items():
-            self.put(key, value)
+        source = _map(other)
+        incoming = source.to_dict()
+        merged = dict(self._values)
+        for key, value in incoming.items():
+            _validate_map_key(key)
+            _validate_collection_assignment(self, value, self._max_depth)
+            merged[key] = value
+        _enforce_limit("map size", len(merged), self._max_size)
+        # Validate the whole operation before replacing the mapping. Existing
+        # keys keep their positions and new keys follow the source's order.
+        self._values = merged
+        self._string_values = self._string_values or source._string_values
 
     def get(self, key: Any, default: Any = None) -> Any:
         _validate_map_key(key)
@@ -244,11 +333,13 @@ class PyneMap:
         )
 
     def values(self) -> PyneArray:
-        return PyneArray(
+        result = PyneArray(
             self._values.values(),
             max_size=self._array_max_size,
             max_depth=self._max_depth,
         )
+        result._string_values = self._string_values
+        return result
 
 
 class PyneMatrix:
@@ -275,6 +366,8 @@ class PyneMatrix:
             [initial_value for _ in range(column_count)]
             for _ in range(row_count)
         ]
+        self._string_values = isinstance(initial_value, str)
+        self._column_count = column_count
 
     @classmethod
     def from_rows(
@@ -305,6 +398,8 @@ class PyneMatrix:
             max_depth=normalized_depth,
         )
         matrix._values = values
+        matrix._column_count = len(values[0]) if values else 0
+        matrix._string_values = any(isinstance(item, str) for row in values for item in row)
         return matrix
 
     def __repr__(self) -> str:
@@ -314,12 +409,15 @@ class PyneMatrix:
         return [list(row) for row in self._values]
 
     def copy(self) -> PyneMatrix:
-        return PyneMatrix.from_rows(
+        result = PyneMatrix.from_rows(
             self._values,
             max_cells=self._max_cells,
             array_max_size=self._array_max_size,
             max_depth=self._max_depth,
         )
+        result._string_values = self._string_values
+        result._column_count = self._column_count
+        return result
 
     def snapshot(self) -> PyneMatrix:
         return _snapshot_matrix(self, set())
@@ -328,7 +426,7 @@ class PyneMatrix:
         return len(self._values)
 
     def columns(self) -> int:
-        return len(self._values[0]) if self._values else 0
+        return self._column_count
 
     def elements_count(self) -> int:
         return self.rows() * self.columns()
@@ -341,42 +439,45 @@ class PyneMatrix:
         row_idx, column_idx = self._resolve_cell(row, column)
         _validate_collection_assignment(self, value, self._max_depth)
         self._values[row_idx][column_idx] = value
+        self._string_values = self._string_values or isinstance(value, str)
 
     def fill(self, value: Any) -> None:
         _validate_collection_assignment(self, value, self._max_depth)
         for row_idx in range(self.rows()):
             for column_idx in range(self.columns()):
                 self._values[row_idx][column_idx] = value
+        self._string_values = self._string_values or isinstance(value, str)
 
     def row(self, row: int) -> PyneArray:
         row_idx = _resolve_index(row, self.rows(), name="matrix row")
-        return PyneArray(
+        result = PyneArray(
             self._values[row_idx],
             max_size=self._array_max_size,
             max_depth=self._max_depth,
         )
+        result._string_values = self._string_values
+        return result
 
     def col(self, column: int) -> PyneArray:
         column_idx = _resolve_index(column, self.columns(), name="matrix column")
-        return PyneArray(
+        result = PyneArray(
             (row[column_idx] for row in self._values),
             max_size=self._array_max_size,
             max_depth=self._max_depth,
         )
+        result._string_values = self._string_values
+        return result
 
     def transpose(self) -> PyneMatrix:
-        if not self._values:
-            return PyneMatrix(
-                max_cells=self._max_cells,
-                array_max_size=self._array_max_size,
-                max_depth=self._max_depth,
-            )
-        return PyneMatrix.from_rows(
-            zip(*self._values),
+        result = PyneMatrix.from_rows(
+            zip(*self._values) if self.rows() else [[] for _ in range(self.columns())],
             max_cells=self._max_cells,
             array_max_size=self._array_max_size,
             max_depth=self._max_depth,
         )
+        result._string_values = self._string_values
+        result._column_count = self.rows()
+        return result
 
     def reshape(self, rows: int, columns: int) -> PyneMatrix:
         row_count = _matrix_dimension(rows, "matrix rows")
@@ -389,12 +490,17 @@ class PyneMatrix:
             flat[idx * column_count:(idx + 1) * column_count]
             for idx in range(row_count)
         ]
-        return PyneMatrix.from_rows(
+        reshaped = PyneMatrix.from_rows(
             rebuilt,
             max_cells=self._max_cells,
             array_max_size=self._array_max_size,
             max_depth=self._max_depth,
         )
+        # Native reshape changes the referenced matrix. Validate the rebuilt
+        # shape first, then commit so aliases observe the same atomic mutation.
+        self._values = reshaped._values
+        self._column_count = column_count
+        return self
 
     def add(self, other: Any) -> PyneMatrix:
         return self._binary(other, lambda left, right: left + right)
@@ -435,41 +541,48 @@ class PyneMatrix:
         if isinstance(other, PyneMatrix):
             if self.rows() != other.rows() or self.columns() != other.columns():
                 raise ValueError("matrix dimensions must match")
-            return PyneMatrix.from_rows(
-                [
-                    [op(self._values[row][column], other._values[row][column])
-                     for column in range(self.columns())]
-                    for row in range(self.rows())
-                ],
-                max_cells=self._max_cells,
-                array_max_size=self._array_max_size,
-                max_depth=self._max_depth,
-            )
-        return PyneMatrix.from_rows(
-            [[op(item, other) for item in row] for row in self._values],
-            max_cells=self._max_cells,
-            array_max_size=self._array_max_size,
-            max_depth=self._max_depth,
-        )
-
-    def _matrix_mult(self, other: PyneMatrix) -> PyneMatrix:
-        if self.columns() != other.rows():
-            raise ValueError("matrix dimensions are incompatible for multiplication")
-        values: list[list[Any]] = []
-        for row in range(self.rows()):
-            output_row = []
-            for column in range(other.columns()):
-                total = 0.0
-                for idx in range(self.columns()):
-                    total += float(self._values[row][idx]) * float(other._values[idx][column])
-                output_row.append(total)
-            values.append(output_row)
-        return PyneMatrix.from_rows(
+            values = [
+                [_matrix_element_op(self._values[row][column], other._values[row][column], op)
+                 for column in range(self.columns())]
+                for row in range(self.rows())
+            ]
+        else:
+            values = [[_matrix_element_op(item, other, op) for item in row] for row in self._values]
+        result = PyneMatrix.from_rows(
             values,
             max_cells=self._max_cells,
             array_max_size=self._array_max_size,
             max_depth=self._max_depth,
         )
+        result._column_count = self.columns()
+        return result
+
+    def _matrix_mult(self, other: PyneMatrix) -> PyneMatrix:
+        if self.columns() != other.rows():
+            raise ValueError("matrix dimensions are incompatible for multiplication")
+        _enforce_limit("matrix cells", self.rows() * other.columns(), self._max_cells)
+        values: list[list[Any]] = []
+        for row in range(self.rows()):
+            output_row = []
+            for column in range(other.columns()):
+                total: float | None = 0.0
+                for idx in range(self.columns()):
+                    left = self._values[row][idx]
+                    right = other._values[idx][column]
+                    if is_na_value(left) or is_na_value(right):
+                        total = None
+                        break
+                    total += float(left) * float(right)
+                output_row.append(total)
+            values.append(output_row)
+        result = PyneMatrix.from_rows(
+            values,
+            max_cells=self._max_cells,
+            array_max_size=self._array_max_size,
+            max_depth=self._max_depth,
+        )
+        result._column_count = other.columns()
+        return result
 
 
 class ArrayNamespace:
@@ -493,11 +606,13 @@ class ArrayNamespace:
     def new_int(self, size: int = 0, initial_value: int | None = None) -> PyneArray:
         return self.new(size, initial_value)
 
-    def new_bool(self, size: int = 0, initial_value: bool | None = None) -> PyneArray:
+    def new_bool(self, size: int = 0, initial_value: bool | None = False) -> PyneArray:
         return self.new(size, initial_value)
 
     def new_string(self, size: int = 0, initial_value: str | None = None) -> PyneArray:
-        return self.new(size, initial_value)
+        result = self.new(size, initial_value)
+        result._string_values = True
+        return result
 
     def new_color(self, size: int = 0, initial_value: str | None = None) -> PyneArray:
         return self.new(size, initial_value)
@@ -598,7 +713,7 @@ class ArrayNamespace:
     ) -> PyneArray:
         return _array(arr).sort_indices(order, reverse=reverse)
 
-    def join(self, arr: PyneArray, separator: str = ",") -> str:
+    def join(self, arr: PyneArray, separator: str = "") -> str:
         return _array(arr).join(separator)
 
     def sum(self, arr: PyneArray) -> float | None:
@@ -733,7 +848,7 @@ class MatrixNamespace:
         self,
         rows: int = 0,
         columns: int = 0,
-        initial_value: bool | None = None,
+        initial_value: bool | None = False,
     ) -> PyneMatrix:
         return self.new(rows, columns, initial_value)
 
@@ -743,7 +858,9 @@ class MatrixNamespace:
         columns: int = 0,
         initial_value: str | None = None,
     ) -> PyneMatrix:
-        return self.new(rows, columns, initial_value)
+        result = self.new(rows, columns, initial_value)
+        result._string_values = True
+        return result
 
     def new_color(
         self,
@@ -928,11 +1045,13 @@ def _snapshot_array(value: PyneArray, seen: set[int]) -> PyneArray:
     if identity in seen:
         raise PyneStateContractError("recursive collection snapshots are not supported")
     child_seen = {*seen, identity}
-    return PyneArray(
+    result = PyneArray(
         (_snapshot_value(item, child_seen) for item in value.to_list()),
         max_size=value._max_size,
         max_depth=value._max_depth,
     )
+    result._string_values = value._string_values
+    return result
 
 
 def _snapshot_map(value: PyneMap, seen: set[int]) -> PyneMap:
@@ -940,20 +1059,21 @@ def _snapshot_map(value: PyneMap, seen: set[int]) -> PyneMap:
     if identity in seen:
         raise PyneStateContractError("recursive collection snapshots are not supported")
     child_seen = {*seen, identity}
-    return PyneMap(
+    result = PyneMap(
         {key: _snapshot_value(item, child_seen) for key, item in value.to_dict().items()},
         max_size=value._max_size,
         array_max_size=value._array_max_size,
         max_depth=value._max_depth,
     )
-
+    result._string_values = value._string_values
+    return result
 
 def _snapshot_matrix(value: PyneMatrix, seen: set[int]) -> PyneMatrix:
     identity = id(value)
     if identity in seen:
         raise PyneStateContractError("recursive collection snapshots are not supported")
     child_seen = {*seen, identity}
-    return PyneMatrix.from_rows(
+    result = PyneMatrix.from_rows(
         [
             [_snapshot_value(item, child_seen) for item in row]
             for row in value.to_list()
@@ -962,7 +1082,9 @@ def _snapshot_matrix(value: PyneMatrix, seen: set[int]) -> PyneMatrix:
         array_max_size=value._array_max_size,
         max_depth=value._max_depth,
     )
-
+    result._string_values = value._string_values
+    result._column_count = value._column_count
+    return result
 
 def _enforce_child_depth(value: Any, limit: int | None) -> None:
     if limit is None:
@@ -1007,6 +1129,10 @@ def _collection_references(value: Any, target_id: int, seen: set[int] | None = N
         if identity in seen:
             return False
         seen.add(identity)
+        if isinstance(value._values, _ArraySliceStorage) and _collection_references(
+            value._values.parent, target_id, set(seen)
+        ):
+            return True
         return any(_collection_references(item, target_id, set(seen)) for item in value.to_list())
     if isinstance(value, PyneMap):
         identity = id(value)
@@ -1093,10 +1219,35 @@ def _sort_descending(order: str | None, reverse: bool) -> bool:
     raise ValueError("array.sort() order must be order.ascending or order.descending")
 
 
+def _matrix_element_op(left: Any, right: Any, op: Any) -> Any:
+    return None if is_na_value(left) or is_na_value(right) else op(left, right)
+
+
+def _array_sort_key(value: Any) -> tuple[bool, Any]:
+    missing = is_na_value(value)
+    return missing, 0 if missing else value
+
+
 def _values_equal(left: Any, right: Any) -> bool:
-    if is_na_value(left) and is_na_value(right):
-        return True
+    if is_na_value(left) or is_na_value(right):
+        return False
     return left == right
+
+
+def _array_join_value(value: Any, string_values: bool) -> str:
+    if is_na_value(value):
+        return "" if string_values else "NaN"
+    if isinstance(value, (float, np.floating)):
+        number = float(value)
+        if not math.isfinite(number):
+            return str(number)  # Python-only nonfinite payload extension.
+        if number == 0:
+            return "0.0"
+        if 0.001 <= abs(number) < 10_000_000:
+            return np.format_float_positional(number, unique=True, trim="0")
+        mantissa, exponent = np.format_float_scientific(number, unique=True, trim="0", exp_digits=1).split("e")
+        return mantissa + "E" + str(int(exponent))
+    return str(value)
 
 
 order_namespace = OrderNamespace()

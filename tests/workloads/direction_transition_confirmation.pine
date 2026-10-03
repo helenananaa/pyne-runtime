@@ -1,0 +1,69 @@
+//@version=6
+indicator("Pyne direction transition confirmation 20260930",precision=10,max_bars_back=100)
+int i=bar_index
+float wave=i%12==0 ? 2 : i%12==1 ? 1 : i%12==2 ? 2 : i%12==3 ? 3 : i%12==4 ? 4 : i%12==5 ? 3 : i%12==6 ? 4 : i%12==7 ? 5 : i%12==8 ? 6 : i%12==9 ? 3 : i%12==10 ? 2 : 1
+float holes=i==5 or i==17 or i==18 ? na : wave
+float empty=na
+float leading=i<8 ? na : wave
+float alternating=i%2==0 ? na : wave
+float flat=i%5==2 ? na : 5
+float descending=i%5==2 or i%5==3 ? na : 100-i
+f_dir(float x,int p,bool up)=>
+    var array<bool> observations=array.new<bool>()
+    if not na(x) and not na(x[1])
+        array.push(observations,up ? x>x[1] : x<x[1])
+        if array.size(observations)>p
+            array.shift(observations)
+    bool valid=array.size(observations)==p
+    if valid
+        for k=0 to p-1
+            valid:=valid and array.get(observations,k)
+    valid ? 1.0 : 0.0
+float r0=ta.rising(holes,3) ? 1 : 0
+float d0=ta.falling(holes,3) ? 1 : 0
+float fr0=f_dir(holes,3,true)
+float fd0=f_dir(holes,3,false)
+float r1=ta.rising(empty,3) ? 1 : 0
+float d1=ta.falling(empty,3) ? 1 : 0
+float fr1=f_dir(empty,3,true)
+float fd1=f_dir(empty,3,false)
+float r2=ta.rising(leading,3) ? 1 : 0
+float d2=ta.falling(leading,3) ? 1 : 0
+float fr2=f_dir(leading,3,true)
+float fd2=f_dir(leading,3,false)
+float r3=ta.rising(alternating,3) ? 1 : 0
+float d3=ta.falling(alternating,3) ? 1 : 0
+float fr3=f_dir(alternating,3,true)
+float fd3=f_dir(alternating,3,false)
+float r4=ta.rising(flat,3) ? 1 : 0
+float d4=ta.falling(flat,3) ? 1 : 0
+float fr4=f_dir(flat,3,true)
+float fd4=f_dir(flat,3,false)
+float r5=ta.rising(descending,3) ? 1 : 0
+float d5=ta.falling(descending,3) ? 1 : 0
+float fr5=f_dir(descending,3,true)
+float fd5=f_dir(descending,3,false)
+float r6=ta.rising(empty,1) ? 1 : 0
+float d6=ta.falling(empty,1) ? 1 : 0
+float fr6=f_dir(empty,1,true)
+float fd6=f_dir(empty,1,false)
+float r7=ta.rising(alternating,1) ? 1 : 0
+float d7=ta.falling(alternating,1) ? 1 : 0
+float fr7=f_dir(alternating,1,true)
+float fd7=f_dir(alternating,1,false)
+float r8=ta.rising(holes,7) ? 1 : 0
+float d8=ta.falling(holes,7) ? 1 : 0
+float fr8=f_dir(holes,7,true)
+float fd8=f_dir(holes,7,false)
+float r9=ta.rising(leading,7) ? 1 : 0
+float d9=ta.falling(leading,7) ? 1 : 0
+float fr9=f_dir(leading,7,true)
+float fd9=f_dir(leading,7,false)
+f(float x)=>str.tostring(x,"#.##########")
+var string rows=""
+if i<32
+    rows+="PYNE_DIR_TRANSITION|"+str.tostring(i)+"|"+f(holes)+"|"+f(empty)+"|"+f(leading)+"|"+f(alternating)+"|"+f(flat)+"|"+f(descending)+"|"+f(r0)+"|"+f(d0)+"|"+f(fr0)+"|"+f(fd0)+"|"+f(r1)+"|"+f(d1)+"|"+f(fr1)+"|"+f(fd1)+"|"+f(r2)+"|"+f(d2)+"|"+f(fr2)+"|"+f(fd2)+"|"+f(r3)+"|"+f(d3)+"|"+f(fr3)+"|"+f(fd3)+"|"+f(r4)+"|"+f(d4)+"|"+f(fr4)+"|"+f(fd4)+"|"+f(r5)+"|"+f(d5)+"|"+f(fr5)+"|"+f(fd5)+"|"+f(r6)+"|"+f(d6)+"|"+f(fr6)+"|"+f(fd6)+"|"+f(r7)+"|"+f(d7)+"|"+f(fr7)+"|"+f(fd7)+"|"+f(r8)+"|"+f(d8)+"|"+f(fr8)+"|"+f(fd8)+"|"+f(r9)+"|"+f(d9)+"|"+f(fr9)+"|"+f(fd9)+";"
+    if i%8==7
+        log.info(rows)
+        rows:=""
+plot(r0,"Direction missing oracle")

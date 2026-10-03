@@ -1,0 +1,85 @@
+//@version=6
+indicator("Pyne reduction order 20261002",precision=10)
+int i=bar_index
+float base=float((i*11)%17-6)
+float hugeA=1000000000000.0+base
+float hugeB=-700000000000.0+base*2
+float xx=hugeA*hugeA
+float xy=hugeA*hugeB
+float yy=hugeB*hugeB
+fold(float src,int p,int method)=>
+    float total=0.
+    float correction=0.
+    for j=0 to p-1
+        int k=method==1 ? p-j-1 : j
+        float x=src[k]
+        if method==2
+            float y=x-correction
+            float next=total+y
+            correction:=(next-total)-y
+            total:=next
+        else if method==3
+            float next=total+x
+            correction+=math.abs(total)>=math.abs(x) ? (total-next)+x : (x-next)+total
+            total:=next
+        else
+            total+=x
+    (method==3 ? total+correction : total)/p
+pair3(float src)=>((src[0]+src[2])+src[1])/3
+pair7(float src)=>(src[0]+src[4]+src[1]+src[5]+src[2]+src[6]+src[3])/7
+float earliest3=(xx[2]+xx[0]+xx[1])/3
+float Native_xx_2=ta.sma(xx,2)
+float Newest_xx_2=fold(xx,2,0)
+float Oldest_xx_2=fold(xx,2,1)
+float Kahan_xx_2=fold(xx,2,2)
+float Neumaier_xx_2=fold(xx,2,3)
+float Native_xx_3=ta.sma(xx,3)
+float Newest_xx_3=fold(xx,3,0)
+float Oldest_xx_3=fold(xx,3,1)
+float Kahan_xx_3=fold(xx,3,2)
+float Neumaier_xx_3=fold(xx,3,3)
+float Paired_xx_3=pair3(xx)
+float Native_xx_7=ta.sma(xx,7)
+float Newest_xx_7=fold(xx,7,0)
+float Oldest_xx_7=fold(xx,7,1)
+float Kahan_xx_7=fold(xx,7,2)
+float Neumaier_xx_7=fold(xx,7,3)
+float Paired_xx_7=pair7(xx)
+float Native_xy_2=ta.sma(xy,2)
+float Newest_xy_2=fold(xy,2,0)
+float Oldest_xy_2=fold(xy,2,1)
+float Kahan_xy_2=fold(xy,2,2)
+float Neumaier_xy_2=fold(xy,2,3)
+float Native_xy_3=ta.sma(xy,3)
+float Newest_xy_3=fold(xy,3,0)
+float Oldest_xy_3=fold(xy,3,1)
+float Kahan_xy_3=fold(xy,3,2)
+float Neumaier_xy_3=fold(xy,3,3)
+float Paired_xy_3=pair3(xy)
+float Native_xy_7=ta.sma(xy,7)
+float Newest_xy_7=fold(xy,7,0)
+float Oldest_xy_7=fold(xy,7,1)
+float Kahan_xy_7=fold(xy,7,2)
+float Neumaier_xy_7=fold(xy,7,3)
+float Paired_xy_7=pair7(xy)
+float Native_yy_2=ta.sma(yy,2)
+float Newest_yy_2=fold(yy,2,0)
+float Oldest_yy_2=fold(yy,2,1)
+float Kahan_yy_2=fold(yy,2,2)
+float Neumaier_yy_2=fold(yy,2,3)
+float Native_yy_3=ta.sma(yy,3)
+float Newest_yy_3=fold(yy,3,0)
+float Oldest_yy_3=fold(yy,3,1)
+float Kahan_yy_3=fold(yy,3,2)
+float Neumaier_yy_3=fold(yy,3,3)
+float Paired_yy_3=pair3(yy)
+float Native_yy_7=ta.sma(yy,7)
+float Newest_yy_7=fold(yy,7,0)
+float Oldest_yy_7=fold(yy,7,1)
+float Kahan_yy_7=fold(yy,7,2)
+float Neumaier_yy_7=fold(yy,7,3)
+float Paired_yy_7=pair7(yy)
+f(float x)=>str.tostring(x,"0.########################")
+if i<64
+    log.info("PYNE_CORRELATION_REDUCTION|"+str.tostring(i)+"|"+f(base)+"|"+f(hugeA)+"|"+f(hugeB)+"|"+f(xx)+"|"+f(xy)+"|"+f(yy)+"|"+f(Native_xx_2)+"|"+f(Newest_xx_2)+"|"+f(Oldest_xx_2)+"|"+f(Kahan_xx_2)+"|"+f(Neumaier_xx_2)+"|"+f(Native_xx_3)+"|"+f(Newest_xx_3)+"|"+f(Oldest_xx_3)+"|"+f(Kahan_xx_3)+"|"+f(Neumaier_xx_3)+"|"+f(Paired_xx_3)+"|"+f(Native_xx_7)+"|"+f(Newest_xx_7)+"|"+f(Oldest_xx_7)+"|"+f(Kahan_xx_7)+"|"+f(Neumaier_xx_7)+"|"+f(Paired_xx_7)+"|"+f(Native_xy_2)+"|"+f(Newest_xy_2)+"|"+f(Oldest_xy_2)+"|"+f(Kahan_xy_2)+"|"+f(Neumaier_xy_2)+"|"+f(Native_xy_3)+"|"+f(Newest_xy_3)+"|"+f(Oldest_xy_3)+"|"+f(Kahan_xy_3)+"|"+f(Neumaier_xy_3)+"|"+f(Paired_xy_3)+"|"+f(Native_xy_7)+"|"+f(Newest_xy_7)+"|"+f(Oldest_xy_7)+"|"+f(Kahan_xy_7)+"|"+f(Neumaier_xy_7)+"|"+f(Paired_xy_7)+"|"+f(Native_yy_2)+"|"+f(Newest_yy_2)+"|"+f(Oldest_yy_2)+"|"+f(Kahan_yy_2)+"|"+f(Neumaier_yy_2)+"|"+f(Native_yy_3)+"|"+f(Newest_yy_3)+"|"+f(Oldest_yy_3)+"|"+f(Kahan_yy_3)+"|"+f(Neumaier_yy_3)+"|"+f(Paired_yy_3)+"|"+f(Native_yy_7)+"|"+f(Newest_yy_7)+"|"+f(Oldest_yy_7)+"|"+f(Kahan_yy_7)+"|"+f(Neumaier_yy_7)+"|"+f(Paired_yy_7)+";")
+plot(Native_xx_3,"SMA raw square 3")

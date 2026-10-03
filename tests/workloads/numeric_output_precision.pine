@@ -1,0 +1,43 @@
+//@version=6
+indicator("Pyne calculation output precision 20261002",precision=2)
+int i = bar_index
+float tiny = float((i*11)%17-6)/100000000000.0
+float fractional = 0.1234567891234567+float((i*11)%17-6)/10000.0
+float negative = -fractional
+float holes = i%7==1 or i%7==2 ? na : tiny
+float leading = i<6 ? na : tiny
+float flat = 0.000000000001234567891234567
+float missing = na
+float large = 100000.12345678912+float((i*11)%17-6)/10.0
+f(float x)=>str.tostring(x,"0.########################")
+float a0=ta.sma(tiny,1)
+float b0=ta.sma(tiny,3)
+[m0,h0,l0]=ta.bb(tiny,1,2.0)
+float a1=ta.sma(fractional,1)
+float b1=ta.sma(fractional,3)
+[m1,h1,l1]=ta.bb(fractional,1,2.0)
+float a2=ta.sma(negative,1)
+float b2=ta.sma(negative,3)
+[m2,h2,l2]=ta.bb(negative,1,2.0)
+float a3=ta.sma(holes,1)
+float b3=ta.sma(holes,3)
+[m3,h3,l3]=ta.bb(holes,1,2.0)
+float a4=ta.sma(leading,1)
+float b4=ta.sma(leading,3)
+[m4,h4,l4]=ta.bb(leading,1,2.0)
+float a5=ta.sma(flat,1)
+float b5=ta.sma(flat,3)
+[m5,h5,l5]=ta.bb(flat,1,2.0)
+float a6=ta.sma(missing,1)
+float b6=ta.sma(missing,3)
+[m6,h6,l6]=ta.bb(missing,1,2.0)
+float a7=ta.sma(large,1)
+float b7=ta.sma(large,3)
+[m7,h7,l7]=ta.bb(large,1,2.0)
+var string rows=""
+if i<32
+    rows += "PYNE_OUTPUT_PRECISION|"+str.tostring(i)+"|"+f(tiny)+"|"+f(fractional)+"|"+f(negative)+"|"+f(holes)+"|"+f(leading)+"|"+f(flat)+"|"+f(missing)+"|"+f(large)+"|"+f(tiny)+"|"+f(a0)+"|"+f(b0)+"|"+f(m0)+"|"+f(fractional)+"|"+f(a1)+"|"+f(b1)+"|"+f(m1)+"|"+f(negative)+"|"+f(a2)+"|"+f(b2)+"|"+f(m2)+"|"+f(holes)+"|"+f(a3)+"|"+f(b3)+"|"+f(m3)+"|"+f(leading)+"|"+f(a4)+"|"+f(b4)+"|"+f(m4)+"|"+f(flat)+"|"+f(a5)+"|"+f(b5)+"|"+f(m5)+"|"+f(missing)+"|"+f(a6)+"|"+f(b6)+"|"+f(m6)+"|"+f(large)+"|"+f(a7)+"|"+f(b7)+"|"+f(m7)+";"
+    if i%8==7
+        log.info(rows)
+        rows := ""
+plot(a0,"Calculation precision")

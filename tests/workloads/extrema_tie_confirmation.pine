@@ -1,0 +1,29 @@
+//@version=6
+indicator("Pyne extrema tie confirmation oracle 20260930", precision=10)
+int i = bar_index
+float flat = 5
+float cycle = float(int(i / 3) % 2)
+float gap = i == 6 or i == 7 or i >= 18 and i < 23 ? na : cycle
+float allna = na
+float hi1 = ta.highest(gap, 1)
+float lo1 = ta.lowest(gap, 1)
+float hb1 = ta.highestbars(gap, 1)
+float lb1 = ta.lowestbars(gap, 1)
+float hi5 = ta.highest(gap, 5)
+float lo5 = ta.lowest(gap, 5)
+float hb5 = ta.highestbars(gap, 5)
+float lb5 = ta.lowestbars(gap, 5)
+float hbflat = ta.highestbars(flat, 3)
+float lbflat = ta.lowestbars(flat, 3)
+float hina = ta.highest(allna, 3)
+float lona = ta.lowest(allna, 3)
+float hbna = ta.highestbars(allna, 3)
+float lbna = ta.lowestbars(allna, 3)
+f(float x) => str.tostring(x, "#.##########")
+var string rows = ""
+if i < 32
+    rows += "PYNE_EXT_TIE|" + str.tostring(i) + "|" + f(gap) + "|" + f(hi1) + "|" + f(lo1) + "|" + f(hb1) + "|" + f(lb1) + "|" + f(hi5) + "|" + f(lo5) + "|" + f(hb5) + "|" + f(lb5) + "|" + f(hbflat) + "|" + f(lbflat) + "|" + f(hina) + "|" + f(lona) + "|" + f(hbna) + "|" + f(lbna) + ";"
+    if i % 8 == 7
+        log.info(rows)
+        rows := ""
+plot(hi5, "Extrema tie oracle")

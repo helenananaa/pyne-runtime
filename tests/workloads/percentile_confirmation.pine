@@ -1,0 +1,29 @@
+//@version=6
+indicator("Pyne percentile confirmation oracle 20260930", precision=10)
+int i = bar_index
+float src = float((i * 7) % 13 - 4)
+float holes = i == 7 or i == 12 or i == 19 ? na : src
+float n0 = ta.percentile_nearest_rank(src, 4, 0)
+float n25 = ta.percentile_nearest_rank(src, 4, 25)
+float n50 = ta.percentile_nearest_rank(src, 4, 50)
+float n75 = ta.percentile_nearest_rank(src, 4, 75)
+float n100 = ta.percentile_nearest_rank(src, 4, 100)
+float l0 = ta.percentile_linear_interpolation(src, 4, 0)
+float l25 = ta.percentile_linear_interpolation(src, 4, 25)
+float l50 = ta.percentile_linear_interpolation(src, 4, 50)
+float l75 = ta.percentile_linear_interpolation(src, 4, 75)
+float l100 = ta.percentile_linear_interpolation(src, 4, 100)
+float hn25 = ta.percentile_nearest_rank(holes, 4, 25)
+float hn50 = ta.percentile_nearest_rank(holes, 4, 50)
+float hn75 = ta.percentile_nearest_rank(holes, 4, 75)
+float hl25 = ta.percentile_linear_interpolation(holes, 4, 25)
+float hl50 = ta.percentile_linear_interpolation(holes, 4, 50)
+float hl75 = ta.percentile_linear_interpolation(holes, 4, 75)
+f(float x) => str.tostring(x, "#.##########")
+var string rows = ""
+if i < 24
+    rows += "PYNE_PCT_CONFIRM|" + str.tostring(i) + "|" + f(src) + "|" + f(holes) + "|" + f(n0) + "|" + f(n25) + "|" + f(n50) + "|" + f(n75) + "|" + f(n100) + "|" + f(l0) + "|" + f(l25) + "|" + f(l50) + "|" + f(l75) + "|" + f(l100) + "|" + f(hn25) + "|" + f(hn50) + "|" + f(hn75) + "|" + f(hl25) + "|" + f(hl50) + "|" + f(hl75) + ";"
+    if i % 8 == 7
+        log.info(rows)
+        rows := ""
+plot(l25, "Percentile oracle")

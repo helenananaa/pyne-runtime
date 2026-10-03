@@ -109,6 +109,14 @@ strategy, request, and host-renderer output workflows.
 - [Error Codes](reference/error_codes.md): structured diagnostic codes.
 - [Quality Gates](development/quality_gates.md): local and release validation
   commands.
+- [WMA/HMA Alignment](development/weighted_boundaries_acceptance_zh.md): native
+  missing-window evidence, recovery and semantics upgrade.
+- [Oscillator Alignment](development/oscillator_boundaries_acceptance_zh.md): CMO
+  and Stochastic evidence, with explicit remaining differences.
+- [Extrema Alignment](development/extrema_boundaries_acceptance_zh.md): missing
+  windows, earliest ties, percentile controls and upgrade rejection.
+- [Official Alignment Goal](development/official_alignment_goal_zh.md): full-cell
+  difference assessment, missing coverage and the still-open acceptance condition.
 - [Capability Completion Execution Plan](development/capability_completion_execution_plan_zh.md):
   step-by-step, evidence-driven Runtime completion and standalone candidate acceptance.
 - [Python Package Long-Term Direction](development/python_package_long_term_plan_zh.md):

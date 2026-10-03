@@ -1,0 +1,14 @@
+{
+  "description": "Genuine installed rc26 /semantics31 state before numeric output precision correction; never relabeled.",
+  "packageVersion": "0.4.1rc26",
+  "semanticsVersion": 31,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round39-20261002\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "08069211be7e173b84a62abe883bbaaf003717e95fa2d201cd2205b4a764af70",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "state.json": "12df51ec6d082419639a3a06da1bfff58943282f456a3d010cf5f242a0d266f9",
+    "replay.json": "2ad6bd2516e7f9727b18d59d104438e7ae9cf8474b2f32be8ea0af849b9a5a4b",
+    "bars.json": "80e1c97bc601b8cf8cf83b07d226c1778f67135330955358866c64748958569e",
+    "committed-result.json": "eece7762d711b17ce108854d39b902d5cd3384dbd3465de244d9e346422cbfc8"
+  }
+}

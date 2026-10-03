@@ -1,0 +1,17 @@
+{
+  "schema": "pyne.native-runtime-error/1",
+  "case": "stop_limit_change_direction",
+  "capturedAt": "2026-10-01T10:23:43.905Z",
+  "provider": "tradingview",
+  "chart": {
+    "symbol": "COINBASE:BTCUSD",
+    "timeframe": "1D"
+  },
+  "barIndex": 2,
+  "nativeErrorCode": "RE10028",
+  "message": "Error on bar 2: The 'strategy.entry' call already generated an order with the 'A' ID in the 'long' direction, which cannot be changed to 'short'. Cancel the existing 'A' order and create a new order in the desired direction, or specify a different 'id' for the 'short' order.\u00a0",
+  "pineSha256": "1b5be3c2da103a262f9b5734f089ae0187440c4b18630b25530a123d689885e2",
+  "domSha256": "022591f53aea4d43e759df413bc4606cc57f79018d4fd8bfd25424e3b7c5ab19",
+  "snapshotSha256": "b6ab4c0be63d49b93b3575b05e2f269ddd7301ab2b22decd9a6a167112914082",
+  "snapshotCapturedAt": "2026-10-01T10:27:12.272Z"
+}

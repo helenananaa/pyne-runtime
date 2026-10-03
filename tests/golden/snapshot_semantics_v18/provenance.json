@@ -1,0 +1,12 @@
+{
+  "description": "Real installed semantics-18 snapshots before atomic pending direction validation; no relabeling.",
+  "packageVersion": "0.4.1rc13",
+  "semanticsVersion": 18,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round20-20261001\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "de0ea88a21acec5ff5dd5a513be2412d112ad2a564337516c2e1a0e3b66c5bb1",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "77e96c88d2c0c48952d75e97255636fc6b57edfcf9c3965627a2faa67362d144",
+    "state.json": "738a472b5fcfa0ce3783755bf58739b48078f9fff2a8c56d9f05a9d89eaea8d0"
+  }
+}

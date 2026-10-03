@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from typing import Any, Callable
 
 import numpy as np
@@ -165,7 +166,8 @@ class StrategyModule:
 
         ``pyramiding`` follows Pine's mental model: ``0`` allows the first
         same-direction entry and blocks additional same-direction entries.
-        Positive values allow that many additional same-direction entries.
+        Positive values cap the total live same-direction trade lots, including
+        lots created by ``order``. Closing a lot frees an entry slot.
         """
         if pyramiding is not None:
             self._pyramiding = max(int(pyramiding), 0)
@@ -286,6 +288,28 @@ class StrategyModule:
         side = _normalize_direction(direction)
         qty_abs = abs(float(qty))
 
+        if not getattr(self, "_entry_transaction", False) and any(
+            order.get("type") == "entry" and order.get("id") == str(id) and order.get("side") != side
+            for order in self._collector.strategy_orders
+        ):
+            candidate = copy.copy(self)
+            candidate._collector = copy.copy(self._collector)
+            candidate._collector.strategy_orders = copy.deepcopy(self._collector.strategy_orders)
+            for key, value in self.__dict__.items():
+                if isinstance(value, np.ndarray):
+                    setattr(candidate, key, value.copy())
+            # Existing historical entries cause this branch again; bypass only
+            # transaction construction, never chronological pending validation.
+            candidate._entry_transaction = True
+            candidate.entry_when(condition, id, direction, qty=qty, price=price,
+                                 limit=limit, stop=stop, oca_name=oca_name, oca_type=oca_type, comment=comment)
+            for key, value in candidate.__dict__.items():
+                if key not in {"_collector", "_context", "risk", "_closedtrades_namespace", "_opentrades_namespace", "_entry_transaction"}:
+                    setattr(self, key, value)
+            for key in ("strategy_orders", "strategy_report", "strategy_position"):
+                setattr(self._collector, key, getattr(candidate._collector, key))
+            return
+
         for idx, flag in enumerate(flags):
             if not flag:
                 continue
@@ -303,6 +327,7 @@ class StrategyModule:
                     "_base_price": float(event_price),
                     "_limit": limits[idx],
                     "_stop": stops[idx],
+                    "_market_submission": self._process_orders_on_close and limits[idx] is None and stops[idx] is None,
                     "_original_qty": qty_abs,
                     "_oca_name": str(oca_name or ""),
                     "_oca_type": _normalize_oca_type(oca_type),

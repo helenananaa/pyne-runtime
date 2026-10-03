@@ -1,0 +1,12 @@
+{
+  "description": "Real installed semantics-27 snapshots before native matrix bool defaults and collection string extraction intent; no relabeling.",
+  "packageVersion": "0.4.1rc22",
+  "semanticsVersion": 27,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round32-20261002\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "2a1795ea2fce1fbda63b9b849d99edc38cec16e8f09f22ecae4d156a05fda68d",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "50172a0d21a27c97f22404c06fc932630ad38a76becb1a90c1b931928a1736d5",
+    "state.json": "747c25c95ab8b86f62b7d07fa16fe7770904edc90608a90674890ee59c49748b"
+  }
+}

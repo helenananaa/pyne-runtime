@@ -1,0 +1,14 @@
+{
+  "description": "Actual affected correlation callback committed by installed rc24 semantics 29 before repair; state and replay envelopes are not relabeled.",
+  "packageVersion": "0.4.1rc24",
+  "semanticsVersion": 29,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round34-20261002\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "06eca229a1721eb1b1a0096b42d30e12569c29df5aa24deaff6e8e41d6564d03",
+  "sha256": {
+    "indicator.pyne": "9b46f7f8ed3fbfa009b9e6ddc16e17af51121d80a89821ce62f0f411c8c59d0d",
+    "replay.json": "e604e749e41c8ba58a8069c04a86f562af8fa4ba6e5f03f6a087ac59461c66ac",
+    "state.json": "36d3fe95d0b988d9740841f850c36c90677b58568e90030dff909f4e9c9a64ca",
+    "bars.json": "f195b52d54b5d6ef3106c01ff109869e5257837d4a3b6a5f47f5aa1358523b8d",
+    "committed-result.json": "96624c52713b283a95df37e5092a0e71937d1009409d97c2ef83283fe62ccf1b"
+  }
+}

@@ -373,7 +373,7 @@ class IncrementalContext(IncrementalDrawingMixin):
         })
         point: dict[str, Any] = {
             "time": self.current_bar.time,
-            "value": round(number, 8),
+            "value": number,
         }
         if normalized_type == "histogram":
             point["color"] = color
@@ -480,10 +480,10 @@ class IncrementalContext(IncrementalDrawingMixin):
         )
         point: dict[str, Any] = {
             "time": self.current_bar.time,
-            "open": round(values[0], 8),
-            "high": round(values[1], 8),
-            "low": round(values[2], 8),
-            "close": round(values[3], 8),
+            "open": values[0],
+            "high": values[1],
+            "low": values[2],
+            "close": values[3],
         }
         if color:
             point["color"] = str(color)

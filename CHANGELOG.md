@@ -2,6 +2,319 @@
 
 ## Unreleased
 
+- Correct DMI initialization by smoothing strict previous-close true range,
+  skipping the origin bar. Public TR and ATR keep their high-low origin fallback.
+  Native initial monthly and independently selected weekly data remove 1,144
+  differences in the same expanded corpus, with no canonical introductions.
+  Candidate rc32 uses computation semantics 37 and rejects real rc31 /36 state.
+  Preserve 111 separately disclosed imported custom-formula discrepancies and
+  correct the prepared DMI exporter; raw reference values and tolerances remain.
+
+- RMA emits missing output at missing inputs while preserving its smoothing
+  state in batch and direct scalar execution. A 64-bar native EMA/RMA/RSI holdout
+  removes 308 missing-output differences with no introduced gaps in the same
+  corpus; every prior 184 mode report is unchanged. Candidate rc31 uses
+  computation semantics 36; genuine rc29 /34 and intermediate rc30 /35 snapshots
+  require rebuilding from
+  authoritative caller-supplied OHLCV. ATR and DMI keep their prior composition
+  policy; their existing gap behavior is outside this native holdout.
+
+- Reproduce four near-edge native counterexamples in separate scripts with one
+  SMA and one SUM call each. All 256 numerical outputs and 256 state flags match
+  the combined capture exactly. Expose this repeated-input diagnostic without
+  adding parity cells; all 184 mode results, runtime rc29 and semantics 34 remain
+  unchanged. Both uniform guard hypotheses remain rejected.
+
+- Falsify uniform remove/add and Kahan overflow guards in both directions with
+  preselected native ULP-boundary inputs; preserve 256 numerical outputs in both
+  modes. The matrix now measures 92 recipes /184 modes and 7,858 /118,846 active
+  differences; prior 182 mode reports and runtime rc29 /semantics 34 are unchanged.
+
+- Reject sticky oldest-first window recomputation with a preselected native finite
+  SMA/SUM witness; retain 64 numeric outputs in both execution modes. The matrix
+  now measures 91 recipes /182 modes and 7,575 /118,398 active differences;
+  prior 180 mode reports and runtime rc29 /semantics 34 remain unchanged.
+
+- Retain a 2,304-cell native overflow-state holdout with 288 independently
+  verified inputs; expose mask-only qualification outside numeric parity totals.
+  Explicit series declarations do not remove the static-expression SUM witness,
+  and a Kahan mask fit still fails 947 independent numeric holdout cells.
+  Runtime rc29 / computation semantics 34 remain unchanged.
+
+- Separate single-call probes reveal an extreme SUM source-expression boundary:
+  equal logged numeric inputs can produce different constant/series results.
+  The assessment exposes this context without dropping raw differences or
+  emulating Pine compiler rules. A long-history probe logs 86 points through
+  index 25,001; missing persistence at sampled points is kept distinct from
+  complete history coverage or permanent poisoning. The matrix expands to
+  7,515 /118,294 active cells; all original 172 mode reports remain unchanged.
+  Source and installed targeted suites each pass 233 tests. Runtime stays rc29 /34.
+
+- Native ordered-overflow and state probes add 24 SMA/sum outputs and 1,308
+  missing differences, expanding the matrix to 6,777 /117,246 active cells.
+  Four witnesses reject simple add-before-remove arithmetic; 62 native
+  counterexamples bound the earlier selected-data SMA/sum identity. Callback
+  sums disclose full-history Python recomputation. No replacement accumulator
+  or permanent-missing rule is qualified; runtime and semantics remain rc29 /34.
+  Every original 170 mode report is unchanged; source and installed targeted
+  suites each pass 261 tests. Full regression remains the prior Round44 receipt.
+
+- Native finite-overflow and independent state probes add 12 SMA outputs and
+  270 missing differences. The corpus now measures 5,469 /115,782 active cells;
+  all previous mode results are unchanged. Assessment schema 2 exports nonfinite
+  numbers as explicit objects instead of invalid JSON constants, retaining their
+  distinction from missing values. Source and installed targeted suites pass
+  182 tests each. Runtime, rc29 wheel and computation semantics 34 are unchanged;
+  native accumulation/recovery and whole-scope qualification remain open.
+
+- A fresh authenticated native source-history probe confirms observable input,
+  history/array storage, pair arithmetic and repeated SMA outputs across fixed
+  large-prefix profiles. Its native sum/scaling identities remain diagnostic-only
+  and explicitly outside runtime agreement. All 168 runtime mode reports and
+  their 5,199 differences are unchanged. Source and installed targeted suites pass
+  165 tests each; native accumulator reconstruction and overall acceptance remain open.
+
+- The retained independent SMA holdout now has batch and direct-incremental
+  recipes for all 24 native outputs; 48 input/formula controls remain excluded.
+  Its 1,960 newly measured differences expand the corpus to 5,199 /115,230 active
+  cells, with every original mode report unchanged. A public diagnostic retains
+  falsified sum models and verifies native mean/sum identities without counting
+  them as runtime agreement. Source and installed targeted suites pass 161 tests
+  each. Runtime, rc29 wheel and computation semantics 34 are unchanged; Goal
+  remains active and complete official compatibility remains unproved.
+
+- Fresh Pine v5/v6 probes reproduce 32 legacy TA startup conflicts after an
+  explicit missing-source prefix, matching the original exporter context.
+  Exact context annotations retain all 33 imported differences in raw counts;
+  original fixtures, input windows, values and tolerances are preserved.
+  Sixteen native outputs per version align across 2,560 batch/callback cells.
+  Exporter WPR helpers remain separate from native built-in evidence. Runtime
+  and semantics stay rc29 /34; complete official compatibility remains unproved.
+
+- Candidate rc29 / computation semantics 34 selects batch rolling-sum fallback
+  per available prefix and retains exact finite sums for incremental means.
+  Future values cannot rewrite past batch SMA outputs; small values survive a
+  large level shift in direct incremental SMA and Bollinger middle values.
+  Genuine installed rc28 /semantics-33 snapshots reject before construction.
+  An independent 96-row native history probe keeps all 30 SMA outputs and the
+  remaining native arithmetic residues visible. The unchanged expanded native
+  matrix repairs 152 locations and introduces 114: 3,239 differences remain.
+  Declaring the generic tzdata dependency fixes 25 request/timezone differences
+  discovered only in a fresh Windows wheel installation. Full-scope acceptance
+  remains unproved and Goal stays active.
+
+- Candidate rc28 / computation semantics 33 aligns extrema, bars-back offsets
+  and Stoch initial lookback readiness across batch and incremental execution.
+  Missing windows recover without restarting dataset-origin readiness. Genuine
+  installed rc27 /semantics-32 ordinary and affected snapshots require rebuilding
+  from authoritative OHLCV. A fresh in-app-browser native holdout covers 125
+  outputs over 64 rows and five lengths/profiles: 16,000 paired cells align at
+  unchanged tolerance. Thirty-two imported startup conflicts remain unexpected;
+  overall candidate qualification and full-scope acceptance remain open.
+
+- Candidate rc27 / computation semantics 32 preserves binary64 values in plot,
+  candle, drawing and signal payloads independently of display precision. Batch
+  SMA(1) retains the latest present observation exactly. Incremental strategy
+  calculation properties no longer round before scripts or risk checks consume
+  them; existing ledger/report formatting remains separate and unqualified for
+  arbitrary financial precision. Genuine installed rc26 /semantics-31 ordinary
+  and affected output snapshots require rebuilding from supplied OHLCV.
+- Added a native 32-output precision probe with independently checked inputs.
+  Its unchanged 1e-12 tolerance continues to count 46 large-offset SMA(3)
+  differences after correction. Complete declared-scope alignment remains open.
+
+- Candidate rc26 / computation semantics 31 makes finite period-one population
+  variance and stdev exactly zero and the incremental mean exactly the latest
+  present observation. Sample variance remains missing. Native dispersion/BB
+  evidence removes 66 measured numeric gaps. Genuine semantics-30 state and
+  replay snapshots require rebuilding from authoritative supplied OHLCV.
+- Completed 33 previously unmapped output columns across seven native callback
+  recipes. All 77 registered recipes /154 execution modes now map every captured
+  output. Generic callbacks retain full OHLCV and recompute through public Python
+  execution; the direct incremental TA API stays at 39 methods. Corpus coverage
+  does not qualify full API/parameter alignment or bounded streaming costs.
+
+- Candidate rc25 / computation semantics 30 aligns correlation's independent
+  missing-observation moments and zero-numerator/zero-denominator behavior with
+  retained TradingView witnesses. Stable centered arithmetic remains for finite
+  coherent windows; large-offset and shifted-input rounding gaps remain measured.
+  Genuine semantics-29 snapshots must be rebuilt from authoritative supplied OHLCV.
+
+- Added complete generic Python callback recipes for six retained native
+  direction/percentile probes. The official report now measures every registered
+  execution mode, with seven modes still partially mapped. These callbacks
+  retain history and recompute batch TA; direct incremental APIs and bounded
+  streaming costs remain unqualified. Runtime implementation/semantics is unchanged.
+
+- Retained twelve fixed TradingView rectangular matrix multiplication profiles
+  and three native dimension-error witnesses. Batch and incremental execution
+  add 1,728 numeric comparison cells with zero differences; missing cells and
+  error-presence checks remain separate. Runtime semantics stays at 29. Full
+  matrix/API/parameter alignment remains unproved.
+
+- Preserve zero-row matrix column counts through copies, snapshots, transpose,
+  reshape, scalar/elementwise arithmetic and matrix multiplication. Empty columns
+  remain extractable; zero-term dot products yield correctly shaped zero matrices.
+  Validate restored matrix width and row storage before adoption, including
+  confirmed history. Eight native shape transitions remove 196 numeric gaps.
+  Computation semantics advances to 29; real semantics-28 and older checkpoints
+  require rebuilding from authoritative OHLCV. Full matrix shape/type coverage
+  remains unqualified.
+
+- Match native Boolean matrix defaults and preserve string conversion intent
+  through matrix row/column extraction, copies, transpose, reshape and snapshots,
+  and map values, copies, bulk merges, clear/repopulation and snapshots. Successful
+  string writes establish this hint without restricting Python payload types;
+  rejected operations leave it unchanged. Restore validates matrix/map hints in
+  current values and confirmed history before adoption. Eight native scalar
+  profiles remove 32 numeric gaps and 112 exact-text gaps. Computation semantics
+  advances to 28; genuine semantics-27 and older snapshots require rebuilding
+  from authoritative OHLCV. Full collection types and boundaries remain unqualified.
+
+- Align array missing-value searches, Boolean constructor defaults and join
+  output with native TradingView evidence. Missing searches now return false/-1,
+  new Boolean arrays default to false, joins default to an empty separator, and
+  finite float text preserves native scientific notation and signed-zero rules.
+  Retain string construction intent across copies, slices, previews, confirmed
+  history and checkpoints, validating it before restore. Compare 256 native join
+  strings exactly and separately from numeric output cells. Computation semantics
+  advances to 27; genuine semantics-26 and older snapshots require rebuilding
+  from authoritative OHLCV. Python payload extensions and broader type/formatting
+  boundaries remain separately qualified.
+
+- Validate complete `map.put_all()` merges before changing destination state.
+  Capacity, nesting-depth and recursive-value failures no longer leave partially
+  overwritten or inserted keys. Keep insertion order and shallow value references
+  on successful merges. Sixteen TradingView scalar-map cases in both execution
+  modes agree before and after this admission repair. Computation semantics
+  advances to 26 because scripts can catch a rejected merge and retain its state;
+  genuine semantics-25 and older snapshots require rebuilding from authoritative
+  OHLCV.
+
+- Keep array slices connected to their parent's index window, including nested
+  slices. Writes, insertion, deletion and reordering now affect shared elements;
+  parent truncation/regrowth adjusts visible size. Copies stay detached. Preserve
+  connections through preview and snapshot graphs, reject recursive assignments,
+  enforce parent capacity before growth and count retained parents in state
+  budgets. Restore rejects malformed slice parents, bounds and parent chains,
+  including confirmed history, before adoption. Sixteen native mutation cases
+  qualify the behavior. Computation
+  semantics advances to 25; genuine semantics-24 and older snapshots require
+  rebuilding from authoritative OHLCV.
+
+- Reshape matrices in place so aliases see the new dimensions; preserve Python
+  chaining by returning the same matrix. Validation precedes mutation. Propagate
+  numeric missing operands through matrix addition, subtraction and multiplication
+  instead of raising on `None`; missing product terms affect only their output
+  cells. Eight native numeric cases qualify the mapped operations. Computation
+  semantics advances to 24; genuine semantics-23 and older snapshots require
+  rebuilding from authoritative OHLCV.
+
+- Sort numeric array missing values last ascending and first descending.
+  Descending sort indices reverse the complete ascending permutation, including
+  equal values. Failed comparisons leave the original array intact. Eight
+  native TradingView numeric cases qualify these rules in both execution modes.
+  Computation semantics advances to 23; genuine semantics-22 and older
+  snapshots require rebuilding from authoritative OHLCV.
+
+- Replace same-kind same-ID pending price orders rather than retaining duplicate
+  order submissions. Moving an existing order to a different OCA cancel group
+  withdraws the old group; same-group and new-ID native controls qualify this
+  behavior. Activation starts afresh on replacement; removed orders cannot fill
+  or participate in OCA. Computation semantics advances to 20; genuine semantics
+  19 and older snapshots require rebuilding from authoritative OHLCV.
+
+- Reject a direction change on a still-pending same-ID entry. Incremental
+  validation precedes ledger, sequence and budget mutation; batch validates
+  conflicting historical IDs in an isolated replay and commits only on success.
+  Catching the error preserves existing orders and allows cancel/new continuation.
+- Computation semantics advances to 19; genuine semantics-18 and older snapshots
+  require rebuilding from authoritative OHLCV.
+
+- Replace an admitted same-ID pending price entry rather than retaining duplicate
+  pending entries. Stop-limit activation starts afresh on the replacement.
+  Native update, repeat and cancel/resubmit probes align in both modes.
+- Incremental computation semantics advances to 18; genuine semantics-17 and
+  older snapshots require rebuilding from authoritative OHLCV.
+
+
+- Execute stop-limit entry/order submissions in two stages: retain activation
+  across bars and snapshots, then fill the limit only from subsequent prices.
+  Native long/short probes qualify gap activation, delayed/never-activated
+  orders and prices visited before/after activation. Reset derived activation
+  on batch replay so earlier simulations cannot leak state into later commands.
+
+- Check pending-entry pyramiding at submission and retain admitted orders until
+  a later trigger. Use only the closing price for newly submitted close-phase
+  price orders, and defer callback price entries until commands are submitted.
+  Native probes qualify same-calculation and staggered stops, limit timing,
+  market-reserved slots and favorable stops. These probes do not qualify the
+  entire strategy surface.
+
+- Correct public math.sum to accumulate the last requested number of non-missing
+  observations and retain that sum across gaps. Native oscillator formula logs
+  qualify period-3 missing sums and their composed CMO formula. Reuse the existing
+  robust linear rolling-sum kernel; retain the old non-positive-period Python path.
+
+- Resolve orders carried from earlier bars before recording close-fill batch
+  calculation state and processing current-bar market/cancel instructions. Native
+  OCA logs qualify all 22 output columns on the trigger bar; submission-bar fills
+  retain their separate close phase. Preserve the immediate batch policy.
+
+- Correct native WMA missing-input windows in batch and incremental execution,
+  including HMA and nested WMA: warmup counts real observations, gaps carry the
+  last input inside the weighted window, and missing bars emit no value. Two
+  independently captured TradingView Pine v6 probes cover the correction.
+- Incremental computation semantics advances to 17. Version-16 and older snapshots
+  must be rebuilt from authoritative OHLCV; retain actual pre-fix version-5 and
+  version-6, version-7, version-8, version-9, version-10, version-11, version-12, version-13, version-14, version-15 and version-16 replay/state artifacts and reject them before constructing a session.
+- Correct strategy entry admission to use current open trade lots, including
+  order-created lots and slots freed by partial position closure. Recompute the
+  remaining weighted average after lot closure in batch execution. Five native
+  strategy probes qualify holdings, trade counts, averages and realized profit
+  across caps 0/1/2/3 and an independent order/entry interaction control.
+- Correct CMO missing-momentum sums and undefined zero-denominator results.
+  Correct Stochastic missing extrema and retention of its last valid value
+  through missing inputs or zero ranges in batch and incremental execution.
+  Four additional native Pine probes cover these boundaries. Keep documented
+  available-history Stochastic startup and stable Pearson correlation contracts;
+  those two differences from dataset-origin native output remain explicit.
+- Correct highest/lowest gap resets and highestbars/lowestbars earliest-tie
+  selection and missing-bar offsets in batch and incremental execution. Two
+  independent Pine v6 extrema probes cover the changes; a third confirms normal
+  percentile Hazen/rank formulas.
+- Correct missing-input rolling percentile order state, including dependence on
+  earlier history outside the current window. Four native fixtures and a separately
+  frozen-model holdout qualify 32,640 outputs, including fractional percentages,
+  ties, startup and consecutive gaps. Keep the complete finite-array Fenwick path;
+  missing arrays use O(n*period) list updates. Infinity inputs retain the prior
+  Python-only complete-window contract and are not claimed as native parity.
+- Correct pivot ties, nearest-missing comparison stops and complete-span startup
+  in batch and incremental execution. Three independent native probes include
+  six formula controls. The older chart-window capture retains one disclosed
+  startup-context difference; raw official values remain unchanged. TA capture
+  diagnostics align sparse points by time and still count this known difference.
+- Correct rising/falling missing-input semantics: only adjacent comparisons with
+  both samples present enter the rolling observation window. Missing comparisons
+  do not advance it and do not bridge separated input values. Native and explicit
+  queue formulas agree across 640 controls; a neutral-missing formula is preserved
+  as a counterexample. Generic Python replay may invoke these public functions,
+  so the computation identity also advances for restored callbacks.
+- Correct cumulative sums and OBV missing-input output/resumption. Crossing
+  helpers retain the last jointly valid pair through gaps; cross requires strict
+  sign reversal, while crossover/crossunder permit equality at the previous pair.
+  Native and independent cross controls cover the new batch/incremental behavior.
+  All 55 declared batch TA methods now appear in native capture recipes; this is
+  not per-behavior qualification or whole-product small-difference proof.
+  Donchian startup remains a measured gap.
+- Correct default Keltner width to EMA of true range, with a missing first true
+  range. Add independent source and high-minus-low width options; preserve the
+  prior ATR formula through explicit `width_smoothing="atr"`. Keep Python's
+  `(upper, middle, lower)` return order. Fifteen official parameter/source cases
+  agree with independent EMA controls; native zero/negative multiplier errors
+  substantiate positive-input validation. Generic Python replay and snapshots
+  qualify this helper without declaring a new scalar incremental capability.
+
 ## 0.4.0 - 2026-09-10
 
 - Upgrade note: standalone defaults change from restricted/process execution to

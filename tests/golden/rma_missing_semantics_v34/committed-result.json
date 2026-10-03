@@ -1,0 +1,97 @@
+{
+  "ok": true,
+  "error": null,
+  "code": null,
+  "line": null,
+  "column": null,
+  "hint": null,
+  "lines": [
+    {
+      "id": "rma2",
+      "name": "RMA2",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 60,
+          "value": 2.0
+        },
+        {
+          "time": 120,
+          "value": 2.0
+        },
+        {
+          "time": 180,
+          "value": 2.0
+        },
+        {
+          "time": 240,
+          "value": 3.5
+        },
+        {
+          "time": 300,
+          "value": 5.25
+        }
+      ]
+    }
+  ],
+  "output": {
+    "lines": [
+      {
+        "id": "rma2",
+        "title": "RMA2",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 60,
+            "value": 2.0
+          },
+          {
+            "time": 120,
+            "value": 2.0
+          },
+          {
+            "time": 180,
+            "value": 2.0
+          },
+          {
+            "time": 240,
+            "value": 3.5
+          },
+          {
+            "time": 300,
+            "value": 5.25
+          }
+        ]
+      }
+    ]
+  },
+  "param_schema": [],
+  "meta": {
+    "title": "RMA missing output",
+    "overlay": true,
+    "mode": "incremental",
+    "bar_index": 5,
+    "last_bar_index": 5,
+    "barstate": {
+      "isfirst": false,
+      "islast": true,
+      "ishistory": true,
+      "isrealtime": false,
+      "isnew": true,
+      "isconfirmed": true,
+      "islastconfirmedhistory": true
+    },
+    "retentionBars": null,
+    "retainedBars": 6,
+    "totalCommittedBars": 6,
+    "snapshotVersion": 3
+  }
+}

@@ -78,13 +78,13 @@ plot(array.size(boxes), "Boxes")
     assert len(result.output["objects"]["boxes"]) == 1
 
 
-def test_array_accepts_numpy_values_and_matches_nan_members() -> None:
+def test_array_accepts_numpy_values_and_does_not_match_missing_members() -> None:
     values = pn.PyneArray(np.array([1.0, math.nan, 3.0]))
 
     assert values.to_list()[0] == 1.0
-    assert values.includes(math.nan)
-    assert values.indexof(math.nan) == 1
-    assert values.lastindexof(math.nan) == 1
+    assert not values.includes(math.nan)
+    assert values.indexof(math.nan) == -1
+    assert values.lastindexof(math.nan) == -1
 
 
 def test_array_object_methods_copy_slice_fill_and_numeric_reducers() -> None:

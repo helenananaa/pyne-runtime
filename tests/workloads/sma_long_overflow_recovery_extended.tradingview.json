@@ -1,0 +1,1322 @@
+{
+  "schema": "pyne.workload-oracle/1",
+  "source": "TradingView Pine v6 authenticated Codex in-app browser",
+  "capturedAt": "2026-10-02T14:37:08.963272+00:00",
+  "url": "https://www.tradingview.com/chart/wf5lRGkJ/",
+  "symbol": "BINANCE:BTCUSDT",
+  "timeframe": "1",
+  "columns": [
+    "ActualBarIndex",
+    "Input",
+    "Native2",
+    "Native3",
+    "Sum2",
+    "Sum3",
+    "IsNaNative2",
+    "IsNaNative3",
+    "IsNaSum2",
+    "IsNaSum3"
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "values": [
+        0.0,
+        1.6000000000000002e+308,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 1,
+      "values": [
+        1.0,
+        1.6000000000000002e+308,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 2,
+      "values": [
+        2.0,
+        1.6000000000000002e+308,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 3,
+      "values": [
+        3.0,
+        1.6000000000000002e+308,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 4,
+      "values": [
+        4.0,
+        1.6000000000000002e+308,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 5,
+      "values": [
+        5.0,
+        1.6000000000000002e+308,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 6,
+      "values": [
+        6.0,
+        2.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 7,
+      "values": [
+        7.0,
+        0.75,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 8,
+      "values": [
+        8.0,
+        -0.75,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 9,
+      "values": [
+        9.0,
+        2.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 10,
+      "values": [
+        10.0,
+        0.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 11,
+      "values": [
+        11.0,
+        -1.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 12,
+      "values": [
+        12.0,
+        1.75,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 13,
+      "values": [
+        13.0,
+        0.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 14,
+      "values": [
+        14.0,
+        -1.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 15,
+      "values": [
+        15.0,
+        1.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 16,
+      "values": [
+        16.0,
+        0.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 17,
+      "values": [
+        17.0,
+        -1.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 18,
+      "values": [
+        18.0,
+        1.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 19,
+      "values": [
+        19.0,
+        -0.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 20,
+      "values": [
+        20.0,
+        2.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 21,
+      "values": [
+        21.0,
+        1.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 22,
+      "values": [
+        22.0,
+        -0.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 23,
+      "values": [
+        23.0,
+        2.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 24,
+      "values": [
+        31.0,
+        -1.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 25,
+      "values": [
+        63.0,
+        1.75,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 26,
+      "values": [
+        127.0,
+        -0.75,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 27,
+      "values": [
+        255.0,
+        -1.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 28,
+      "values": [
+        511.0,
+        1.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 29,
+      "values": [
+        1023.0,
+        2.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 30,
+      "values": [
+        2047.0,
+        0.75,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 31,
+      "values": [
+        3071.0,
+        -1.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 32,
+      "values": [
+        4080.0,
+        -1.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 33,
+      "values": [
+        4081.0,
+        1.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 34,
+      "values": [
+        4082.0,
+        -0.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 35,
+      "values": [
+        4083.0,
+        2.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 36,
+      "values": [
+        4084.0,
+        1.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 37,
+      "values": [
+        4085.0,
+        -0.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 38,
+      "values": [
+        4086.0,
+        2.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 39,
+      "values": [
+        4087.0,
+        0.75,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 40,
+      "values": [
+        4088.0,
+        -0.75,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 41,
+      "values": [
+        4089.0,
+        2.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 42,
+      "values": [
+        4090.0,
+        0.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 43,
+      "values": [
+        4091.0,
+        -1.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 44,
+      "values": [
+        4092.0,
+        1.75,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 45,
+      "values": [
+        4093.0,
+        0.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 46,
+      "values": [
+        4094.0,
+        -1.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 47,
+      "values": [
+        4095.0,
+        1.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 48,
+      "values": [
+        4096.0,
+        0.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 49,
+      "values": [
+        4097.0,
+        -1.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 50,
+      "values": [
+        4098.0,
+        1.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 51,
+      "values": [
+        4099.0,
+        -0.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 52,
+      "values": [
+        4100.0,
+        2.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 53,
+      "values": [
+        4101.0,
+        1.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 54,
+      "values": [
+        4102.0,
+        -0.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 55,
+      "values": [
+        4103.0,
+        2.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 56,
+      "values": [
+        4104.0,
+        0.75,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 57,
+      "values": [
+        4105.0,
+        -0.75,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 58,
+      "values": [
+        4106.0,
+        2.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 59,
+      "values": [
+        4107.0,
+        0.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 60,
+      "values": [
+        4108.0,
+        -1.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 61,
+      "values": [
+        4109.0,
+        1.75,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 62,
+      "values": [
+        4110.0,
+        0.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 63,
+      "values": [
+        4111.0,
+        -1.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 64,
+      "values": [
+        4998.0,
+        -1.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 65,
+      "values": [
+        4999.0,
+        1.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 66,
+      "values": [
+        5000.0,
+        -0.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 67,
+      "values": [
+        5001.0,
+        2.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 68,
+      "values": [
+        5002.0,
+        1.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 69,
+      "values": [
+        5003.0,
+        -0.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 70,
+      "values": [
+        8190.0,
+        0.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 71,
+      "values": [
+        8191.0,
+        -1.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 72,
+      "values": [
+        8192.0,
+        1.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 73,
+      "values": [
+        8193.0,
+        0.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 74,
+      "values": [
+        9998.0,
+        -0.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 75,
+      "values": [
+        9999.0,
+        2.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 76,
+      "values": [
+        10000.0,
+        1.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 77,
+      "values": [
+        10001.0,
+        -0.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 78,
+      "values": [
+        16382.0,
+        -1.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 79,
+      "values": [
+        16383.0,
+        1.75,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 80,
+      "values": [
+        16384.0,
+        0.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 81,
+      "values": [
+        16385.0,
+        -1.25,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 82,
+      "values": [
+        24998.0,
+        -0.75,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 83,
+      "values": [
+        24999.0,
+        2.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 84,
+      "values": [
+        25000.0,
+        0.5,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 85,
+      "values": [
+        25001.0,
+        -1.0,
+        null,
+        null,
+        null,
+        null,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  ],
+  "scriptSha256": "9bb662e809357b068d461e7f5982fd76c0e4e746a2be29e0ad404af74e2a981f",
+  "logSha256": "a0ab3d5afbe5852978ddb737df92e5327a505b43719008db91dba62371b3f923",
+  "tolerance": 1e-08,
+  "diagnosticOnly": false,
+  "sourceExpressionClass": "series_level_shift",
+  "qualification": "All four native outputs enter comparison at 86 explicit sample indices. Every native call executes on every bar. Python independently supplies all intervening observations through index 25001; only 86 native outputs per function are logged, not a contiguous 25002-row oracle. Callback uses full-prefix Python recomputation, not a bounded direct streaming API.",
+  "executionCoverage": {
+    "lastConfirmedBarIndex": 26793,
+    "emittedSamples": 86
+  }
+}

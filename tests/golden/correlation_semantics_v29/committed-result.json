@@ -1,0 +1,627 @@
+{
+  "ok": true,
+  "error": null,
+  "code": null,
+  "line": null,
+  "column": null,
+  "hint": null,
+  "lines": [
+    {
+      "id": "native_source_source_2",
+      "name": "Native source source 2",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 60,
+          "value": 1.0
+        },
+        {
+          "time": 120,
+          "value": 1.0
+        },
+        {
+          "time": 180,
+          "value": 1.0
+        },
+        {
+          "time": 240,
+          "value": 1.0
+        },
+        {
+          "time": 300,
+          "value": 1.0
+        },
+        {
+          "time": 360,
+          "value": 1.0
+        },
+        {
+          "time": 420,
+          "value": 1.0
+        },
+        {
+          "time": 480,
+          "value": 1.0
+        },
+        {
+          "time": 540,
+          "value": 1.0
+        },
+        {
+          "time": 600,
+          "value": 1.0
+        },
+        {
+          "time": 660,
+          "value": 1.0
+        },
+        {
+          "time": 720,
+          "value": 1.0
+        }
+      ]
+    },
+    {
+      "id": "native_source_source_3",
+      "name": "Native source source 3",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 120,
+          "value": 1.0
+        },
+        {
+          "time": 180,
+          "value": 1.0
+        },
+        {
+          "time": 240,
+          "value": 1.0
+        },
+        {
+          "time": 300,
+          "value": 1.0
+        },
+        {
+          "time": 360,
+          "value": 1.0
+        },
+        {
+          "time": 420,
+          "value": 1.0
+        },
+        {
+          "time": 480,
+          "value": 1.0
+        },
+        {
+          "time": 540,
+          "value": 1.0
+        },
+        {
+          "time": 600,
+          "value": 1.0
+        },
+        {
+          "time": 660,
+          "value": 1.0
+        },
+        {
+          "time": 720,
+          "value": 1.0
+        }
+      ]
+    },
+    {
+      "id": "native_source_source_5",
+      "name": "Native source source 5",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 240,
+          "value": 1.0
+        },
+        {
+          "time": 300,
+          "value": 1.0
+        },
+        {
+          "time": 360,
+          "value": 1.0
+        },
+        {
+          "time": 420,
+          "value": 1.0
+        },
+        {
+          "time": 480,
+          "value": 1.0
+        },
+        {
+          "time": 540,
+          "value": 1.0
+        },
+        {
+          "time": 600,
+          "value": 1.0
+        },
+        {
+          "time": 660,
+          "value": 1.0
+        },
+        {
+          "time": 720,
+          "value": 1.0
+        }
+      ]
+    },
+    {
+      "id": "native_holes_source_3",
+      "name": "Native holes source 3",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 240,
+          "value": 1.0
+        },
+        {
+          "time": 300,
+          "value": 1.0
+        },
+        {
+          "time": 360,
+          "value": 1.0
+        },
+        {
+          "time": 660,
+          "value": 1.0
+        }
+      ]
+    },
+    {
+      "id": "native_holes_holes_3",
+      "name": "Native holes holes 3",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 240,
+          "value": 1.0
+        },
+        {
+          "time": 300,
+          "value": 1.0
+        },
+        {
+          "time": 360,
+          "value": 1.0
+        },
+        {
+          "time": 660,
+          "value": 1.0
+        }
+      ]
+    },
+    {
+      "id": "native_source_holes_3",
+      "name": "Native source holes 3",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 240,
+          "value": 1.0
+        },
+        {
+          "time": 300,
+          "value": 1.0
+        },
+        {
+          "time": 360,
+          "value": 1.0
+        },
+        {
+          "time": 660,
+          "value": 1.0
+        }
+      ]
+    },
+    {
+      "id": "native_holes_other_3",
+      "name": "Native holes other 3",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 300,
+          "value": 1.0
+        },
+        {
+          "time": 360,
+          "value": 1.0
+        }
+      ]
+    },
+    {
+      "id": "native_leading_source_3",
+      "name": "Native leading source 3",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 420,
+          "value": 1.0
+        },
+        {
+          "time": 480,
+          "value": 1.0
+        },
+        {
+          "time": 540,
+          "value": 1.0
+        },
+        {
+          "time": 600,
+          "value": 1.0
+        },
+        {
+          "time": 660,
+          "value": 1.0
+        },
+        {
+          "time": 720,
+          "value": 1.0
+        }
+      ]
+    }
+  ],
+  "output": {
+    "lines": [
+      {
+        "id": "native_source_source_2",
+        "title": "Native source source 2",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 60,
+            "value": 1.0
+          },
+          {
+            "time": 120,
+            "value": 1.0
+          },
+          {
+            "time": 180,
+            "value": 1.0
+          },
+          {
+            "time": 240,
+            "value": 1.0
+          },
+          {
+            "time": 300,
+            "value": 1.0
+          },
+          {
+            "time": 360,
+            "value": 1.0
+          },
+          {
+            "time": 420,
+            "value": 1.0
+          },
+          {
+            "time": 480,
+            "value": 1.0
+          },
+          {
+            "time": 540,
+            "value": 1.0
+          },
+          {
+            "time": 600,
+            "value": 1.0
+          },
+          {
+            "time": 660,
+            "value": 1.0
+          },
+          {
+            "time": 720,
+            "value": 1.0
+          }
+        ]
+      },
+      {
+        "id": "native_source_source_3",
+        "title": "Native source source 3",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 120,
+            "value": 1.0
+          },
+          {
+            "time": 180,
+            "value": 1.0
+          },
+          {
+            "time": 240,
+            "value": 1.0
+          },
+          {
+            "time": 300,
+            "value": 1.0
+          },
+          {
+            "time": 360,
+            "value": 1.0
+          },
+          {
+            "time": 420,
+            "value": 1.0
+          },
+          {
+            "time": 480,
+            "value": 1.0
+          },
+          {
+            "time": 540,
+            "value": 1.0
+          },
+          {
+            "time": 600,
+            "value": 1.0
+          },
+          {
+            "time": 660,
+            "value": 1.0
+          },
+          {
+            "time": 720,
+            "value": 1.0
+          }
+        ]
+      },
+      {
+        "id": "native_source_source_5",
+        "title": "Native source source 5",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 240,
+            "value": 1.0
+          },
+          {
+            "time": 300,
+            "value": 1.0
+          },
+          {
+            "time": 360,
+            "value": 1.0
+          },
+          {
+            "time": 420,
+            "value": 1.0
+          },
+          {
+            "time": 480,
+            "value": 1.0
+          },
+          {
+            "time": 540,
+            "value": 1.0
+          },
+          {
+            "time": 600,
+            "value": 1.0
+          },
+          {
+            "time": 660,
+            "value": 1.0
+          },
+          {
+            "time": 720,
+            "value": 1.0
+          }
+        ]
+      },
+      {
+        "id": "native_holes_source_3",
+        "title": "Native holes source 3",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 240,
+            "value": 1.0
+          },
+          {
+            "time": 300,
+            "value": 1.0
+          },
+          {
+            "time": 360,
+            "value": 1.0
+          },
+          {
+            "time": 660,
+            "value": 1.0
+          }
+        ]
+      },
+      {
+        "id": "native_holes_holes_3",
+        "title": "Native holes holes 3",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 240,
+            "value": 1.0
+          },
+          {
+            "time": 300,
+            "value": 1.0
+          },
+          {
+            "time": 360,
+            "value": 1.0
+          },
+          {
+            "time": 660,
+            "value": 1.0
+          }
+        ]
+      },
+      {
+        "id": "native_source_holes_3",
+        "title": "Native source holes 3",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 240,
+            "value": 1.0
+          },
+          {
+            "time": 300,
+            "value": 1.0
+          },
+          {
+            "time": 360,
+            "value": 1.0
+          },
+          {
+            "time": 660,
+            "value": 1.0
+          }
+        ]
+      },
+      {
+        "id": "native_holes_other_3",
+        "title": "Native holes other 3",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 300,
+            "value": 1.0
+          },
+          {
+            "time": 360,
+            "value": 1.0
+          }
+        ]
+      },
+      {
+        "id": "native_leading_source_3",
+        "title": "Native leading source 3",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 420,
+            "value": 1.0
+          },
+          {
+            "time": 480,
+            "value": 1.0
+          },
+          {
+            "time": 540,
+            "value": 1.0
+          },
+          {
+            "time": 600,
+            "value": 1.0
+          },
+          {
+            "time": 660,
+            "value": 1.0
+          },
+          {
+            "time": 720,
+            "value": 1.0
+          }
+        ]
+      }
+    ]
+  },
+  "param_schema": [],
+  "meta": {
+    "title": "Correlation observations",
+    "overlay": true,
+    "mode": "incremental",
+    "bar_index": 12,
+    "last_bar_index": 12,
+    "barstate": {
+      "isfirst": false,
+      "islast": true,
+      "ishistory": true,
+      "isrealtime": false,
+      "isnew": true,
+      "isconfirmed": true,
+      "islastconfirmedhistory": true
+    },
+    "retentionBars": null,
+    "retainedBars": 13,
+    "totalCommittedBars": 13,
+    "snapshotVersion": 3
+  }
+}

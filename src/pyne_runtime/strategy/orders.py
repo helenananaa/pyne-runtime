@@ -8,6 +8,15 @@ from typing import Any, Callable
 from .constants import StrategyIntrabarPath, StrategyOca, StrategySameBarPriority
 
 
+def _validate_pending_entry_direction(orders, *, order_id: str, side: str) -> None:
+    for previous in orders:
+        if previous.get("type") == "entry" and str(previous.get("id") or "") == order_id and previous.get("side") != side:
+            raise ValueError(
+                f"PYNE_STRATEGY_PENDING_DIRECTION_CHANGE: pending entry {order_id!r} "
+                "cannot change direction; cancel it first or use a different ID"
+            )
+
+
 def _exit_trigger(
     *,
     current_position: float,
@@ -78,7 +87,21 @@ def _exit_trigger(
 
 
 def _is_pending_submission(order: dict[str, Any]) -> bool:
-    return order.get("_limit") is not None or order.get("_stop") is not None
+    return bool(order.get("_market_submission")) or order.get("_limit") is not None or order.get("_stop") is not None
+
+
+def _pending_market_admission_state(orders, *, order_id: str | None, size: float, count: int) -> tuple[float, int]:
+    """Reserve entry slots without making unfilled commands visible as trades."""
+    for order in orders:
+        if not order.get("_market_submission") or order.get("type") != "entry" or str(order.get("id")) == order_id:
+            continue
+        signed = abs(float(order.get("qty", 0.0))) * (1 if order.get("side") == "long" else -1)
+        if size == 0 or (size > 0) != (signed > 0):
+            size, count = signed, 1
+        else:
+            size += signed
+            count += 1
+    return size, count
 
 
 class _PendingOrderBook:
@@ -100,6 +123,7 @@ class _PendingOrderBook:
         self._long_limits: list[tuple[float, int, int]] = []
         self._short_stops: list[tuple[float, int, int]] = []
         self._short_limits: list[tuple[float, int, int]] = []
+        self._market_seqs: set[int] = set()
 
     def __bool__(self) -> bool:
         return bool(self._active)
@@ -112,7 +136,25 @@ class _PendingOrderBook:
         if seq in self._active:
             self.reindex(order)
             return
+        if order.get("type") in {"entry", "order"}:
+            order_id = str(order.get("id") or "")
+            previous_seqs = sorted(self._by_id.get(order_id, set()))
+            superseded = set()
+            for previous_seq in previous_seqs:
+                previous = self._active.get(previous_seq)
+                if previous is not None and previous.get("type") == order.get("type"):
+                    superseded.add(previous_seq)
+                    previous_oca = self._oca_key(previous)
+                    if order.get("type") == "order" and previous_oca is not None and previous_oca[1] == StrategyOca.cancel and previous_oca != self._oca_key(order):
+                        superseded.update(self._by_oca.get(previous_oca, set()))
+            self._consume(len(superseded))
+            for previous_seq in sorted(superseded):
+                previous = self._active[previous_seq]
+                self._mark_canceled(previous, timestamp=int(order.get("_submit_time", order.get("time", 0))), canceled_by=order_id)
+                self.remove(previous)
         self._active[seq] = order
+        if order.get("_market_submission"):
+            self._market_seqs.add(seq)
         self._by_id.setdefault(str(order.get("id") or ""), set()).add(seq)
         oca_key = self._oca_key(order)
         if oca_key is not None:
@@ -123,12 +165,20 @@ class _PendingOrderBook:
         seq = int(order.get("_seq", 0))
         return self._active.get(seq) is order
 
+    def validate_entry_direction(self, order: dict[str, Any]) -> None:
+        order_id = str(order.get("id") or "")
+        _validate_pending_entry_direction(
+            (self._active[seq] for seq in self._by_id.get(order_id, set())),
+            order_id=order_id, side=str(order.get("side")),
+        )
+
     def remove(self, order: dict[str, Any]) -> bool:
         seq = int(order.get("_seq", 0))
         active = self._active.get(seq)
         if active is not order:
             return False
         self._active.pop(seq, None)
+        self._market_seqs.discard(seq)
         self._versions[seq] = self._versions.get(seq, 0) + 1
         self._discard_index(self._by_id, str(order.get("id") or ""), seq)
         oca_key = self._oca_key(order)
@@ -141,7 +191,7 @@ class _PendingOrderBook:
             self._push_thresholds(order)
 
     def candidates(self, *, high: float, low: float) -> list[dict[str, Any]]:
-        candidate_seqs: set[int] = set()
+        candidate_seqs: set[int] = set(self._market_seqs)
         self._collect_candidates(
             self._long_stops,
             threshold=float(high),
@@ -163,6 +213,20 @@ class _PendingOrderBook:
             candidate_seqs=candidate_seqs,
         )
         return [self._active[seq] for seq in sorted(candidate_seqs) if seq in self._active]
+
+    def entry_admission_state(self, order: dict[str, Any], *, size: float, count: int) -> tuple[float, int]:
+        return _pending_market_admission_state(
+            (self._active[seq] for seq in sorted(self._market_seqs)),
+            order_id=str(order.get("id")) if order.get("_market_submission") else None, size=size, count=count,
+        )
+
+    def cancel_market_entry(self, order: dict[str, Any]) -> None:
+        seqs = sorted(self._by_id.get(str(order.get("id") or ""), set()) & self._market_seqs)
+        matches = [self._active[seq] for seq in seqs if self._active[seq].get("type") == "entry"]
+        self._consume(len(matches))
+        for previous in matches:
+            self._mark_canceled(previous, timestamp=int(order.get("_submit_time", order.get("time", 0))), canceled_by=str(order.get("id")))
+            self.remove(previous)
 
     def cancel_id(
         self,
@@ -362,7 +426,12 @@ def _orders_in_replay_order(
 ) -> list[dict[str, Any]]:
     return _orders_in_key_order(
         orders,
-        key=lambda item: (item.get("time", 0), item.get("_seq", 0)),
+        # Fills rewrite time for reporting. Replaying must retain command order,
+        # including when a later call adds no events at all.
+        key=lambda item: (
+            item.get("_submit_time", item.get("time", 0)),
+            item.get("_seq", 0),
+        ),
     )
 
 
@@ -491,6 +560,8 @@ def _order_lifecycle_state(order: dict[str, Any]) -> dict[str, Any]:
         status=status,
         pending_submission=pending_submission,
     )
+    if order.get("_market_submission") and status in {"filled", "rejected"}:
+        phase = "market_fill" if status == "filled" else "rejected"
     return {
         "order_type": order_type,
         "active": active,
@@ -559,6 +630,43 @@ def _reject_order(order: dict[str, Any], *, timestamp: int, reason: str) -> None
     order["_rejected_time"] = timestamp
 
 
+def _stop_limit_trigger(
+    *, order_state: dict[str, Any], side: str, open_price: float, high: float,
+    low: float, close_price: float, stop: float, limit: float, tick_verify: float,
+    intrabar_path: str,
+) -> tuple[str, float] | None:
+    """Activate the stop, then traverse only the remaining limit-price path."""
+    if intrabar_path == StrategyIntrabarPath.open_high_low_close:
+        high_first = True
+    elif intrabar_path == StrategyIntrabarPath.open_low_high_close:
+        high_first = False
+    else:
+        high_first = abs(high - open_price) < abs(open_price - low)
+    points = [open_price, high, low, close_price] if high_first else [open_price, low, high, close_price]
+    long = side == "long"
+    threshold = limit - tick_verify if long else limit + tick_verify
+    active = bool(order_state.get("_stop_limit_activated", False))
+    for index, point in enumerate(points):
+        if not active:
+            stop_hit = point >= stop if long else point <= stop
+            if not stop_hit:
+                continue
+            active = True
+            order_state["_stop_limit_activated"] = True
+            # A gap activates at the open; an intrabar crossing activates at
+            # the stop, so prices visited before that crossing are excluded.
+            point = point if index == 0 else stop
+        limit_hit = point <= threshold if long else point >= threshold
+        if limit_hit:
+            return "limit", float(point)
+        if index + 1 < len(points):
+            endpoint = points[index + 1]
+            crossed = endpoint <= threshold if long else endpoint >= threshold
+            if crossed:
+                return "limit", float(limit)
+    return None
+
+
 def _pending_trigger(
     *,
     side: str,
@@ -570,25 +678,21 @@ def _pending_trigger(
     tick_verify: float = 0.0,
     same_bar_fill_priority: str = StrategySameBarPriority.stop_first,
     intrabar_path: str = StrategyIntrabarPath.same_bar_priority,
-) -> tuple[str, float] | None:
+    order_state: dict[str, Any] | None = None,
+    close_price: float | None = None,
+) -> tuple[str | None, float] | None:
+    if order_state is not None and order_state.get("_market_submission"):
+        return None, float(order_state.get("_base_price", open_price))
+    if stop is not None and limit is not None:
+        return _stop_limit_trigger(
+            order_state={} if order_state is None else order_state,
+            side=side, open_price=open_price, high=high, low=low,
+            close_price=open_price if close_price is None else close_price,
+            stop=float(stop), limit=float(limit), tick_verify=tick_verify, intrabar_path=intrabar_path,
+        )
     if side == "long":
         stop_hit = stop is not None and high >= stop
         limit_hit = limit is not None and low <= limit - tick_verify
-        if stop_hit and limit_hit:
-            reason, price = _same_bar_trigger(
-                stop=stop,
-                limit=limit,
-                stop_path="high",
-                limit_path="low",
-                same_bar_fill_priority=same_bar_fill_priority,
-                intrabar_path=intrabar_path,
-            )
-            return reason, _pending_fill_price(
-                side=side,
-                reason=reason,
-                trigger_price=price,
-                open_price=open_price,
-            )
         if stop_hit:
             return "stop", _pending_fill_price(
                 side=side,
@@ -606,21 +710,6 @@ def _pending_trigger(
         return None
     stop_hit = stop is not None and low <= stop
     limit_hit = limit is not None and high >= limit + tick_verify
-    if stop_hit and limit_hit:
-        reason, price = _same_bar_trigger(
-            stop=stop,
-            limit=limit,
-            stop_path="low",
-            limit_path="high",
-            same_bar_fill_priority=same_bar_fill_priority,
-            intrabar_path=intrabar_path,
-        )
-        return reason, _pending_fill_price(
-            side=side,
-            reason=reason,
-            trigger_price=price,
-            open_price=open_price,
-        )
     if stop_hit:
         return "stop", _pending_fill_price(
             side=side,

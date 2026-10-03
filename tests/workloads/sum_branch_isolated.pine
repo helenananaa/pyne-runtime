@@ -1,0 +1,11 @@
+//@version=6
+indicator("Pyne isolated branch sum round49", precision=10)
+float src = bar_index >= 0 ? 80000000.0 * math.pow(10., 300) : 0.
+float native = ta.sma(src, 2)
+float total = math.sum(src, 2)
+float nativeMissing = na(native) ? 1 : 0
+float sumMissing = na(total) ? 1 : 0
+float halfInvariant = not na(total) and total != 0 and total / 2 == total ? 1 : 0
+if bar_index < 32
+    log.info("PYNE_SUM_BRANCH_ISOLATED49|" + str.tostring(bar_index) + "|" + str.tostring(src, "0.00000000000000000") + "|" + str.tostring(native, "0.00000000000000000") + "|" + str.tostring(total, "0.00000000000000000") + "|" + str.tostring(nativeMissing, "0.00000000000000000") + "|" + str.tostring(sumMissing, "0.00000000000000000") + "|" + str.tostring(halfInvariant, "0.00000000000000000") + ";")
+plot(0., display=display.none)

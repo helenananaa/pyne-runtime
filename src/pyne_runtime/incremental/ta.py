@@ -5,7 +5,7 @@ import math
 from collections import deque
 from typing import Any
 
-from ..ta_kernels import _normalize_pivot_type, _pivot_level_values
+from ..ta_kernels import _FLOAT_EXACT_SCALE, _normalize_pivot_type, _pivot_level_values
 from ..utils import require_positive_period
 from ..values import is_condition_true
 from .limits import IncrementalLimits, _LimitTracker
@@ -24,6 +24,7 @@ class _StepRollingMoments:
         self.anchor: float | None = None
         self.sum = 0.0
         self.sumsq = 0.0
+        self.exact_sum = 0
         self.positive_infinity = 0
         self.negative_infinity = 0
         self.updates = 0
@@ -48,6 +49,8 @@ class _StepRollingMoments:
         elif number == -math.inf:
             self.negative_infinity += sign
         else:
+            numerator, denominator = number.as_integer_ratio()
+            self.exact_sum += sign * (numerator << (1074 - (denominator.bit_length() - 1)))
             centered = number - (self.anchor or 0.0)
             self.sum += sign * centered
             self.sumsq += sign * centered * centered
@@ -62,19 +65,25 @@ class _StepRollingMoments:
     def mean_value(self) -> float | None:
         if len(self.window) < self.period:
             return None
+        if self.period == 1:
+            return self.window[-1]
         if self.positive_infinity or self.negative_infinity:
             if self.positive_infinity and self.negative_infinity:
                 return None
             return math.inf if self.positive_infinity else -math.inf
-        if not math.isfinite(self.sum):
-            return math.fsum(value / self.period for value in self.window)
-        return (self.anchor or 0.0) + self.sum / self.period
+        # A stale large anchor can erase every later small observation before
+        # summation. Maintain the raw finite sum exactly instead; binary64's
+        # fixed exponent range bounds accumulator work independently of period.
+        # Divide before rounding so a finite average survives sum overflow.
+        return self.exact_sum / (_FLOAT_EXACT_SCALE * self.period)
 
     def variance_value(self, *, biased: bool = True) -> float | None:
         denominator = self.period if biased else self.period - 1
         if (len(self.window) < self.period or denominator <= 0
                 or self.positive_infinity or self.negative_infinity):
             return None
+        if self.period == 1:
+            return 0.0
         centered = self.sumsq - self.sum * self.sum / self.period
         # Rebase early after an abrupt level shift or near-total cancellation.
         if centered < 0 or (self.sumsq > 0 and centered <= 1e-10 * self.sumsq):
@@ -125,10 +134,12 @@ class _StepRMA:
         self.seed_count = 0
         self.value: float | None = None
 
-    def update(self, value: Any) -> float | None:
+    def update(self, value: Any, *, emit_missing: bool = True) -> float | None:
         number = _number_or_none(value)
         if number is None:
-            return self.value
+            # A missing observation does not advance the accumulator, but the
+            # public RMA output at this position is missing too.
+            return None if emit_missing else self.value
         if self.value is None:
             self.seed_sum += number
             self.seed_count += 1
@@ -147,10 +158,22 @@ class _StepWMA:
         self.simple_sum = 0.0
         self.weighted_sum = 0.0
         self.valid_count = 0
+        self.observations = 0
+        self.last_input: float | None = None
         self.denominator = self.period * (self.period + 1) / 2.0
 
     def update(self, value: Any) -> float | None:
         number = _number_or_none(value)
+        # Native Pine requires real observations for warmup, then advances
+        # the weighted bar window using the last input during missing bars.
+        missing = number is None
+        if missing:
+            number = self.last_input
+        else:
+            self.last_input = number
+            self.observations = min(self.observations + 1, self.period)
+        if number is None:
+            return None
         numeric = number or 0.0
         next_weight = len(self.window) + 1
         self.window.append(number)
@@ -164,7 +187,7 @@ class _StepWMA:
             self.simple_sum -= removed or 0.0
             if removed is not None:
                 self.valid_count -= 1
-        if len(self.window) < self.period or self.valid_count < self.period:
+        if missing or self.observations < self.period:
             return None
         return self.weighted_sum / self.denominator
 
@@ -245,14 +268,19 @@ class _StepExtremeBars:
         while self.window and self.window[0][0] <= expiry:
             self.window.popleft()
         current = _number_or_none(value)
+        if current is None:
+            self.window.clear()
+            return 0.0 if self.index + 1 >= self.period else None
         if current is not None:
             if self.highest:
-                while self.window and self.window[-1][1] <= current:
+                while self.window and self.window[-1][1] < current:
                     self.window.pop()
             else:
-                while self.window and self.window[-1][1] >= current:
+                while self.window and self.window[-1][1] > current:
                     self.window.pop()
             self.window.append((self.index, current))
+        if self.index + 1 < self.period:
+            return None
         return None if not self.window else float(self.window[0][0] - self.index)
 
 
@@ -272,15 +300,23 @@ class _StepPivot:
 
     def update(self, value: Any) -> float | None:
         self.window.append(_number_or_none(value))
-        if len(self.window) <= self.right:
+        if len(self.window) < self.window_size:
             return None
         values = list(self.window)
-        center = values[len(values) - self.right - 1]
+        center = values[self.left]
         if center is None:
             return None
-        valid = [item for item in values if item is not None]
-        extreme = max(valid) if self.highest else min(valid)
-        return center if center == extreme and valid.count(extreme) == 1 else None
+        for item in reversed(values[:self.left]):
+            if item is None:
+                break
+            if (item > center) if self.highest else (item < center):
+                return None
+        for item in values[self.left + 1:]:
+            if item is None:
+                break
+            if (item >= center) if self.highest else (item <= center):
+                return None
+        return center
 
 
 class _StepTrueRange:
@@ -314,10 +350,11 @@ class _StepCum:
     def __init__(self) -> None:
         self.total = 0.0
 
-    def update(self, value: Any) -> float:
+    def update(self, value: Any) -> float | None:
         current = _number_or_none(value)
-        if current is not None:
-            self.total += current
+        if current is None:
+            return None
+        self.total += current
         return self.total
 
 
@@ -446,8 +483,9 @@ class _StepRSI:
 
 
 class _StepATR:
-    def __init__(self, period: int = 14) -> None:
+    def __init__(self, period: int = 14, *, handle_na: bool = True) -> None:
         self.period = max(int(period), 1)
+        self.handle_na = handle_na
         self.prev_close: float | None = None
         self.count = 0
         self.tr_sum = 0.0
@@ -467,6 +505,9 @@ class _StepATR:
             self.prev_close = close
             return self.atr
 
+        if self.prev_close is None and not self.handle_na:
+            self.prev_close = close
+            return self.atr
         if self.prev_close is None:
             tr = high - low
         else:
@@ -497,6 +538,9 @@ class _StepMonotonic:
         while self.window and self.window[0][0] <= expiry:
             self.window.popleft()
         number = _number_or_none(value)
+        if number is None:
+            self.window.clear()
+            return None
         if number is not None:
             if self.highest:
                 while self.window and self.window[-1][1] <= number:
@@ -514,19 +558,18 @@ class _StepStoch:
     def __init__(self, period: int) -> None:
         self.highest = _StepMonotonic(period, highest=True)
         self.lowest = _StepMonotonic(period, highest=False)
+        self.last_value: float | None = None
 
     def update(self, source: Any, high: Any, low: Any) -> float | None:
         current = _number_or_none(source)
         highest = self.highest.update(high)
         lowest = self.lowest.update(low)
-        if highest is None and self.highest.window:
-            highest = self.highest.window[0][1]
-        if lowest is None and self.lowest.window:
-            lowest = self.lowest.window[0][1]
         if current is None or highest is None or lowest is None:
-            return None
+            return self.last_value
         spread = highest - lowest
-        return 50.0 if spread == 0.0 else 100.0 * (current - lowest) / spread
+        if spread != 0.0:
+            self.last_value = 100.0 * (current - lowest) / spread
+        return self.last_value
 
 
 class _StepCCI:
@@ -606,9 +649,12 @@ class _StepCross:
         ):
             over = current_a > current_b and self.previous_a <= self.previous_b
             under = current_a < current_b and self.previous_a >= self.previous_b
-            crossed = over if self.direction == "over" else under if self.direction == "under" else over or under
-        self.previous_a = current_a
-        self.previous_b = current_b
+            strict = (current_a > current_b and self.previous_a < self.previous_b) or (
+                current_a < current_b and self.previous_a > self.previous_b)
+            crossed = over if self.direction == "over" else under if self.direction == "under" else strict
+        if current_a is not None and current_b is not None:
+            self.previous_a = current_a
+            self.previous_b = current_b
         return crossed
 
 
@@ -657,7 +703,7 @@ class _StepVWAP:
 
 class _StepDMI:
     def __init__(self, period: int = 14, adx_period: int = 14) -> None:
-        self.atr = _StepATR(period)
+        self.atr = _StepATR(period, handle_na=False)
         self.plus = _StepRMA(period)
         self.minus = _StepRMA(period)
         self.adx = _StepRMA(adx_period)
@@ -682,7 +728,7 @@ class _StepDMI:
             close_value = _number_or_none(close)
         if high is None or low_value is None:
             atr = self.atr.update(high, low_value, close_value)
-            return self.last_plus_di, self.last_minus_di, self.adx.update(None)
+            return self.last_plus_di, self.last_minus_di, self.adx.update(None, emit_missing=False)
         up_move = None if self.previous_high is None else high - self.previous_high
         down_move = None if self.previous_low is None else self.previous_low - low_value
         plus_dm = (
@@ -702,8 +748,8 @@ class _StepDMI:
         self.previous_high = high
         self.previous_low = low_value
         atr = self.atr.update(high, low_value, close_value)
-        plus_smoothed = self.plus.update(plus_dm)
-        minus_smoothed = self.minus.update(minus_dm)
+        plus_smoothed = self.plus.update(plus_dm, emit_missing=False)
+        minus_smoothed = self.minus.update(minus_dm, emit_missing=False)
         if atr not in {None, 0.0} and plus_smoothed is not None:
             self.last_plus_di = 100.0 * plus_smoothed / atr
         if atr not in {None, 0.0} and minus_smoothed is not None:
@@ -712,7 +758,7 @@ class _StepDMI:
         if self.last_plus_di is not None and self.last_minus_di is not None:
             total = self.last_plus_di + self.last_minus_di
             dx = abs(self.last_plus_di - self.last_minus_di) / (1.0 if total == 0.0 else total)
-        adx = self.adx.update(dx)
+        adx = self.adx.update(dx, emit_missing=False)
         return self.last_plus_di, self.last_minus_di, None if adx is None else 100.0 * adx
 
 

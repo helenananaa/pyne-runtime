@@ -1,0 +1,137 @@
+{
+  "ok": true,
+  "error": null,
+  "code": null,
+  "line": null,
+  "column": null,
+  "hint": null,
+  "lines": [
+    {
+      "id": "ema",
+      "name": "EMA",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 1506816000,
+          "value": 5188.8
+        },
+        {
+          "time": 1509494400,
+          "value": 7513.879999999999
+        },
+        {
+          "time": 1512086400,
+          "value": 10615.119999999999
+        },
+        {
+          "time": 1514764800,
+          "value": 10450.11
+        },
+        {
+          "time": 1517443200,
+          "value": 10388.435000000001
+        },
+        {
+          "time": 1519862400,
+          "value": 8656.1725
+        },
+        {
+          "time": 1522540800,
+          "value": 8951.091250000001
+        },
+        {
+          "time": 1525132800,
+          "value": 8218.050625
+        },
+        {
+          "time": 1527811200,
+          "value": 7304.0603125
+        },
+        {
+          "time": 1530403200,
+          "value": 7517.49515625
+        }
+      ]
+    }
+  ],
+  "output": {
+    "lines": [
+      {
+        "id": "ema",
+        "title": "EMA",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 1506816000,
+            "value": 5188.8
+          },
+          {
+            "time": 1509494400,
+            "value": 7513.879999999999
+          },
+          {
+            "time": 1512086400,
+            "value": 10615.119999999999
+          },
+          {
+            "time": 1514764800,
+            "value": 10450.11
+          },
+          {
+            "time": 1517443200,
+            "value": 10388.435000000001
+          },
+          {
+            "time": 1519862400,
+            "value": 8656.1725
+          },
+          {
+            "time": 1522540800,
+            "value": 8951.091250000001
+          },
+          {
+            "time": 1525132800,
+            "value": 8218.050625
+          },
+          {
+            "time": 1527811200,
+            "value": 7304.0603125
+          },
+          {
+            "time": 1530403200,
+            "value": 7517.49515625
+          }
+        ]
+      }
+    ]
+  },
+  "param_schema": [],
+  "meta": {
+    "title": "Snapshot semantics",
+    "overlay": true,
+    "mode": "incremental",
+    "bar_index": 11,
+    "last_bar_index": 11,
+    "barstate": {
+      "isfirst": false,
+      "islast": true,
+      "ishistory": true,
+      "isrealtime": false,
+      "isnew": true,
+      "isconfirmed": true,
+      "islastconfirmedhistory": true
+    },
+    "retentionBars": null,
+    "retainedBars": 12,
+    "totalCommittedBars": 12,
+    "snapshotVersion": 3
+  }
+}

@@ -1,0 +1,670 @@
+{
+  "schema": "pyne.workload-oracle/1",
+  "source": "TradingView Pine v6 runtime via Chrome Pine Logs",
+  "capturedAt": "2026-09-30T11:43:02.943Z",
+  "url": "https://www.tradingview.com/chart/K1m3gqVM/",
+  "symbol": "COINBASE:BTCUSD",
+  "timeframe": "1D",
+  "scriptSha256": "25de78a688d07fa5accdbb8031c7b6ef9a761595dbc6a5b5796d43fbdbbe0c14",
+  "logSha256": "4e077eeb09a483d5ef06d5ab8d7f181fdb7fe72eb770482aa39fe1ea2695be60",
+  "columns": [
+    "gap",
+    "Highest 1",
+    "Lowest 1",
+    "Highestbars 1",
+    "Lowestbars 1",
+    "Highest 5",
+    "Lowest 5",
+    "Highestbars 5",
+    "Lowestbars 5",
+    "Highestbars flat",
+    "Lowestbars flat",
+    "Highest empty",
+    "Lowest empty",
+    "Highestbars empty",
+    "Lowestbars empty"
+  ],
+  "tolerance": 1e-8,
+  "rows": [
+    {
+      "index": 0,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 1,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "index": 2,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        null,
+        null,
+        null,
+        null,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 3,
+      "values": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        null,
+        null,
+        null,
+        null,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 4,
+      "values": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        -1,
+        -4,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 5,
+      "values": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        -2,
+        -4,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 6,
+      "values": [
+        null,
+        null,
+        null,
+        0,
+        0,
+        null,
+        null,
+        0,
+        0,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 7,
+      "values": [
+        null,
+        null,
+        null,
+        0,
+        0,
+        null,
+        null,
+        0,
+        0,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 8,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 9,
+      "values": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -1,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 10,
+      "values": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        -1,
+        -2,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 11,
+      "values": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        -2,
+        -3,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 12,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -3,
+        -4,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 13,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -4,
+        -1,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 14,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -4,
+        -2,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 15,
+      "values": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        -4,
+        -3,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 16,
+      "values": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        -1,
+        -4,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 17,
+      "values": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        -2,
+        -4,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 18,
+      "values": [
+        null,
+        null,
+        null,
+        0,
+        0,
+        null,
+        null,
+        0,
+        0,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 19,
+      "values": [
+        null,
+        null,
+        null,
+        0,
+        0,
+        null,
+        null,
+        0,
+        0,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 20,
+      "values": [
+        null,
+        null,
+        null,
+        0,
+        0,
+        null,
+        null,
+        0,
+        0,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 21,
+      "values": [
+        null,
+        null,
+        null,
+        0,
+        0,
+        null,
+        null,
+        0,
+        0,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 22,
+      "values": [
+        null,
+        null,
+        null,
+        0,
+        0,
+        null,
+        null,
+        0,
+        0,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 23,
+      "values": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 24,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -1,
+        0,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 25,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -2,
+        -1,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 26,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -3,
+        -2,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 27,
+      "values": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        -4,
+        -3,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 28,
+      "values": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        -1,
+        -4,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 29,
+      "values": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        -2,
+        -4,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 30,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -3,
+        -4,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 31,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        -4,
+        -1,
+        -2,
+        -2,
+        null,
+        null,
+        0,
+        0
+      ]
+    }
+  ]
+}

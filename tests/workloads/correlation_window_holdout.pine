@@ -1,0 +1,87 @@
+//@version=6
+indicator("Pyne correlation window holdout 20261002",precision=10)
+int i = bar_index
+float base = float((i*11)%17-6)
+float holes = i%7==1 or i%7==2 ? na : base
+float other = i%5==3 ? na : -3*base+5
+float shifted = i%5==3 ? na : 1000+base*0.25
+float leading = i<6 ? na : base
+float flat = 5.0
+float hugeA = 1000000000000.0+base
+float hugeB = -700000000000.0+base*2
+float hugeHole = i%7==1 or i%7==2 ? na : hugeA
+f(float x)=>str.tostring(x,"#.##########")
+f_formula(float x,float y,int p)=>
+    float numerator = ta.sma(x*y,p)-ta.sma(x,p)*ta.sma(y,p)
+    numerator/(ta.stdev(x,p)*ta.stdev(y,p))
+float c0 = ta.correlation(base,base,1)
+float h0 = f_formula(base,base,1)
+float c1 = ta.correlation(base,base,2)
+float h1 = f_formula(base,base,2)
+float c2 = ta.correlation(base,base,3)
+float h2 = f_formula(base,base,3)
+float c3 = ta.correlation(base,base,7)
+float h3 = f_formula(base,base,7)
+float c4 = ta.correlation(holes,base,1)
+float h4 = f_formula(holes,base,1)
+float c5 = ta.correlation(holes,base,2)
+float h5 = f_formula(holes,base,2)
+float c6 = ta.correlation(holes,base,3)
+float h6 = f_formula(holes,base,3)
+float c7 = ta.correlation(holes,base,7)
+float h7 = f_formula(holes,base,7)
+float c8 = ta.correlation(holes,other,1)
+float h8 = f_formula(holes,other,1)
+float c9 = ta.correlation(holes,other,2)
+float h9 = f_formula(holes,other,2)
+float c10 = ta.correlation(holes,other,3)
+float h10 = f_formula(holes,other,3)
+float c11 = ta.correlation(holes,other,7)
+float h11 = f_formula(holes,other,7)
+float c12 = ta.correlation(holes,shifted,1)
+float h12 = f_formula(holes,shifted,1)
+float c13 = ta.correlation(holes,shifted,2)
+float h13 = f_formula(holes,shifted,2)
+float c14 = ta.correlation(holes,shifted,3)
+float h14 = f_formula(holes,shifted,3)
+float c15 = ta.correlation(holes,shifted,7)
+float h15 = f_formula(holes,shifted,7)
+float c16 = ta.correlation(leading,base,1)
+float h16 = f_formula(leading,base,1)
+float c17 = ta.correlation(leading,base,2)
+float h17 = f_formula(leading,base,2)
+float c18 = ta.correlation(leading,base,3)
+float h18 = f_formula(leading,base,3)
+float c19 = ta.correlation(leading,base,7)
+float h19 = f_formula(leading,base,7)
+float c20 = ta.correlation(flat,base,1)
+float h20 = f_formula(flat,base,1)
+float c21 = ta.correlation(flat,base,2)
+float h21 = f_formula(flat,base,2)
+float c22 = ta.correlation(flat,base,3)
+float h22 = f_formula(flat,base,3)
+float c23 = ta.correlation(flat,base,7)
+float h23 = f_formula(flat,base,7)
+float c24 = ta.correlation(hugeA,hugeB,1)
+float h24 = f_formula(hugeA,hugeB,1)
+float c25 = ta.correlation(hugeA,hugeB,2)
+float h25 = f_formula(hugeA,hugeB,2)
+float c26 = ta.correlation(hugeA,hugeB,3)
+float h26 = f_formula(hugeA,hugeB,3)
+float c27 = ta.correlation(hugeA,hugeB,7)
+float h27 = f_formula(hugeA,hugeB,7)
+float c28 = ta.correlation(hugeHole,hugeB,1)
+float h28 = f_formula(hugeHole,hugeB,1)
+float c29 = ta.correlation(hugeHole,hugeB,2)
+float h29 = f_formula(hugeHole,hugeB,2)
+float c30 = ta.correlation(hugeHole,hugeB,3)
+float h30 = f_formula(hugeHole,hugeB,3)
+float c31 = ta.correlation(hugeHole,hugeB,7)
+float h31 = f_formula(hugeHole,hugeB,7)
+var string rows = ""
+if i<32
+    rows += "PYNE_CORRELATION_HOLDOUT|"+str.tostring(i)+"|"+f(base)+"|"+f(holes)+"|"+f(other)+"|"+f(shifted)+"|"+f(leading)+"|"+f(flat)+"|"+f(hugeA)+"|"+f(hugeB)+"|"+f(hugeHole)+"|"+f(c0)+"|"+f(h0)+"|"+f(c1)+"|"+f(h1)+"|"+f(c2)+"|"+f(h2)+"|"+f(c3)+"|"+f(h3)+"|"+f(c4)+"|"+f(h4)+"|"+f(c5)+"|"+f(h5)+"|"+f(c6)+"|"+f(h6)+"|"+f(c7)+"|"+f(h7)+"|"+f(c8)+"|"+f(h8)+"|"+f(c9)+"|"+f(h9)+"|"+f(c10)+"|"+f(h10)+"|"+f(c11)+"|"+f(h11)+"|"+f(c12)+"|"+f(h12)+"|"+f(c13)+"|"+f(h13)+"|"+f(c14)+"|"+f(h14)+"|"+f(c15)+"|"+f(h15)+"|"+f(c16)+"|"+f(h16)+"|"+f(c17)+"|"+f(h17)+"|"+f(c18)+"|"+f(h18)+"|"+f(c19)+"|"+f(h19)+"|"+f(c20)+"|"+f(h20)+"|"+f(c21)+"|"+f(h21)+"|"+f(c22)+"|"+f(h22)+"|"+f(c23)+"|"+f(h23)+"|"+f(c24)+"|"+f(h24)+"|"+f(c25)+"|"+f(h25)+"|"+f(c26)+"|"+f(h26)+"|"+f(c27)+"|"+f(h27)+"|"+f(c28)+"|"+f(h28)+"|"+f(c29)+"|"+f(h29)+"|"+f(c30)+"|"+f(h30)+"|"+f(c31)+"|"+f(h31)+";"
+    if i%8==7
+        log.info(rows)
+        rows := ""
+plot(c6,"Correlation window holdout")

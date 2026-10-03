@@ -1,0 +1,32 @@
+//@version=6
+indicator("Pyne near edge discriminator round52", precision=10)
+int i = bar_index
+float unit = math.pow(2., 1021)
+float ulp = math.pow(2., 969)
+var supplied0 = array.from(-ulp, unit + ulp, unit + ulp, -2. * unit, 2. * unit, -unit + ulp, unit - ulp, -ulp, unit + ulp, 2. * unit, unit - ulp, 2. * unit, -unit, -unit, -unit - ulp, 0., 0., -ulp, 2. * unit, ulp, -unit, unit - ulp, -4. * unit + 4. * ulp, -unit - ulp, unit + ulp, -ulp, 4. * unit - 4. * ulp, unit + ulp, unit + ulp, unit - ulp, -unit, ulp)
+float src0 = array.get(supplied0, i % 32)
+float native0 = ta.sma(src0, 7)
+float sum0 = math.sum(src0, 7)
+int missingNative0 = na(native0) ? 1 : 0
+int missingSum0 = na(sum0) ? 1 : 0
+var supplied1 = array.from(4. * unit - 4. * ulp, unit, unit, ulp, 0., unit + ulp, -unit + ulp, 4. * unit - 4. * ulp, unit + ulp, 0., unit + ulp, -ulp, 2. * unit, 0., unit - ulp, -unit + ulp, ulp, -unit + ulp, 2. * unit, -2. * unit, unit, -4. * unit + 4. * ulp, -unit, unit + ulp, 4. * unit - 4. * ulp, -unit - ulp, -2. * unit, unit + ulp, -unit + ulp, unit + ulp, -unit + ulp, 4. * unit - 4. * ulp)
+float src1 = array.get(supplied1, i % 32)
+float native1 = ta.sma(src1, 7)
+float sum1 = math.sum(src1, 7)
+int missingNative1 = na(native1) ? 1 : 0
+int missingSum1 = na(sum1) ? 1 : 0
+var supplied2 = array.from(unit - ulp, -unit - ulp, 2. * unit, -unit, -unit + ulp, -4. * unit + 4. * ulp, -ulp, unit - ulp, -unit, -ulp, -unit, 2. * unit, 4. * unit - 4. * ulp, 2. * unit, 2. * unit, 4. * unit - 4. * ulp, 2. * unit, -unit, unit + ulp, unit - ulp, -unit, -ulp, -2. * unit, -4. * unit + 4. * ulp, 0., unit + ulp, -unit, -unit + ulp, unit, 2. * unit, 4. * unit - 4. * ulp, -4. * unit + 4. * ulp)
+float src2 = array.get(supplied2, i % 32)
+float native2 = ta.sma(src2, 3)
+float sum2 = math.sum(src2, 3)
+int missingNative2 = na(native2) ? 1 : 0
+int missingSum2 = na(sum2) ? 1 : 0
+var supplied3 = array.from(4. * unit - 4. * ulp, unit + ulp, unit, unit, 0., unit - ulp, 2. * unit, -2. * unit, ulp, -4. * unit + 4. * ulp, -unit - ulp, -ulp, -2. * unit, -2. * unit, -4. * unit + 4. * ulp, -4. * unit + 4. * ulp, -2. * unit, -unit - ulp, -2. * unit, ulp, 4. * unit - 4. * ulp, -unit + ulp, -2. * unit, 2. * unit, unit + ulp, -unit - ulp, unit, -unit - ulp, unit + ulp, 4. * unit - 4. * ulp, -4. * unit + 4. * ulp, 4. * unit - 4. * ulp)
+float src3 = array.get(supplied3, i % 32)
+float native3 = ta.sma(src3, 3)
+float sum3 = math.sum(src3, 3)
+int missingNative3 = na(native3) ? 1 : 0
+int missingSum3 = na(sum3) ? 1 : 0
+if i < 32
+    log.info("PYNE_NEAR_EDGE_DISCRIMINATOR52|" + str.tostring(i) + "|" + str.tostring(src0, "0.00000000000000000") + "|" + str.tostring(native0, "0.00000000000000000") + "|" + str.tostring(sum0, "0.00000000000000000") + "|" + str.tostring(missingNative0) + "|" + str.tostring(missingSum0) + "|" + str.tostring(src1, "0.00000000000000000") + "|" + str.tostring(native1, "0.00000000000000000") + "|" + str.tostring(sum1, "0.00000000000000000") + "|" + str.tostring(missingNative1) + "|" + str.tostring(missingSum1) + "|" + str.tostring(src2, "0.00000000000000000") + "|" + str.tostring(native2, "0.00000000000000000") + "|" + str.tostring(sum2, "0.00000000000000000") + "|" + str.tostring(missingNative2) + "|" + str.tostring(missingSum2) + "|" + str.tostring(src3, "0.00000000000000000") + "|" + str.tostring(native3, "0.00000000000000000") + "|" + str.tostring(sum3, "0.00000000000000000") + "|" + str.tostring(missingNative3) + "|" + str.tostring(missingSum3) + ";")
+plot(0., display=display.none)

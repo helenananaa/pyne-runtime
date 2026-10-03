@@ -295,7 +295,7 @@ def test_highest_lowest_ignore_invalid_period_without_empty_window_error() -> No
     assert all(math.isnan(value) for value in lowest.values)
 
 
-def test_highest_lowest_use_available_warmup_history() -> None:
+def test_highest_lowest_wait_initial_lookback() -> None:
     source = pn.PyneSeries([3.0, 1.0, 5.0, 2.0], name="close")
 
     highest = utils.highest(source, 3)
@@ -303,8 +303,8 @@ def test_highest_lowest_use_available_warmup_history() -> None:
 
     assert isinstance(highest, pn.PyneSeries)
     assert isinstance(lowest, pn.PyneSeries)
-    assert list(highest.values) == [3.0, 3.0, 5.0, 5.0]
-    assert list(lowest.values) == [3.0, 1.0, 1.0, 1.0]
+    np.testing.assert_allclose(highest.values, [np.nan, np.nan, 5.0, 5.0], equal_nan=True)
+    np.testing.assert_allclose(lowest.values, [np.nan, np.nan, 1.0, 1.0], equal_nan=True)
 
 
 def test_barssince_and_valuewhen_treat_nan_as_false() -> None:
@@ -463,7 +463,7 @@ plot(ta.cmo(close[1], 5), "Shifted CMO")
     assert _series_values(result, "Shifted CMO")[-1] == 100.0
 
 
-def test_range_oscillators_use_available_warmup_history() -> None:
+def test_range_oscillators_wait_initial_lookback() -> None:
     bars = [
         {"time": 1, "open": 10, "high": 12, "low": 9, "close": 11, "volume": 100},
         {"time": 2, "open": 11, "high": 13, "low": 10, "close": 12, "volume": 110},
@@ -481,9 +481,12 @@ plot(ta.mfi(close, 4), "MFI")
     )
 
     assert result.ok, result.error
-    assert _series_values(result, "Stoch") == [66.66666667, 75.0, 80.0, 30.0]
-    assert _series_values(result, "WPR") == [-33.33333333, -25.0, -20.0, -70.0]
-    assert _series_values(result, "MFI") == [100.0, 100.0, 100.0, 67.84452297]
+    assert result.get_series("Stoch") == [{"time": 4, "value": 30.}]
+    assert result.get_series("WPR") == [{"time": 4, "value": -70.}]
+    positive_flow = 12*110+13*120
+    negative_flow = 10.5*130
+    assert _series_values(result, "MFI") == pytest.approx(
+        [100.,100.,100.,100-100/(1+positive_flow/negative_flow)],abs=1e-12,rel=0)
 
 
 def test_percentile_linear_interpolation_uses_hazen_interpolation() -> None:
@@ -566,7 +569,8 @@ def test_percentile_linear_interpolation_uses_hazen_interpolation() -> None:
     )
 
     assert result.ok, result.error
-    assert _series_values(result, "PLI") == [71606.175]
+    assert _series_values(result, "PLI") == pytest.approx(
+        [0.25*71571.+0.75*71617.9],abs=1e-12,rel=0)
 
 
 def test_supertrend_uses_pine_initial_direction_and_first_atr_band() -> None:
@@ -634,17 +638,16 @@ plot(highestbars(close, 3), "Top Level Highest Bars")
     )
 
     assert result.ok, result.error
-    assert _series_values(result, "Highest Bars") == [0.0, -1.0, 0.0, 0.0, -1.0, -2.0, -1.0]
-    assert _series_values(result, "Lowest Bars") == [0.0, 0.0, -1.0, -2.0, 0.0, -1.0, 0.0]
+    assert _series_values(result, "Highest Bars") == [0.0, -1.0, -2.0, -2.0, -1.0]
+    assert _series_values(result, "Lowest Bars") == [-1.0, -2.0, 0.0, -1.0, 0.0]
+    assert [p["time"] for p in result.get_series("Highest Bars")] == [3, 4, 5, 6, 7]
     assert _series_values(result, "Bars Since") == [0.0, 0.0, 1.0, 0.0, 1.0]
     assert _series_values(result, "Last Condition Close") == [5.0, 5.0, 5.0, 4.0, 4.0]
     assert _series_values(result, "Previous Condition Close") == [5.0, 5.0, 5.0, 5.0]
     assert _series_values(result, "Top Level Highest Bars") == [
         0.0,
         -1.0,
-        0.0,
-        0.0,
-        -1.0,
+        -2.0,
         -2.0,
         -1.0,
     ]

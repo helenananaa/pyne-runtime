@@ -1,0 +1,14 @@
+{
+  "description": "Genuine installed rc25 semantics 30 checkpoint before single-observation dispersion correction; never relabeled.",
+  "packageVersion": "0.4.1rc25",
+  "semanticsVersion": 30,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round38-20261002\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "4e264c5a87e51bdc0f4d4b09eda925cd750369d61dc59b0f7586d11c4cea3190",
+  "sha256": {
+    "indicator.pyne": "f43b4817282c9b03aaafb3fad433e756ad3775271f2353a129b0562333910133",
+    "replay.json": "f01f554b37e8cbea7d93a80616e46e7f9959b8805815c8ebe3be3495d9456460",
+    "state.json": "f7d8c6f984d992eddea24f3bd74bb27c5613feca5c2d7fadd15f09cfa63e2883",
+    "bars.json": "9b5ee4f5c202c1466f950efe20dda33363d4ab42de23b85a3b05c00986e75ff7",
+    "committed-result.json": "2db32f268df92bd24ff06388c8e5ed28e2f909d9c69ebde47e0656b4db6d46ee"
+  }
+}

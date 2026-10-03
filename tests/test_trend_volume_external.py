@@ -29,7 +29,7 @@ def _assert_result(result, count):
         if title == "VWMA formula":
             continue  # independent Pine formula corroborates native VWMA
         expected = {
-            row["values"][0]: round(row["values"][col], 8)
+            row["values"][0]: row["values"][col]
             for row in CAPTURE["rows"][:count]
             if row["values"][col] is not None
         }

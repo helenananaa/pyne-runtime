@@ -104,18 +104,6 @@
   "expected_series": {
     "Stoch 4": [
       {
-        "time": 1,
-        "value": 66.66666667
-      },
-      {
-        "time": 2,
-        "value": 75.0
-      },
-      {
-        "time": 3,
-        "value": 80.0
-      },
-      {
         "time": 4,
         "value": 40.0
       },
@@ -756,6 +744,86 @@
       "TradingView export 2026-06-02, BINANCE:BTCUSDT.P 60m, copied from user-provided CSV BINANCE_BTCUSDT.P, 60_cfda5.csv",
       "Captured with isolated implicit OHLC and volume helpers from commit 5a9a058.",
       "Promoted to parity after aligning PLI and Supertrend semantics to the isolated TradingView reference."
+    ],
+    "known_differences": [
+      {
+        "plot": "Stoch 4",
+        "tradingview": {
+          "time": 1780315200,
+          "value": 45.83275551241215
+        },
+        "pyne": null,
+        "reason": "The legacy exporter masks source OHLCV before an interior chart window but retains preceding chart bars. Supplied input starts a new dataset and must satisfy initial lookback readiness. Fresh Pine v5 and v6 reproduce this exact captured startup value after sixteen missing source bars. The native origin witness is missing at this exact input index.",
+        "evidence": "tests/workloads/legacy_masked_history_context.tradingview.json; tests/workloads/legacy_masked_history_context_v5.tradingview.json; scripts/legacy_capture_context_diagnostic.py",
+        "classification": "capture_context_mismatch",
+        "contextWitness": {
+          "fixture": "ta_context_indicators.json",
+          "plot": "Stoch 4",
+          "tradingview": {
+            "time": 1780315200,
+            "value": 45.83275551241215
+          },
+          "pyne": null,
+          "tolerance": 1e-07,
+          "originalInputIndex": 0,
+          "nativeOrigin": null,
+          "nativeLeading": 45.83275551241215,
+          "nativeLeadingIndex": 16,
+          "outputKind": "native builtin"
+        }
+      },
+      {
+        "plot": "Stoch 4",
+        "tradingview": {
+          "time": 1780318800,
+          "value": 28.264569992704704
+        },
+        "pyne": null,
+        "reason": "The legacy exporter masks source OHLCV before an interior chart window but retains preceding chart bars. Supplied input starts a new dataset and must satisfy initial lookback readiness. Fresh Pine v5 and v6 reproduce this exact captured startup value after sixteen missing source bars. The native origin witness is missing at this exact input index.",
+        "evidence": "tests/workloads/legacy_masked_history_context.tradingview.json; tests/workloads/legacy_masked_history_context_v5.tradingview.json; scripts/legacy_capture_context_diagnostic.py",
+        "classification": "capture_context_mismatch",
+        "contextWitness": {
+          "fixture": "ta_context_indicators.json",
+          "plot": "Stoch 4",
+          "tradingview": {
+            "time": 1780318800,
+            "value": 28.264569992704704
+          },
+          "pyne": null,
+          "tolerance": 1e-07,
+          "originalInputIndex": 1,
+          "nativeOrigin": null,
+          "nativeLeading": 28.264569992704704,
+          "nativeLeadingIndex": 17,
+          "outputKind": "native builtin"
+        }
+      },
+      {
+        "plot": "Stoch 4",
+        "tradingview": {
+          "time": 1780322400,
+          "value": 16.08981113722951
+        },
+        "pyne": null,
+        "reason": "The legacy exporter masks source OHLCV before an interior chart window but retains preceding chart bars. Supplied input starts a new dataset and must satisfy initial lookback readiness. Fresh Pine v5 and v6 reproduce this exact captured startup value after sixteen missing source bars. The native origin witness is missing at this exact input index.",
+        "evidence": "tests/workloads/legacy_masked_history_context.tradingview.json; tests/workloads/legacy_masked_history_context_v5.tradingview.json; scripts/legacy_capture_context_diagnostic.py",
+        "classification": "capture_context_mismatch",
+        "contextWitness": {
+          "fixture": "ta_context_indicators.json",
+          "plot": "Stoch 4",
+          "tradingview": {
+            "time": 1780322400,
+            "value": 16.08981113722951
+          },
+          "pyne": null,
+          "tolerance": 1e-07,
+          "originalInputIndex": 2,
+          "nativeOrigin": null,
+          "nativeLeading": 16.08981113722951,
+          "nativeLeadingIndex": 18,
+          "outputKind": "native builtin"
+        }
+      }
     ]
   }
 }

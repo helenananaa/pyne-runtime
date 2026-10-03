@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pyne-runtime"
-version = "0.4.0"
+version = "0.4.1rc32"
 description = "Pine-style Python indicator runtime for OHLCV data."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -26,6 +26,7 @@ classifiers = [
 ]
 dependencies = [
   "numpy>=1.26",
+  "tzdata>=2024.1",
 ]
 
 [tool.pyne-runtime]

@@ -13,7 +13,8 @@ def test_ordinary_functions_skip_reflection_and_observe_code_replacement(monkeyp
     def forbidden(*args,**kwargs): raise AssertionError('ordinary callbacks need no reflection')
     monkeypatch.setattr(inspect,'signature',forbidden)
     invoke=PyneIncrementalSession._call_by_arity
-    for callback in (noargs,one,two,variadic): invoke(None,callback,'ctx','bar')
+    for callback in (noargs,one,two,variadic):
+        invoke(None,callback,'ctx','bar')
     assert calls==[(),('bar',),('ctx','bar'),('ctx','bar')]
     one.__code__=two.__code__
     invoke(None,one,'ctx','bar')
@@ -31,7 +32,9 @@ def test_signature_overrides_wrapped_and_callable_objects_keep_inspection(monkey
         def __call__(self,bar): calls.append((bar,))
     original=inspect.signature
     seen=[]
-    def spy(func): seen.append(func); return original(func)
+    def spy(func):
+        seen.append(func)
+        return original(func)
     monkeypatch.setattr(inspect,'signature',spy)
     for callback in (wrapped,custom,Callback(),partial(base,'bound')):
         PyneIncrementalSession._call_by_arity(None,callback,'ctx','bar')

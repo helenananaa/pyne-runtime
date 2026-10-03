@@ -63,7 +63,7 @@ def assemble_plot_namespace(
             for idx, (timestamp, value) in enumerate(zip(collector.times, values)):
                 if not get("_is_valid_value")(value):
                     continue
-                point = {"time": timestamp, "value": round(float(value), 8)}
+                point = {"time": timestamp, "value": float(value)}
                 point_color = get("_color_for_index")(
                     resolved_color_data,
                     idx,

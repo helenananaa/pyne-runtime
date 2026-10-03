@@ -1,0 +1,39 @@
+//@version=6
+indicator("Pyne correlation missing diagnostic 20261002",precision=10)
+int i = bar_index
+float source = float((i*7)%13-4)
+float holes = i==1 or i==7 or i==8 or i==12 or i==23 ? na : source
+float other = i==2 or i==7 or i==11 or i==12 or i==17 ? na : source
+float leading = i<5 ? na : source
+float flat = 5.0
+f(float x)=>str.tostring(x,"#.##########")
+f_formula(float x,float y,int p)=>
+    float numerator = ta.sma(x*y,p)-ta.sma(x,p)*ta.sma(y,p)
+    numerator/(ta.stdev(x,p)*ta.stdev(y,p))
+float c0 = ta.correlation(source,source,1)
+float h0 = f_formula(source,source,1)
+float c1 = ta.correlation(source,source,2)
+float h1 = f_formula(source,source,2)
+float c2 = ta.correlation(source,source,3)
+float h2 = f_formula(source,source,3)
+float c3 = ta.correlation(source,source,5)
+float h3 = f_formula(source,source,5)
+float c4 = ta.correlation(holes,source,3)
+float h4 = f_formula(holes,source,3)
+float c5 = ta.correlation(holes,holes,3)
+float h5 = f_formula(holes,holes,3)
+float c6 = ta.correlation(holes,other,3)
+float h6 = f_formula(holes,other,3)
+float c7 = ta.correlation(leading,source,3)
+float h7 = f_formula(leading,source,3)
+float c8 = ta.correlation(flat,source,3)
+float h8 = f_formula(flat,source,3)
+float c9 = ta.correlation(source,holes,3)
+float h9 = f_formula(source,holes,3)
+var string rows = ""
+if i<32
+    rows += "PYNE_CORRELATION_MISSING|"+str.tostring(i)+"|"+f(source)+"|"+f(holes)+"|"+f(other)+"|"+f(leading)+"|"+f(flat)+"|"+f(c0)+"|"+f(h0)+"|"+f(c1)+"|"+f(h1)+"|"+f(c2)+"|"+f(h2)+"|"+f(c3)+"|"+f(h3)+"|"+f(c4)+"|"+f(h4)+"|"+f(c5)+"|"+f(h5)+"|"+f(c6)+"|"+f(h6)+"|"+f(c7)+"|"+f(h7)+"|"+f(c8)+"|"+f(h8)+"|"+f(c9)+"|"+f(h9)+";"
+    if i%8==7
+        log.info(rows)
+        rows := ""
+plot(c4,"Correlation missing probe")

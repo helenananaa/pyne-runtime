@@ -1,0 +1,7 @@
+indicator("DMI composed smoothing gap",mode="incremental")
+def on_bar(ctx,bar):
+    high=None if ctx.bar_index in (7,8) else bar.high
+    plus,minus,adx=ctx.ta.dmi("DMI",3,3).update(high,bar.low,bar.close)
+    ctx.plot("plus",plus)
+    ctx.plot("minus",minus)
+    ctx.plot("ADX",adx)

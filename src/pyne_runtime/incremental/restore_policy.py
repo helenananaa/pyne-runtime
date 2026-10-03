@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+from collections import deque
 from dataclasses import fields
 from typing import Any, Mapping
 
@@ -13,6 +14,7 @@ from ..collections import (
     PyneArray,
     PyneMap,
     PyneMatrix,
+    _ArraySliceStorage,
     _collection_depth,
 )
 from ..settings import PyneSettings
@@ -54,6 +56,67 @@ def _rebind_limit(value: int | None, old: int | None, new: int | None) -> int | 
     return value if new is None else min(value, new)
 
 
+def _validate_array_slice_graph(memo: dict[int, Any]) -> None:
+    # Validate references before any size/depth accessor can follow a malformed
+    # chain. Typed decoding restores attributes without running constructors.
+    # StateCell deepcopy deliberately shares confirmed history. Inspect that
+    # graph too: a decoded history is not trusted merely because it is frozen.
+    pending = list(memo.values())
+    seen: set[int] = set()
+    storages: list[_ArraySliceStorage] = []
+    while pending:
+        value = pending.pop()
+        if id(value) in seen:
+            continue
+        seen.add(id(value))
+        if isinstance(value, StateCell):
+            history = object.__getattribute__(value, "_StateCell__history")
+            pending.extend(history._raw_slice(slice(None), _STATE_HISTORY_TOKEN))
+            pending.append(value.value)
+        elif isinstance(value, _ArraySliceStorage):
+            storages.append(value)
+            pending.extend(vars(value).values())
+        elif isinstance(value, (PyneArray, PyneMap, PyneMatrix)):
+            if type(getattr(value, "_string_values", None)) is not bool:
+                kind = "array" if isinstance(value, PyneArray) else "map" if isinstance(value, PyneMap) else "matrix"
+                raise PynePortableSnapshotError(f"Snapshot {kind} string construction intent is invalid")
+            if isinstance(value, PyneMatrix):
+                width = getattr(value, "_column_count", None)
+                rows = getattr(value, "_values", None)
+                if (type(width) is not int or width < 0 or not isinstance(rows, list)
+                        or any(not isinstance(row, list) or len(row) != width for row in rows)):
+                    raise PynePortableSnapshotError("Snapshot matrix shape is invalid")
+            pending.extend(vars(value).values())
+        elif isinstance(value, dict):
+            pending.extend(value.values())
+        elif isinstance(value, (list, tuple, deque, set, frozenset)):
+            pending.extend(value)
+    validated: set[int] = set()
+    for value in storages:
+        if not isinstance(value, _ArraySliceStorage):
+            continue
+        current = value
+        path: set[int] = set()
+        while isinstance(current, _ArraySliceStorage):
+            identity = id(current)
+            if identity in path:
+                raise PynePortableSnapshotError("Snapshot array slice parent chain is recursive")
+            if identity in validated:
+                break
+            path.add(identity)
+            attributes = vars(current)
+            if set(attributes) != {"parent", "start", "stop"}:
+                raise PynePortableSnapshotError("Snapshot array slice fields are invalid")
+            start, stop = current.start, current.stop
+            if (type(start) is not int or type(stop) is not int or start < 0 or stop < start
+                    or not isinstance(current.parent, PyneArray)):
+                raise PynePortableSnapshotError("Snapshot array slice bounds or parent are invalid")
+            current = getattr(current.parent, "_values", None)
+            if not isinstance(current, (list, _ArraySliceStorage)):
+                raise PynePortableSnapshotError("Snapshot array slice parent storage is invalid")
+        validated.update(path)
+
+
 def rebind_restored_budgets(
     memo: dict[int, Any],
     old: PyneSettings,
@@ -86,6 +149,7 @@ def rebind_restored_budgets(
                     "_StateCell__history",
                     _StateHistory(maxlen=history.maxlen, values=copied),
                 )
+    _validate_array_slice_graph(memo)
     seen: set[int] = set()
     for value in list(memo.values()):
         if id(value) in seen:

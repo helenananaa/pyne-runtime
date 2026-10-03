@@ -1,0 +1,27 @@
+//@version=6
+indicator("Pyne context foundation oracle 20260930",precision=10,max_bars_back=100)
+int i=bar_index
+[plus,minus,adx]=ta.dmi(3,3)
+float tr=ta.tr(true)
+float obv=ta.obv
+float vsma=ta.sma(volume,3)
+float vwap=ta.vwap(hlc3,i%8==0)
+float dcup=ta.highest(high,3)
+float dclow=ta.lowest(low,3)
+float dcmid=(dcup+dclow)/2
+float kcmid=ta.ema(close,3)
+float kcwidth=ta.atr(3)*1.5
+float kcup=kcmid+kcwidth
+float kclow=kcmid-kcwidth
+float vh=i==1 or i==7 or i==8 or i==12 or i==23 ? na : volume
+float obvholes=ta.cum(math.sign(ta.change(close))*vh)
+float vsholes=ta.sma(vh,3)
+[standardKcMid,standardKcUp,standardKcLow]=ta.kc(close,3,1.5,true)
+f(float x)=>str.tostring(x,"#.##########")
+var string rows=""
+if i<32
+    rows+="PYNE_CONTEXT_FOUNDATION|"+str.tostring(i)+"|"+f(float(time)/1000)+"|"+f(open)+"|"+f(high)+"|"+f(low)+"|"+f(close)+"|"+f(volume)+"|"+f(adx)+"|"+f(tr)+"|"+f(obv)+"|"+f(vsma)+"|"+f(vwap)+"|"+f(dcup)+"|"+f(dcmid)+"|"+f(dclow)+"|"+f(kcup)+"|"+f(kcmid)+"|"+f(kclow)+"|"+f(vh)+"|"+f(obvholes)+"|"+f(vsholes)+"|"+f(standardKcUp)+"|"+f(standardKcMid)+"|"+f(standardKcLow)+";"
+    if i%8==7
+        log.info(rows)
+        rows:=""
+plot(adx,"Context foundation oracle")

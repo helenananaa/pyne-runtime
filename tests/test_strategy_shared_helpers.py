@@ -39,7 +39,9 @@ def test_incremental_strategy_reuses_shared_order_helpers() -> None:
         limit=9.5,
         stop=10.5,
         same_bar_fill_priority=StrategySameBarPriority.limit_first,
-    ) == ("limit", 9.5)
+        order_state={},
+        close_price=10.0,
+    ) is None  # The low precedes activation on the selected path.
     assert orders._exit_trigger(
         current_position=1.0,
         open_price=10.0,

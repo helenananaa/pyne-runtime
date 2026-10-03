@@ -1,0 +1,9 @@
+# ruff: noqa: F821
+indicator("Extrema semantics six", mode="incremental")
+def init(ctx):
+    ctx.ta.highest("H", 3)
+    ctx.ta.highestbars("HB", 3)
+def on_bar(ctx, bar):
+    value = None if ctx.bar_index == 4 else float((ctx.bar_index // 2) % 3)
+    ctx.plot("H", ctx.ta.highest("H").update(value))
+    ctx.plot("HB", ctx.ta.highestbars("HB").update(value))

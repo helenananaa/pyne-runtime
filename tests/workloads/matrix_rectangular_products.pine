@@ -1,0 +1,47 @@
+//@version=6
+indicator("Pyne rectangular matrix products 20261002",overlay=false)
+f(float v) => str.tostring(v,"#.##########")
+flat(matrix<float> m,int k) => k < matrix.elements_count(m) ? matrix.get(m,int(k / matrix.columns(m)),k % matrix.columns(m)) : float(na)
+var string rows = ""
+if bar_index < 24
+    int c = bar_index % 12
+    int h = c == 1 or c == 3 ? 3 : c == 2 or c == 5 ? 1 : 2
+    int w = c == 1 or c == 4 or c == 5 ? 2 : c == 3 ? 1 : 3
+    int u = c == 1 or c == 3 or c == 5 ? 3 : c == 2 or c == 4 ? 1 : 2
+    matrix<float> a = matrix.new<float>(h,w,0.0)
+    matrix<float> b = matrix.new<float>(w,u,0.0)
+    for r = 0 to h-1
+        for k = 0 to w-1
+            float v = c == 9 ? 0.0 : ((r*w+k) % 7-3) / 2.0
+            if c == 8 or ((c == 6 or c == 10) and r == 0 and k == 0) or (c == 11 and r == 1 and k == 2)
+                v := float(na)
+            matrix.set(a,r,k,v)
+    for r = 0 to w-1
+        for k = 0 to u-1
+            float v = c == 10 ? 0.0 : ((r*u+k) % 5-2) * 2.0
+            if c == 8 or ((c == 7 or c == 9) and r == 0 and k == 0) or (c == 11 and r == 2 and k == 1)
+                v := float(na)
+            matrix.set(b,r,k,v)
+    matrix<float> p = matrix.mult(a,b)
+    matrix<float> reverse = matrix.mult(matrix.transpose(b),matrix.transpose(a))
+    rows += "PYNE_MATRIX_RECTANGULAR_PRODUCTS|"+str.tostring(bar_index)+"|"+f(c)
+    rows += "|"+f(matrix.rows(p))+"|"+f(matrix.columns(p))
+    for k = 0 to 8
+        rows += "|"+f(flat(p,k))
+    rows += "|"+f(matrix.rows(reverse))+"|"+f(matrix.columns(reverse))
+    for k = 0 to 8
+        rows += "|"+f(flat(reverse,k))
+    rows += "|"+f(flat(a,0))+"|"+f(flat(b,0))
+    matrix<float> cp = matrix.copy(p)
+    matrix<float> alias = p
+    matrix.set(p,0,0,100.0+c)
+    rows += "|"+f(flat(a,0))+"|"+f(flat(b,0))
+    matrix.set(reverse,0,0,200.0+c)
+    rows += "|"+f(flat(a,0))+"|"+f(flat(b,0))
+    matrix.reshape(p,1,h*u)
+    rows += "|"+f(matrix.rows(p))+"|"+f(matrix.columns(p))+"|"+f(matrix.rows(alias))+"|"+f(matrix.columns(alias))
+    rows += "|"+f(flat(alias,0))+"|"+f(flat(alias,h*u-1))+"|"+f(flat(cp,0))+"|"+f(flat(cp,h*u-1))+";"
+    if bar_index % 6 == 5
+        log.info(rows)
+        rows := ""
+plot(float(na),"Rectangular matrix probe")

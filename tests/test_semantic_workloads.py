@@ -132,10 +132,10 @@ def test_ta_chain_matches_tradingview_whole_script_capture(name):
     data = bars()
     actual = points(pn.run(script(name), data, settings=settings()))
     for column, title in enumerate(capture["columns"][1:], 1):
-        # Public plot transport rounds to 8 decimals in both modes; retain the
-        # original 10-decimal Pine logs and compare at the declared wire precision.
+        # Compare the original native calculation values at the captured
+        # tolerance; display formatting must not truncate numeric output.
         expected = {
-            row["index"] * 10: round(row["values"][column], 8)
+            row["index"] * 10: row["values"][column]
             for row in rows
             if row["values"][column] is not None
         }

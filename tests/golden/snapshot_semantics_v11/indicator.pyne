@@ -1,0 +1,5 @@
+indicator("Snapshot semantics", mode="incremental")
+def init(ctx):
+    ctx.ta.ema("ema", period=3)
+def on_bar(ctx, bar):
+    ctx.plot("EMA", ctx.ta.ema("ema").update(bar.close))

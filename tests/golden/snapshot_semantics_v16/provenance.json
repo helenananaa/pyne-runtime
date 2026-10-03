@@ -1,0 +1,12 @@
+{
+  "description": "Real installed semantics-16 snapshots before stateful stop-limit correction; no relabeling.",
+  "packageVersion": "0.4.1rc11",
+  "semanticsVersion": 16,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round16-20261001\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "b9ddf8cb3bdd2e8a3c7885d082a2f11644fe921df9c2738784a6c73c5b62bd8f",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "cf6f55166e1f3e9669abd8fa0df13fef309019fcfd36a63543fc5b2e32c97198",
+    "state.json": "24064b67b4ac98c72efdbb26257db64633237f1a5c4e6845406d0324f0b64518"
+  }
+}

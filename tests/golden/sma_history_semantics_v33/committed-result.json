@@ -1,0 +1,143 @@
+{
+  "ok": true,
+  "error": null,
+  "code": null,
+  "line": null,
+  "column": null,
+  "hint": null,
+  "lines": [
+    {
+      "id": "sma2",
+      "name": "SMA2",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 60,
+          "value": 1.2089258196146292e+24
+        },
+        {
+          "time": 120,
+          "value": 1.2089258196146292e+24
+        },
+        {
+          "time": 180,
+          "value": 6.044629098073146e+23
+        },
+        {
+          "time": 240,
+          "value": 0.0
+        }
+      ]
+    },
+    {
+      "id": "bb2",
+      "name": "BB2",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 60,
+          "value": 1.2089258196146292e+24
+        },
+        {
+          "time": 120,
+          "value": 1.2089258196146292e+24
+        },
+        {
+          "time": 180,
+          "value": 6.044629098073146e+23
+        },
+        {
+          "time": 240,
+          "value": 2.0
+        }
+      ]
+    }
+  ],
+  "output": {
+    "lines": [
+      {
+        "id": "sma2",
+        "title": "SMA2",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 60,
+            "value": 1.2089258196146292e+24
+          },
+          {
+            "time": 120,
+            "value": 1.2089258196146292e+24
+          },
+          {
+            "time": 180,
+            "value": 6.044629098073146e+23
+          },
+          {
+            "time": 240,
+            "value": 0.0
+          }
+        ]
+      },
+      {
+        "id": "bb2",
+        "title": "BB2",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 60,
+            "value": 1.2089258196146292e+24
+          },
+          {
+            "time": 120,
+            "value": 1.2089258196146292e+24
+          },
+          {
+            "time": 180,
+            "value": 6.044629098073146e+23
+          },
+          {
+            "time": 240,
+            "value": 2.0
+          }
+        ]
+      }
+    ]
+  },
+  "param_schema": [],
+  "meta": {
+    "title": "SMA lost small tail",
+    "overlay": true,
+    "mode": "incremental",
+    "bar_index": 4,
+    "last_bar_index": 4,
+    "barstate": {
+      "isfirst": false,
+      "islast": true,
+      "ishistory": true,
+      "isrealtime": false,
+      "isnew": true,
+      "isconfirmed": true,
+      "islastconfirmedhistory": true
+    },
+    "retentionBars": null,
+    "retainedBars": 5,
+    "totalCommittedBars": 5,
+    "snapshotVersion": 3
+  }
+}

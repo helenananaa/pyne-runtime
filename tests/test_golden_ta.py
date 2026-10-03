@@ -40,7 +40,11 @@ def test_ta_golden_fixture(fixture_name: str) -> None:
 
     assert result.ok, result.error
     for name, expected in fixture.get("expected_series", {}).items():
-        _assert_series_matches(result.get_series(name), expected)
+        # Retained project goldens describe the legacy eight-decimal plot
+        # presentation. Native comparisons below consume raw values unchanged;
+        # exact raw payloads have separate precision-contract tests.
+        legacy = [{**point,"value":round(point['value'],8)} for point in result.get_series(name)]
+        _assert_series_matches(legacy, expected)
     _assert_external_capture(fixture)
 
 
@@ -88,8 +92,18 @@ def _assert_external_capture(fixture: dict[str, Any]) -> None:
     plot_tolerances = capture.get("plot_tolerances", {})
     for name, expected in capture.get("series", {}).items():
         tolerance = float(plot_tolerances.get(name, default_tolerance))
+        actual = result.get_series(name)
+        for known in capture.get("known_differences", []):
+            if known["plot"] != name:
+                continue
+            assert known["reason"] and known["evidence"]
+            assert known["tradingview"] in expected
+            timestamp = known["tradingview"]["time"]
+            assert next((point for point in actual if point["time"] == timestamp), None) == known["pyne"]
+            expected = [point for point in expected if point["time"] != timestamp]
+            actual = [point for point in actual if point["time"] != timestamp]
         _assert_series_matches(
-            result.get_series(name),
+            actual,
             expected,
             abs_tol=tolerance,
             allow_actual_extra_keys=True,

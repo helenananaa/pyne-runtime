@@ -1,0 +1,116 @@
+//@version=6
+indicator("Pyne matrix missing reshape 20261002",overlay=false)
+f(float v) => str.tostring(v,"#.##########")
+flat(matrix<float> m,int k) => k < matrix.elements_count(m) ? matrix.get(m,int(k / matrix.columns(m)),k % matrix.columns(m)) : float(na)
+var string rows = ""
+if bar_index < 16
+    int c = bar_index % 8
+    array<float> av = switch c
+        0 => array.from(1.0,2.0,3.0,4.0)
+        1 => array.from(1.0,float(na),3.0,4.0)
+        2 => array.from(float(na),float(na),float(na),float(na))
+        3 => array.from(0.0,-2.0,0.0,5.0)
+        4 => array.from(1.0,2.0,3.0,4.0)
+        5 => array.from(0.5,-1.5,2.0,-3.0)
+        6 => array.from(float(na),2.0,3.0,float(na))
+        7 => array.from(0.0,0.0,0.0,0.0)
+        => array.new_float(4)
+    array<float> bv = switch c
+        0 => array.from(2.0,0.0,1.0,2.0)
+        1 => array.from(2.0,0.0,1.0,2.0)
+        2 => array.from(2.0,0.0,1.0,2.0)
+        3 => array.from(float(na),1.0,2.0,0.0)
+        4 => array.from(2.0,0.0,1.0,2.0)
+        5 => array.from(1.0,2.0,-2.0,1.0)
+        6 => array.from(2.0,float(na),1.0,2.0)
+        7 => array.from(1.0,0.0,0.0,1.0)
+        => array.new_float(4)
+    float s = switch c
+        0 => 2.0
+        1 => 2.0
+        2 => 2.0
+        3 => 2.0
+        4 => float(na)
+        5 => 0.0
+        6 => -2.0
+        7 => -1.0
+        => 2.0
+    matrix<float> a = matrix.new<float>(2,2)
+    matrix<float> b = matrix.new<float>(2,2)
+    for k = 0 to 3
+        matrix.set(a,int(k/2),k%2,array.get(av,k))
+        matrix.set(b,int(k/2),k%2,array.get(bv,k))
+    rows += "PYNE_MATRIX|"+str.tostring(bar_index)+"|"+f(c)
+    rows += "|"+f(flat(a,0))
+    rows += "|"+f(flat(a,1))
+    rows += "|"+f(flat(a,2))
+    rows += "|"+f(flat(a,3))
+    rows += "|"+f(flat(b,0))
+    rows += "|"+f(flat(b,1))
+    rows += "|"+f(flat(b,2))
+    rows += "|"+f(flat(b,3))
+    rows += "|"+f(s)+"|"+f(matrix.avg(a))+"|"+f(matrix.min(a))+"|"+f(matrix.max(a))
+    matrix<float> op0 = matrix.sum(a,s)
+    rows += "|"+f(flat(op0,0))
+    rows += "|"+f(flat(op0,1))
+    rows += "|"+f(flat(op0,2))
+    rows += "|"+f(flat(op0,3))
+    rows += "|1"
+    matrix<float> op1 = matrix.diff(a,s)
+    rows += "|"+f(flat(op1,0))
+    rows += "|"+f(flat(op1,1))
+    rows += "|"+f(flat(op1,2))
+    rows += "|"+f(flat(op1,3))
+    rows += "|1"
+    matrix<float> op2 = matrix.mult(a,s)
+    rows += "|"+f(flat(op2,0))
+    rows += "|"+f(flat(op2,1))
+    rows += "|"+f(flat(op2,2))
+    rows += "|"+f(flat(op2,3))
+    rows += "|1"
+    matrix<float> op3 = matrix.sum(a,b)
+    rows += "|"+f(flat(op3,0))
+    rows += "|"+f(flat(op3,1))
+    rows += "|"+f(flat(op3,2))
+    rows += "|"+f(flat(op3,3))
+    rows += "|1"
+    matrix<float> op4 = matrix.diff(a,b)
+    rows += "|"+f(flat(op4,0))
+    rows += "|"+f(flat(op4,1))
+    rows += "|"+f(flat(op4,2))
+    rows += "|"+f(flat(op4,3))
+    rows += "|1"
+    matrix<float> op5 = matrix.mult(a,b)
+    rows += "|"+f(flat(op5,0))
+    rows += "|"+f(flat(op5,1))
+    rows += "|"+f(flat(op5,2))
+    rows += "|"+f(flat(op5,3))
+    rows += "|1"
+    matrix<float> t = matrix.transpose(a)
+    rows += "|"+f(flat(t,0))
+    rows += "|"+f(flat(t,1))
+    rows += "|"+f(flat(t,2))
+    rows += "|"+f(flat(t,3))
+    matrix<float> r = matrix.copy(a)
+    matrix<float> alias = r
+    matrix.reshape(r,1,4)
+    rows += "|"+f(matrix.rows(r))+"|"+f(matrix.columns(r))
+    rows += "|"+f(flat(r,0))
+    rows += "|"+f(flat(r,1))
+    rows += "|"+f(flat(r,2))
+    rows += "|"+f(flat(r,3))
+    rows += "|"+f(matrix.rows(alias))+"|"+f(matrix.columns(alias))+"|"+f(flat(alias,3))
+    matrix.reshape(r,4,1)
+    rows += "|"+f(matrix.rows(r))+"|"+f(matrix.columns(r))+"|"+f(flat(r,3))
+    array<float> row0 = matrix.row(a,0)
+    array<float> col0 = matrix.col(a,0)
+    array.set(row0,0,1000)
+    rows += "|"+f(matrix.get(a,0,0))
+    array.set(col0,0,2000)
+    rows += "|"+f(matrix.get(a,0,0))
+    matrix.set(r,0,0,3000)
+    rows += "|"+f(matrix.get(a,0,0))+";"
+    if bar_index % 4 == 3
+        log.info(rows)
+        rows := ""
+plot(float(na),"Native matrix probe")

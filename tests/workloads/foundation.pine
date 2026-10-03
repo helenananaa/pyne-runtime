@@ -1,0 +1,37 @@
+//@version=6
+indicator("Pyne foundation oracle 20260930",precision=10,max_bars_back=100)
+int i=bar_index
+float s=float((i*7)%13-4)
+float holes=i==1 or i==7 or i==8 or i==12 or i==23 ? na : s
+float leading=i<4 ? na : s
+float empty=na
+float b=float((i*3)%7-2)
+float bholes=i==2 or i==7 or i==13 or i==23 ? na : b
+float zeros=i%5==0 ? 0 : s
+float v0=ta.change(s,1)
+float v1=ta.change(holes,3)
+float v2=ta.mom(holes,3)
+float v3=ta.roc(s,1)
+float v4=ta.roc(holes,3)
+float v5=ta.roc(zeros,3)
+float v6=ta.cum(s)
+float v7=ta.cum(holes)
+float v8=ta.cum(leading)
+float v9=ta.cum(empty)
+float v10=nz(holes)
+float v11=nz(leading,7)
+float v12=holes[3]
+float v13=leading[2]
+float v14=ta.cross(s,b) ? 1 : 0
+float v15=ta.cross(holes,bholes) ? 1 : 0
+float v16=ta.crossunder(s,b) ? 1 : 0
+float v17=ta.crossunder(holes,bholes) ? 1 : 0
+float v18=ta.crossover(holes,bholes) ? 1 : 0
+f(float x)=>str.tostring(x,"#.##########")
+var string rows=""
+if i<32
+    rows+="PYNE_FOUNDATION|"+str.tostring(i)+"|"+f(s)+"|"+f(holes)+"|"+f(leading)+"|"+f(empty)+"|"+f(b)+"|"+f(bholes)+"|"+f(zeros)+"|"+f(v0)+"|"+f(v1)+"|"+f(v2)+"|"+f(v3)+"|"+f(v4)+"|"+f(v5)+"|"+f(v6)+"|"+f(v7)+"|"+f(v8)+"|"+f(v9)+"|"+f(v10)+"|"+f(v11)+"|"+f(v12)+"|"+f(v13)+"|"+f(v14)+"|"+f(v15)+"|"+f(v16)+"|"+f(v17)+"|"+f(v18)+";"
+    if i%8==7
+        log.info(rows)
+        rows:=""
+plot(v0,"Foundation oracle")

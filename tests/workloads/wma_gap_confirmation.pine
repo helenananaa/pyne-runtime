@@ -1,0 +1,25 @@
+//@version=6
+indicator("Pyne WMA gap confirmation 20260930", precision=10)
+int i = bar_index
+float src = float((i * 7) % 13 - 4)
+float holes = i == 1 or i == 7 or i == 8 or i == 12 or i == 23 ? na : src
+float filled = fixnan(holes)
+float actual3 = ta.wma(holes, 3)
+float filled3 = ta.wma(filled, 3)
+float expected3 = na(holes) ? na : filled3
+float actual5 = ta.wma(holes, 5)
+float filled5 = ta.wma(filled, 5)
+float expected5 = na(holes) ? na : filled5
+float actualH = ta.hma(holes, 7)
+float first = ta.wma(holes, 3)
+float actualN = ta.wma(first, 3)
+float filledN = ta.wma(fixnan(first), 3)
+float expectedN = na(first) ? na : filledN
+f(float x) => str.tostring(x, "#.##########")
+var string rows = ""
+if i < 32
+    rows += "PYNE_WMA_CONFIRM|" + str.tostring(i) + "|" + f(holes) + "|" + f(filled) + "|" + f(actual3) + "|" + f(expected3) + "|" + f(actual5) + "|" + f(expected5) + "|" + f(actualN) + "|" + f(expectedN) + ";"
+    if i % 8 == 7
+        log.info(rows)
+        rows := ""
+plot(actual3, "WMA gap confirmation")

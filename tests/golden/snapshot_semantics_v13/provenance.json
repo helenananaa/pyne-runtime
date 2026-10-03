@@ -1,0 +1,12 @@
+{
+  "description": "Real installed semantics-13 snapshots before batch carried-pending phase correction; no relabeling.",
+  "packageVersion": "0.4.1rc8",
+  "semanticsVersion": 13,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round11-20261001\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "4ca5053247499a5e884898356b235916707851b100722b3a07b8457143551f5c",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "29692f9e180f6c8d89995967a8a9ef5508708d80ad77ed2cb497f43acdaa74ff",
+    "state.json": "34793fe5f24535f11a508dad38f94043286f17007c5ddfb7879486c9d6082fb7"
+  }
+}

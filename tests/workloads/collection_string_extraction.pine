@@ -1,0 +1,61 @@
+//@version=6
+indicator("Pyne collection string extraction 20261002",overlay=false)
+f(float v) => str.tostring(v,"#.##########")
+var string rows = ""
+if bar_index < 16
+    int c = bar_index % 8
+    matrix<string> m = matrix.new<string>(2,2)
+    if c == 1
+        matrix.fill(m,"alpha")
+        matrix.fill(m,string(na))
+    else if c == 2
+        matrix.set(m,0,0,"alpha")
+        matrix.set(m,0,0,string(na))
+    else if c == 3
+        matrix.fill(m,"猫")
+    else if c == 4
+        matrix.set(m,0,0,"a\"b")
+        matrix.set(m,1,1,"β")
+    else if c == 5
+        matrix.fill(m,"")
+    else if c == 6
+        matrix.set(m,0,1,"NaN")
+    else if c == 7
+        matrix.fill(m,"x")
+        matrix.fill(m,string(na))
+    array<string> r = matrix.row(m,0)
+    array<string> k = matrix.col(m,1)
+    matrix<string> copied = matrix.copy(m)
+    matrix<string> transposed = matrix.transpose(m)
+    rows += "TV_COLLECTION_TEXT|"+str.tostring(bar_index)+"|Matrix row|"+array.join(r,"|")+";"
+    rows += "TV_COLLECTION_TEXT|"+str.tostring(bar_index)+"|Matrix col|"+array.join(k,"|")+";"
+    rows += "TV_COLLECTION_TEXT|"+str.tostring(bar_index)+"|Matrix copy|"+array.join(matrix.row(copied,0),"|")+";"
+    rows += "TV_COLLECTION_TEXT|"+str.tostring(bar_index)+"|Matrix transpose|"+array.join(matrix.row(transposed,1),"|")+";"
+    matrix.reshape(copied,1,4)
+    rows += "TV_COLLECTION_TEXT|"+str.tostring(bar_index)+"|Matrix reshape|"+array.join(matrix.row(copied,0),"|")+";"
+    array.set(r,0,"row edit")
+    array.set(k,0,"col edit")
+    bool rowDetached = matrix.get(m,0,0) != "row edit"
+    bool colDetached = matrix.get(m,0,1) != "col edit"
+    matrix.set(copied,0,0,"copy edit")
+    bool copyDetached = matrix.get(m,0,0) != "copy edit"
+    map<int,string> d = map.new<int,string>()
+    map.put(d,0,"seed")
+    map.put(d,1,"other")
+    if c == 7
+        map.clear(d)
+    map.put(d,0,c == 3 ? "猫" : c == 4 ? "a\"b" : c == 5 ? "" : string(na))
+    map.put(d,1,c == 3 ? "猫" : c == 4 ? "β" : c == 5 ? "" : c == 6 ? "NaN" : string(na))
+    map<int,string> dc = map.copy(d)
+    array<string> values = map.values(d)
+    rows += "TV_COLLECTION_TEXT|"+str.tostring(bar_index)+"|Map values|"+array.join(values,"|")+";"
+    rows += "TV_COLLECTION_TEXT|"+str.tostring(bar_index)+"|Map copy|"+array.join(map.values(dc),"|")+";"
+    array.set(values,0,"map edit")
+    bool mapDetached = map.get(d,0) != "map edit"
+    matrix<bool> flags = c % 2 == 0 ? matrix.new<bool>(2,2) : matrix.new<bool>(2,2,true)
+    rows += "PYNE_COLLECTION_EXTRACTION|"+str.tostring(bar_index)+"|"+f(c)+"|"+f(matrix.get(flags,0,0) ? 1 : 0)+"|"+f(matrix.get(flags,1,1) ? 1 : 0)
+    rows += "|"+f(matrix.rows(m))+"|"+f(matrix.columns(m))+"|"+f(rowDetached ? 1 : 0)+"|"+f(colDetached ? 1 : 0)+"|"+f(mapDetached ? 1 : 0)+"|"+f(copyDetached ? 1 : 0)+";"
+    if bar_index % 8 == 7
+        log.info(rows)
+        rows := ""
+plot(float(na),"Native collection extraction probe")

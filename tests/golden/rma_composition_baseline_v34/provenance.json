@@ -1,0 +1,14 @@
+{
+  "packageVersion": "0.4.1rc29",
+  "semanticsVersion": 34,
+  "wheelSha256": "533e9b4dfacc61d49bd4ac6e0ee436d5af76e25c319162064b2541d4065e920e",
+  "sha256": "a2a8e27c8a1fd9331daadcdf34dad71a7431c4543e68afde383cd290dc589871",
+  "qualification": "Actual old installed wheel output; controlled composition preservation only, not native agreement.",
+  "inputs": {
+    "high": "arange(16)+4 with indices 7:9 missing",
+    "low": "arange(16)+2",
+    "close": "arange(16)+3",
+    "period": 3,
+    "adxPeriod": 3
+  }
+}

@@ -4,6 +4,27 @@ Pyne is a Python runtime with Pine-like semantics. It does not run TradingView
 Pine source code directly. This matrix tracks the supported mental model, the
 Pyne API surface, and the test/doc evidence behind each claim.
 
+The [weighted-window capture](../development/weighted_boundaries_acceptance_zh.md)
+adds native WMA/HMA gap and composition evidence. WMA warmup counts real samples;
+later gaps carry the last input inside its bar window while emitting no value on
+the missing bar. The current unreleased computation semantics is 30.
+
+The [oscillator capture](../development/oscillator_boundaries_acceptance_zh.md)
+adds CMO missing/flat evidence and Stochastic missing/zero-range transitions.
+Stochastic's initial available-history values remain different from native
+dataset-origin warmup. Semantics 30 qualifies the retained missing and constant
+correlation columns through independent present-observation moments. Stable
+centered Pearson remains the coherent finite-window calculation; shifted and
+large-offset native disagreements are counted in the expanded correlation probes.
+
+The [extrema capture](../development/extrema_boundaries_acceptance_zh.md) adds
+native gap-reset, earliest-tie and missing bars-back evidence, plus normal-input
+percentile formulas. Batch extrema available-history startup differs from native
+dataset-origin warmup and incremental highest/lowest startup. Missing-input
+percentile order state is qualified by four native fixtures and a separately
+frozen-model holdout; infinity inputs retain a Python-only contract. Only the
+documented comparison regions and columns are parity assertions.
+
 Current capability status, explicit limits, and validation evidence are tracked
 in [Current Project Status](current_status.md). Future priorities are maintained
 in the [Python package long-term direction](../development/python_package_long_term_plan_zh.md).
@@ -43,7 +64,7 @@ parity-tested, and Pyne's stable results are checked against centered arithmetic
 | Time helpers | `time[1]`, `time("60")`, `time("", "0930-1600:23456", "America/New_York")`, `time("1D", bars_back=2, timeframe_bars_back=1)`, `time.year()`, `time.hour(time, "+08:00")`, `time.timestamp(2024, 1, 2)`, `time.format(...)`, `dayofweek == dayofweek.monday` | Supported | `time` and `dayofweek` remain series-like objects; timestamps are interpreted as seconds unless they look like milliseconds; current-timeframe calls preserve host bar opens, while derived higher-timeframe opens use calendar/24x7 boundaries and do not reconstruct exchange-session-specific bar opens from a ticker string | `tests/test_time_runtime.py` | `docs/api/time.md` |
 | Colors | `color.rgb(255, 128, 0)`, `color.new(color.green, 80)`, `color.r(color.blue)`, `color.t(series_color)`, `color.from_gradient(rsi, 0, 100, color.red, color.green)` | Supported | Colors serialize as CSS hex or `rgba(...)` strings; channel accessors support scalar and series colors; host renderers own final display semantics | `tests/test_color_runtime.py` | `docs/api/color.md` |
 | Math helpers | `math.sum(close, 20)`, `math.max(high, close, open)`, `math.min(low, close, open)`, `math.avg(open, high, low, close)`, `math.round(close, precision=2)`, `math.trunc(close)`, `math.fixnan(close)`, `math.round_to_mintick(close)`, `math.random(0, 1, seed=42)` | Supported | `math.fixnan()` carries the latest non-`na` value forward while preserving leading missing values; `math.random()` is runtime-local randomness rather than TradingView engine state; `round_to_mintick()` uses `PyneSettings.syminfo.mintick` | `tests/test_math_runtime.py` | `docs/api/math.md` |
-| Core TA | `ta.sma`, `ta.ema`, `ta.rma`, `ta.rsi`, `ta.macd`, `ta.bb`, `ta.atr` | Supported | All 10 committed TA capture fixtures are TradingView parity-gated with 0 diff across 104 plots and 1,353 checked points; numerical parity remains best-effort outside covered fixtures; MACD histogram follows Pine's `macd - signal` tuple value; `ta.bb` returns `middle, upper, lower` | `tests/test_ta_runtime.py`, `tests/test_golden_ta.py`, `tests/test_ta_capture_*.py` | `docs/api/ta.md`, `docs/development/non_strategy_capture_plan_zh.md` |
+| Core TA | `ta.sma`, `ta.ema`, `ta.rma`, `ta.rsi`, `ta.macd`, `ta.bb`, `ta.atr` | Supported | All 10 committed TA capture fixtures retain imported TradingView records across 104 plots and 1,353 checked points, with one disclosed chart-history startup difference and 32 unresolved unexpected startup conflicts; original source/log and prior history are not independently retained, so the parity gate fails and these records do not qualify this candidate; numerical parity remains best-effort outside covered fixtures; MACD histogram follows Pine's `macd - signal` tuple value; `ta.bb` returns `middle, upper, lower` | `tests/test_ta_runtime.py`, `tests/test_golden_ta.py`, `tests/test_ta_capture_*.py` | `docs/api/ta.md`, `docs/development/non_strategy_capture_plan_zh.md` |
 | Expanded TA | `ta.alma`, `ta.hma`, `ta.swma`, `ta.dmi`, `ta.sar`, `ta.stoch`, `ta.cci`, `ta.mfi`, `ta.vwma`, `ta.vwap`, `vwap`, `ta.pivot_point_levels`, `ta.supertrend`, `ta.highestbars`, `ta.lowestbars`, `ta.barssince`, `ta.valuewhen`, percentiles | Supported | The current TradingView capture set covers trend switches, oscillator/statistics edges, tuple outputs, and warm-up boundaries; `ta.vwap` and all six pivot-point formula families have deterministic semantic tests but no imported TradingView capture yet; context-aware helper signatures use Pine-like argument order; inputs and functions outside committed captures remain best-effort | `tests/test_ta_runtime.py`, `tests/test_golden_ta.py`, `tests/test_ta_capture_*.py` | `docs/api/ta.md`, `docs/development/non_strategy_capture_plan_zh.md` |
 | Incremental TA | `ctx.ta.adx/alma/atr/barssince/bb/boll/cci/change/cross/crossover/crossunder/cum/dev/dmi/ema/highest/highestbars/hma/lowest/lowestbars/macd/mfi/pivot_point_levels/pivothigh/pivotlow/rma/rsi/sar/sma/stdev/stoch/supertrend/swma/tr/valuewhen/variance/vwap/vwma/wma` | Partial | These 39 scalar helpers have explicit state and resource bounds, batch parity, and portable-restore coverage; other batch `ta.*` members fail early when statically visible instead of being implied by namespace similarity | `tests/test_incremental.py`, `tests/test_incremental_ta_demand.py`, `tests/test_incremental_ta_expansion.py`, `tests/test_incremental_ta_phase2.py`, `tests/test_runtime_capabilities.py` | `docs/concepts/incremental_runtime.md`, `docs/api/capabilities.md` |
 | Pinned external library | `pine_library("TradingView/ta/10").atr2/cagr/changePercent/ema2/highestSince/lowestSince/requestUpAndDownVolume/requestVolumeDelta/rma2` | Partial | The adapter is batch-only; only the pinned version and nine allowlisted members are implemented; only volume members require authoritative host lower-timeframe data; the three dynamic-length additions have deterministic semantic tests but no imported TradingView capture yet; unknown identifiers fail closed | `tests/test_render_ir_v2.py`, `tests/test_runtime_capabilities.py` | `docs/api/pine_libraries.md`, `docs/api/capabilities.md` |
@@ -70,3 +91,61 @@ parity-tested, and Pyne's stable results are checked against centered arithmetic
 - Keep replay-v1 and typed-state-v2 portable snapshots bounded and fail closed;
   distributed session ownership, provider lifecycle, and storage orchestration
   remain host work.
+
+
+The `collection_string_extraction` native scalar probe adds eight fixed matrix/map
+string profiles and two Boolean matrix constructors. Semantics 28 retains string
+conversion intent through extraction and committed/restored collection state;
+Boolean matrices default to false. Its 224 exact text cells remain separate from
+numeric cells and earlier join text. Broader collection types, shape/bounds,
+reference-valued extraction, and initially-all-missing generic map intent remain
+unqualified; Python extensions do not imply Pine typing equivalence. Genuine
+semantics-27 checkpoints require rebuilding from authoritative supplied OHLCV.
+
+
+The `matrix_empty_shapes` native probe qualifies eight fixed empty shape and
+reshape profiles, scalar arithmetic and degenerate products. Computation
+semantics 29 retains matrix width when no rows exist, including committed
+history and restore. Genuine semantics-28 snapshots must be rebuilt from supplied
+OHLCV. Eight fixed profiles and 1,152 numeric cells do not establish full matrix
+shape/type/parameter coverage; the cumulative alignment goal remains active.
+
+The `matrix_rectangular_products` investigation adds twelve fixed float profiles
+with 1,728 numeric output cells across two modes and zero differences. Three
+separate dimension-error witnesses cover one invalid multiplication and two
+elementwise shape mismatches. This adds measured examples to the existing
+collection surface, without granting full type, dimension, numerical conditioning
+or rejection-boundary coverage; that historical slice kept semantics 29 and Goal active.
+
+Complete direction/percentile fixtures can execute through generic full-Python
+callbacks that retain history and call batch TA. This route has measured native
+output and independent preview/restore controls; it does not expand the 39
+declared direct incremental TA methods or qualify bounded streaming computation.
+Full-history recomputation costs and retention remain explicit; complete API,
+parameter, type and practical-impact qualification is outstanding.
+
+Correlation now follows semantics 30 independent present-observation moments,
+including ready flat-series zero and exact period-one zero variance. The two
+native correlation probes measure all 42 fixed output profiles in batch and
+generic full-history callbacks. Large-offset and shifted roundoff gaps remain
+counted; the direct incremental API remains 39 methods without correlation.
+State restoration controls do not establish bounded computation or full
+numerical, parameter and impact coverage.
+
+Semantics 31 makes finite period-one population variance/stdev exactly zero and
+the incremental mean exactly the latest present observation. The new native
+dispersion fixture maps all 48 outputs in both modes. Completing 33 missing
+callback outputs brings the corpus to 77 recipes /154 fully mapped modes;
+1,138 newly measured cells agree. Full-history Python callbacks preserve existing
+direct helpers and retain OHLCV. This qualifies the captured recipe outputs;
+it adds no direct TA methods or bounded computation claim. Full API/parameter
+and practical-impact acceptance remains unproved.
+
+Semantics 32 preserves binary64 calculation values in plot/drawing/signal
+payloads independently of display precision. Batch SMA(1) is exactly the latest
+present observation. Incremental strategy calculation properties retain raw
+arithmetic; ledger/report eight-decimal formatting remains a separate limitation.
+The native precision probe adds 32 outputs in both modes, bringing the corpus to
+78 recipes /156 fully mapped modes. Its original 1e-12 tolerance still measures
+46 large-offset SMA(3) differences. Direct TA method counts remain unchanged;
+full API/parameter/numerical and practical-impact qualification remains open.

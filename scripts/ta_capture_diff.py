@@ -82,7 +82,7 @@ def main(argv: list[str] | None = None) -> int:
     counts = report["counts"]
     return (
         1
-        if counts["differences"]
+        if counts["unexpected_differences"]
         or counts["runtime_errors"]
         or report["fixture_filter_errors"]
         else 0
@@ -142,6 +142,8 @@ def build_report(
             "plots": plot_count,
             "points": point_count,
             "differences": len(differences),
+            "known_differences": sum(row.get("known_difference", False) for row in differences),
+            "unexpected_differences": sum(not row.get("known_difference", False) for row in differences),
             "runtime_errors": runtime_errors,
         },
         "fixtures": fixtures,
@@ -243,11 +245,14 @@ def diff_fixture(
     for title, expected_points in capture.get("series", {}).items():
         tolerance = float(plot_tolerances.get(title, default_tolerance))
         actual_points = result.get_series(title)
-        point_count = max(len(expected_points), len(actual_points))
+        expected_by_time = {point["time"]: point for point in expected_points}
+        actual_by_time = {point["time"]: point for point in actual_points}
+        times = sorted(expected_by_time.keys() | actual_by_time.keys())
+        point_count = len(times)
         fixture_report["point_count"] += point_count
-        for index in range(point_count):
-            expected = expected_points[index] if index < len(expected_points) else None
-            actual = actual_points[index] if index < len(actual_points) else None
+        for index, timestamp in enumerate(times):
+            expected = expected_by_time.get(timestamp)
+            actual = actual_by_time.get(timestamp)
             difference = compare_point(
                 fixture_path.name,
                 title,
@@ -258,6 +263,24 @@ def diff_fixture(
             )
             if difference is not None:
                 fixture_report["differences"].append(difference)
+
+    # Exact disclosed deviations remain in the raw difference count. A changed
+    # deviation or obsolete annotation fails qualification instead of widening
+    # tolerance or suppressing a lookback range.
+    for known in capture.get("known_differences", []):
+        matches = [row for row in fixture_report["differences"]
+                   if row.get("plot") == known["plot"]
+                   and row["tradingview"] == known["tradingview"]
+                   and row["pyne"] == known["pyne"]]
+        if len(matches) == 1 and known.get("reason") and known.get("evidence"):
+            matches[0]["known_difference"] = True
+            matches[0]["reason"] = known["reason"]
+            matches[0]["evidence"] = known["evidence"]
+        else:
+            fixture_report["differences"].append({"fixture": fixture_path.name,
+                "kind": "known_difference_not_observed", "plot": known["plot"],
+                "point_index": -1, "tradingview": known["tradingview"], "pyne": known["pyne"],
+                "delta": None, "tolerance": 0})
 
     fixture_report["difference_count"] = len(fixture_report["differences"])
     return fixture_report
@@ -375,6 +398,7 @@ def print_header(report: dict[str, Any]) -> None:
         f"{counts['captured_fixtures']} captured fixture(s), "
         f"{counts['plots']} plot(s), {counts['points']} point(s), "
         f"{counts['differences']} difference(s), "
+        f"{counts['known_differences']} disclosed, {counts['unexpected_differences']} unexpected, "
         f"{counts['runtime_errors']} runtime error(s), "
         f"{counts['skipped_fixtures']} skipped"
     )

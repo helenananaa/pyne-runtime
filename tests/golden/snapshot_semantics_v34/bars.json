@@ -1,0 +1,50 @@
+[
+  {
+    "time": 0,
+    "open": 1.0,
+    "high": 1.0,
+    "low": 1.0,
+    "close": 1.0,
+    "volume": 10.0
+  },
+  {
+    "time": 60,
+    "open": 1.0,
+    "high": 1.0,
+    "low": 1.0,
+    "close": 1.0,
+    "volume": 10.0
+  },
+  {
+    "time": 120,
+    "open": 1.0,
+    "high": 1.0,
+    "low": 1.0,
+    "close": 1.0,
+    "volume": 10.0
+  },
+  {
+    "time": 180,
+    "open": 1.0,
+    "high": 1.0,
+    "low": 1.0,
+    "close": 1.0,
+    "volume": 10.0
+  },
+  {
+    "time": 240,
+    "open": 1.0,
+    "high": 1.0,
+    "low": 1.0,
+    "close": 1.0,
+    "volume": 10.0
+  },
+  {
+    "time": 300,
+    "open": 1.0,
+    "high": 1.0,
+    "low": 1.0,
+    "close": 1.0,
+    "volume": 10.0
+  }
+]

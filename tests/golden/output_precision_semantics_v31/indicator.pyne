@@ -1,0 +1,6 @@
+indicator("Precise output checkpoint",mode="incremental",precision=2)
+def on_bar(ctx,bar):
+    value = 0.1234567891234567+ctx.bar_index*1.e-10
+    ctx.plot("Precise",value)
+    ctx.plot("Histogram",value,style="histogram")
+    ctx.plotcandle(value,value+1.e-11,value-1.e-11,value+1.e-12,title="Candle",precision=2)

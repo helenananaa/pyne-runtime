@@ -33,7 +33,9 @@ from ..strategy.orders import (
     _normalize_intrabar_path,
     _normalize_oca_type,
     _normalize_same_bar_fill_priority,
+    _pending_market_admission_state,
     _pending_trigger,
+    _validate_pending_entry_direction,
 )
 from ..strategy.risk import (
     _entry_qty_for_max_position_size,
@@ -207,6 +209,7 @@ class IncrementalStrategyNamespace:
         self._event_seq = 0
         self._touched = False
         self._pyramiding = 0
+        self._process_orders_on_close = False
         self._same_direction_entry_count = 0
         self._allow_entry_in = IncrementalStrategyDirection.all
         self._max_drawdown_value: float | None = None
@@ -259,6 +262,8 @@ class IncrementalStrategyNamespace:
         )
 
     def configure(self, **kwargs: Any) -> None:
+        if "process_orders_on_close" in kwargs:
+            self._process_orders_on_close = bool(kwargs["process_orders_on_close"])
         if "pyramiding" in kwargs:
             self._pyramiding = max(int(kwargs["pyramiding"]), 0)
         if "initial_capital" in kwargs:
@@ -309,32 +314,30 @@ class IncrementalStrategyNamespace:
             abs(float(trade["qty"])) * float(trade["entry_price"])
             for trade in self._open_trades
         )
-        return _round8(weighted / size)
+        return weighted / size
 
     @property
     def grossprofit(self) -> float:
-        return _round8(self._grossprofit)
+        return self._grossprofit
 
     @property
     def grossloss(self) -> float:
-        return _round8(self._grossloss)
+        return self._grossloss
 
     @property
     def netprofit(self) -> float:
         self._sync_risk_liquidation()
-        return _round8(self._grossprofit + self._grossloss - self._commission)
+        return self._grossprofit + self._grossloss - self._commission
 
     @property
     def openprofit(self) -> float:
         self._sync_risk_liquidation()
-        return _round8(
-            sum(_trade_open_profit(trade, self._current_price()) for trade in self._open_trades)
-        )
+        return sum(_trade_open_profit(trade, self._current_price()) for trade in self._open_trades)
 
     @property
     def equity(self) -> float:
         self._sync_risk_liquidation()
-        return _round8(self._initial_capital + self.netprofit + self.openprofit)
+        return self._initial_capital + self.netprofit + self.openprofit
 
     @property
     def closedtrades(self) -> IncrementalStrategyTradesNamespace:
@@ -367,6 +370,15 @@ class IncrementalStrategyNamespace:
         self._pending_exit_orders = still_pending_exits
 
     def end_bar(self) -> None:
+        # New entry price orders execute after this calculation has submitted
+        # all commands. They cannot use the bar's earlier intrabar prices.
+        still_pending = []
+        for order in self._pending_orders:
+            if int(order.get("_submit_time", -1)) != self._current_time() or not self._try_fill_pending_order(
+                order, closing_submission=True
+            ):
+                still_pending.append(order)
+        self._pending_orders = still_pending
         self._sync_risk_liquidation()
         equity = self.equity
         self._peak_equity = max(self._peak_equity, equity)
@@ -464,6 +476,8 @@ class IncrementalStrategyNamespace:
         if qty_abs <= 0:
             return
         side = self._normalize_direction(direction)
+        if order_type == "entry":
+            _validate_pending_entry_direction(self._pending_orders, order_id=str(id), side=side)
         base_price = self._price_or_current(price)
         order = {
             "time": self._current_time(),
@@ -478,6 +492,7 @@ class IncrementalStrategyNamespace:
             "_base_price": float(base_price),
             "_limit": _optional_float(limit),
             "_stop": _optional_float(stop),
+            "_market_submission": order_type == "entry" and self._process_orders_on_close and limit is None and stop is None,
             "_submit_time": self._current_time(),
             "_requested_fill_qty": qty_abs,
             "_oca_name": str(oca_name or ""),
@@ -488,17 +503,49 @@ class IncrementalStrategyNamespace:
         if self._risk_locked:
             self._reject_order(order, reason="risk_locked")
             return
-        if limit is not None or stop is not None:
+        if limit is not None or stop is not None or order["_market_submission"]:
+            if order_type == "entry":
+                admission_size, admission_count = _pending_market_admission_state(
+                    self._pending_orders, order_id=str(id) if order["_market_submission"] else None,
+                    size=self.position_size, count=len(self._open_trades),
+                )
+                rejection_reason = _entry_rejection_reason(
+                    side=side,
+                    previous_size=admission_size,
+                    same_direction_entry_count=admission_count,
+                    pyramiding=self._pyramiding,
+                    allow_entry_in=self._allow_entry_in,
+                )
+                if rejection_reason is not None:
+                    if rejection_reason == "pyramiding_exceeded" and not order["_market_submission"]:
+                        self._cancel_pending(
+                            lambda previous: previous.get("type") == "entry" and previous.get("id") == str(id) and previous.get("_market_submission"),
+                            canceled_by=str(id),
+                        )
+                    self._reject_order(order, reason=rejection_reason)
+                    return
+            canceled_groups = {
+                (previous.get("_oca_name"), previous.get("_oca_type"))
+                for previous in self._pending_orders
+                if order_type == "order" and previous.get("type") == order_type and previous.get("id") == str(id)
+                and previous.get("_oca_name") and previous.get("_oca_type") == StrategyOca.cancel
+                and (previous.get("_oca_name"), previous.get("_oca_type")) != (order.get("_oca_name"), order.get("_oca_type"))
+            }
+            self._cancel_pending(
+                lambda previous: (previous.get("type") == order_type and previous.get("id") == str(id))
+                or (previous.get("_oca_name"), previous.get("_oca_type")) in canceled_groups,
+                canceled_by=str(id),
+            )
             order["_pending_submission"] = True
             order["_active"] = False
-            if not self._try_fill_pending_order(order):
+            if order_type == "entry" or not self._try_fill_pending_order(order, closing_submission=True):
                 self._pending_orders.append(order)
             return
         if order_type == "entry":
             rejection_reason = _entry_rejection_reason(
                 side=side,
                 previous_size=self.position_size,
-                same_direction_entry_count=self._same_direction_entry_count,
+                same_direction_entry_count=len(self._open_trades),
                 pyramiding=self._pyramiding,
                 allow_entry_in=self._allow_entry_in,
             )
@@ -634,7 +681,7 @@ class IncrementalStrategyNamespace:
                 self._filled_orders_locked = True
                 self._sync_risk_locked()
 
-    def _try_fill_pending_order(self, order: dict[str, Any]) -> bool:
+    def _try_fill_pending_order(self, order: dict[str, Any], *, closing_submission: bool = False) -> bool:
         if order.get("_active"):
             return True
         if order.get("_canceled"):
@@ -646,27 +693,31 @@ class IncrementalStrategyNamespace:
             return False
         trigger = _pending_trigger(
             side=self._normalize_direction(str(order.get("side", self.long))),
-            open_price=float(bar.open),
-            high=float(bar.high),
-            low=float(bar.low),
+            open_price=float(bar.close if closing_submission else bar.open),
+            high=float(bar.close if closing_submission else bar.high),
+            low=float(bar.close if closing_submission else bar.low),
             limit=order.get("_limit"),
             stop=order.get("_stop"),
             tick_verify=self._limit_fill_verification_amount(),
             same_bar_fill_priority=self._same_bar_fill_priority,
             intrabar_path=self._intrabar_path,
+            order_state=order,
+            close_price=float(bar.close),
         )
         if trigger is None:
             return False
         reason, fill_price = trigger
-        order["reason"] = reason
+        if reason is not None:
+            order["reason"] = reason
         if order.get("type") == "entry":
             side = self._normalize_direction(str(order.get("side", self.long)))
             rejection_reason = _entry_rejection_reason(
                 side=side,
                 previous_size=self.position_size,
-                same_direction_entry_count=self._same_direction_entry_count,
+                same_direction_entry_count=len(self._open_trades),
                 pyramiding=self._pyramiding,
                 allow_entry_in=self._allow_entry_in,
+                check_pyramiding=False,
             )
             if rejection_reason is not None:
                 self._reject_order(order, reason=rejection_reason)
@@ -877,16 +928,18 @@ class IncrementalStrategyNamespace:
             "position": {
                 "size": final_size,
                 "side": "long" if final_size > 0 else "short" if final_size < 0 else "flat",
-                "avg_price": final_avg,
+                "avg_price": _round8(final_avg) if final_avg is not None else None,
             },
             "summary": {
                 "initial_capital": _round8(self._initial_capital),
                 "currency": self._currency,
-                "equity": self.equity,
-                "netprofit": self.netprofit,
-                "openprofit": self.openprofit,
-                "grossprofit": self.grossprofit,
-                "grossloss": self.grossloss,
+                # Keep the existing report format separate from the raw
+                # calculation properties used by scripts and risk checks.
+                "equity": _round8(self.equity),
+                "netprofit": _round8(self.netprofit),
+                "openprofit": _round8(self.openprofit),
+                "grossprofit": _round8(self.grossprofit),
+                "grossloss": _round8(self.grossloss),
                 "commission": _round8(self._commission),
                 "backtest_fill_limits_assumption": self._backtest_fill_limits_assumption,
                 "same_bar_fill_priority": self._same_bar_fill_priority,

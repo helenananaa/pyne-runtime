@@ -1417,9 +1417,11 @@ def on_bar(ctx, bar):
 
 
 def test_incremental_strategy_same_bar_stop_first_matches_batch_report() -> None:
-    bars = [{"time": 1, "open": 10, "high": 13, "low": 7, "close": 10.0, "volume": 100}]
+    bars = [{"time": 1, "open": 10, "high": 10, "low": 10, "close": 10.0, "volume": 100},
+            {"time": 2, "open": 10, "high": 13, "low": 7, "close": 10.0, "volume": 100},
+            {"time": 3, "open": 10, "high": 11, "low": 7, "close": 10.0, "volume": 100}]
     batch_script = """
-strategy("Same Bar Pending", overlay=True, initial_capital=1000)
+strategy("Same Bar Pending", overlay=True, initial_capital=1000, process_orders_on_close=True)
 strategy.entry("Breakout", strategy.long, qty=1, when=bar_index == 0, stop=12, limit=8)
 plot(strategy.position_size, "Position")
 plot(strategy.equity, "Equity")
@@ -1444,12 +1446,16 @@ def on_bar(ctx, bar):
     assert batch.ok
     assert incremental.ok
     _assert_full_strategy_matches_batch(incremental, batch)
+    assert incremental.values("Position") == [0.0, 0.0, 1.0]
+    assert incremental.output["strategy"]["lifecycle"][0]["filled_time"] == 3
 
 
 def test_incremental_strategy_same_bar_limit_first_matches_batch_report() -> None:
-    bars = [{"time": 1, "open": 10, "high": 13, "low": 7, "close": 10.0, "volume": 100}]
+    bars = [{"time": 1, "open": 10, "high": 10, "low": 10, "close": 10.0, "volume": 100},
+            {"time": 2, "open": 10, "high": 13, "low": 7, "close": 10.0, "volume": 100},
+            {"time": 3, "open": 10, "high": 11, "low": 7, "close": 10.0, "volume": 100}]
     batch_script = """
-strategy("Same Bar Pending", overlay=True, initial_capital=1000, same_bar_fill_priority=strategy.same_bar.limit_first)
+strategy("Same Bar Pending", overlay=True, initial_capital=1000, process_orders_on_close=True, same_bar_fill_priority=strategy.same_bar.limit_first)
 strategy.entry("Breakout", strategy.long, qty=1, when=bar_index == 0, stop=12, limit=8)
 plot(strategy.position_size, "Position")
 plot(strategy.equity, "Equity")
@@ -1474,12 +1480,15 @@ def on_bar(ctx, bar):
     assert batch.ok
     assert incremental.ok
     _assert_full_strategy_matches_batch(incremental, batch)
+    assert incremental.values("Position") == [0.0, 0.0, 1.0]
+    assert incremental.output["strategy"]["lifecycle"][0]["filled_time"] == 3
 
 
 def test_incremental_strategy_intrabar_high_first_matches_batch_report() -> None:
-    bars = [{"time": 1, "open": 10, "high": 13, "low": 7, "close": 10.0, "volume": 100}]
+    bars = [{"time": 1, "open": 10, "high": 10, "low": 10, "close": 10.0, "volume": 100},
+            {"time": 2, "open": 10, "high": 13, "low": 7, "close": 10.0, "volume": 100}]
     batch_script = """
-strategy("Path Pending", overlay=True, initial_capital=1000, intrabar_path=strategy.intrabar.open_high_low_close)
+strategy("Path Pending", overlay=True, initial_capital=1000, process_orders_on_close=True, intrabar_path=strategy.intrabar.open_high_low_close)
 strategy.entry("Breakout", strategy.long, qty=1, when=bar_index == 0, stop=12, limit=8)
 plot(strategy.position_size, "Position")
 plot(strategy.equity, "Equity")
@@ -1504,12 +1513,16 @@ def on_bar(ctx, bar):
     assert batch.ok
     assert incremental.ok
     _assert_full_strategy_matches_batch(incremental, batch)
+    assert incremental.values("Position") == [0.0, 1.0]
+    assert incremental.output["strategy"]["lifecycle"][0]["filled_time"] == 2
 
 
 def test_incremental_strategy_intrabar_low_first_matches_batch_report() -> None:
-    bars = [{"time": 1, "open": 10, "high": 13, "low": 7, "close": 10.0, "volume": 100}]
+    bars = [{"time": 1, "open": 10, "high": 10, "low": 10, "close": 10.0, "volume": 100},
+            {"time": 2, "open": 10, "high": 13, "low": 7, "close": 10.0, "volume": 100},
+            {"time": 3, "open": 10, "high": 11, "low": 7, "close": 10.0, "volume": 100}]
     batch_script = """
-strategy("Path Pending", overlay=True, initial_capital=1000, intrabar_path=strategy.intrabar.open_low_high_close)
+strategy("Path Pending", overlay=True, initial_capital=1000, process_orders_on_close=True, intrabar_path=strategy.intrabar.open_low_high_close)
 strategy.entry("Breakout", strategy.long, qty=1, when=bar_index == 0, stop=12, limit=8)
 plot(strategy.position_size, "Position")
 plot(strategy.equity, "Equity")
@@ -1534,6 +1547,8 @@ def on_bar(ctx, bar):
     assert batch.ok
     assert incremental.ok
     _assert_full_strategy_matches_batch(incremental, batch)
+    assert incremental.values("Position") == [0.0, 0.0, 1.0]
+    assert incremental.output["strategy"]["lifecycle"][0]["filled_time"] == 3
 
 
 def test_incremental_strategy_limit_exit_matches_batch_report() -> None:
@@ -2758,16 +2773,16 @@ def test_incremental_ta_helpers_recover_after_nan() -> None:
     lowest = _StepMonotonic(2, highest=False)
     assert [highest.update(value) for value in (1, nan, 3, None, None)] == [
         None,
-        1.0,
+        None,
         3.0,
-        3.0,
+        None,
         None,
     ]
     assert [lowest.update(value) for value in (3, nan, 1, None, None)] == [
         None,
-        3.0,
+        None,
         1.0,
-        1.0,
+        None,
         None,
     ]
 

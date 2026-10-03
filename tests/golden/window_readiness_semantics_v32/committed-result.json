@@ -1,0 +1,149 @@
+{
+  "ok": true,
+  "error": null,
+  "code": null,
+  "line": null,
+  "column": null,
+  "hint": null,
+  "lines": [
+    {
+      "id": "highestbars",
+      "name": "Highestbars",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 0,
+          "value": 0.0
+        },
+        {
+          "time": 60,
+          "value": 0.0
+        }
+      ]
+    },
+    {
+      "id": "lowestbars",
+      "name": "Lowestbars",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 0,
+          "value": 0.0
+        },
+        {
+          "time": 60,
+          "value": -1.0
+        }
+      ]
+    },
+    {
+      "id": "stoch",
+      "name": "Stoch",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 0,
+          "value": 50.0
+        },
+        {
+          "time": 60,
+          "value": 88.88888888888889
+        }
+      ]
+    }
+  ],
+  "output": {
+    "lines": [
+      {
+        "id": "highestbars",
+        "title": "Highestbars",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 0,
+            "value": 0.0
+          },
+          {
+            "time": 60,
+            "value": 0.0
+          }
+        ]
+      },
+      {
+        "id": "lowestbars",
+        "title": "Lowestbars",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 0,
+            "value": 0.0
+          },
+          {
+            "time": 60,
+            "value": -1.0
+          }
+        ]
+      },
+      {
+        "id": "stoch",
+        "title": "Stoch",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 0,
+            "value": 50.0
+          },
+          {
+            "time": 60,
+            "value": 88.88888888888889
+          }
+        ]
+      }
+    ]
+  },
+  "param_schema": [],
+  "meta": {
+    "title": "Initial window readiness",
+    "overlay": true,
+    "mode": "incremental",
+    "bar_index": 1,
+    "last_bar_index": 1,
+    "barstate": {
+      "isfirst": false,
+      "islast": true,
+      "ishistory": true,
+      "isrealtime": false,
+      "isnew": true,
+      "isconfirmed": true,
+      "islastconfirmedhistory": true
+    },
+    "retentionBars": null,
+    "retainedBars": 2,
+    "totalCommittedBars": 2,
+    "snapshotVersion": 3
+  }
+}

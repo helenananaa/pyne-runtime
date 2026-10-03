@@ -1,12 +1,49 @@
 from __future__ import annotations
 
 import json
+import importlib.util
 import subprocess
 import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _diff_module():
+    spec = importlib.util.spec_from_file_location("ta_capture_diff", ROOT / "scripts/ta_capture_diff.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_missing_sparse_point_does_not_shift_later_comparisons(tmp_path):
+    path = _write_fixture(tmp_path, [10., 11.])
+    fixture = json.loads(path.read_text())
+    fixture["script"] = 'plot(np.where(bar_index == 0, np.nan, close), "Close")'
+    # Write the changed source while preserving both native points.
+    path.write_text(json.dumps(fixture), encoding="utf-8")
+    report = _diff_module().build_report([path], set(), "parity")
+    assert report["counts"]["differences"] == 1
+    assert report["differences"][0]["tradingview"] == {"time": 1, "value": 10.}
+    assert report["differences"][0]["pyne"] is None
+
+
+def test_exact_disclosure_preserves_raw_difference_and_fails_if_obsolete(tmp_path):
+    path = _write_fixture(tmp_path, [10., 11.])
+    fixture = json.loads(path.read_text())
+    fixture["script"] = 'plot(np.where(bar_index == 0, np.nan, close), "Close")'
+    fixture["external_capture"]["known_differences"] = [{"plot": "Close", "tradingview": {"time": 1, "value": 10.},
+        "pyne": None, "reason": "test context boundary", "evidence": "independent test control"}]
+    path.write_text(json.dumps(fixture), encoding="utf-8")
+    report = _diff_module().build_report([path], set(), "parity")
+    assert report["counts"]["differences"] == report["counts"]["known_differences"] == 1
+    assert report["counts"]["unexpected_differences"] == 0
+    fixture["script"] = 'plot(close, "Close")'
+    path.write_text(json.dumps(fixture), encoding="utf-8")
+    report = _diff_module().build_report([path], set(), "parity")
+    assert report["counts"]["unexpected_differences"] == 1
+    assert report["differences"][0]["kind"] == "known_difference_not_observed"
 
 
 def test_ta_capture_diff_reports_zero_for_matching_capture(tmp_path: Path) -> None:

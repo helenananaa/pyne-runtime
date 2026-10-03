@@ -7,6 +7,15 @@
     "status": "captured",
     "assertion": "parity",
     "tolerance": 0.005,
+    "known_differences": [
+      {
+        "plot": "TV Pivot High",
+        "tradingview": {"time": 1784246400, "value": 4081.5},
+        "pyne": null,
+        "reason": "Captured chart-window center index 0 has earlier chart history; supplied 16-bar input starts a new dataset and must satisfy the full left/right startup span.",
+        "evidence": "tests/workloads/pivot_isolated_confirmation.tradingview.json; tests/workloads/pivot_formula_confirmation.tradingview.json"
+      }
+    ],
     "plot_titles": [
       "TV ta10 EMA2",
       "TV ta10 RMA2",

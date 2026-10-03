@@ -1,0 +1,108 @@
+//@version=6
+indicator("Pyne period two independent holdout 20261002", precision=10)
+kahan_add(total, correction, value) =>
+    adjusted = value - correction
+    updated = total + adjusted
+    next_correction = (updated - total) - adjusted
+    [updated, next_correction]
+candidate(source, length) =>
+    var float total = 0.
+    var float correction = 0.
+    var queue = array.new_float()
+    if not na(source)
+        if array.size(queue) == length
+            outgoing = array.shift(queue)
+            [removed_total, removed_correction] = kahan_add(total, correction, -outgoing)
+            total := removed_total
+            correction := removed_correction
+        [added_total, added_correction] = kahan_add(total, correction, source)
+        total := added_total
+        correction := added_correction
+        array.push(queue, source)
+    array.size(queue) == length ? total / length : na
+pair_mean(source) =>
+    var float previous = na
+    var float result = na
+    if not na(source)
+        if not na(previous)
+            result := (previous + source) / 2.
+        previous := source
+    result
+int i = bar_index
+float base = float((i * 13) % 23 - 10) * 0.25
+float power = math.pow(2.,80) + base * math.pow(2.,28)
+float source_base = base
+float Native2_base = ta.sma(source_base, 2)
+float Native3_base = ta.sma(source_base, 3)
+float Candidate2_base = candidate(source_base, 2)
+float Candidate3_base = candidate(source_base, 3)
+float Pair2_base = pair_mean(source_base)
+float source_offset = 1000000000000.0 + base
+float Native2_offset = ta.sma(source_offset, 2)
+float Native3_offset = ta.sma(source_offset, 3)
+float Candidate2_offset = candidate(source_offset, 2)
+float Candidate3_offset = candidate(source_offset, 3)
+float Pair2_offset = pair_mean(source_offset)
+float source_power = power
+float Native2_power = ta.sma(source_power, 2)
+float Native3_power = ta.sma(source_power, 3)
+float Candidate2_power = candidate(source_power, 2)
+float Candidate3_power = candidate(source_power, 3)
+float Pair2_power = pair_mean(source_power)
+float source_prefill = i < 13 ? power : base
+float Native2_prefill = ta.sma(source_prefill, 2)
+float Native3_prefill = ta.sma(source_prefill, 3)
+float Candidate2_prefill = candidate(source_prefill, 2)
+float Candidate3_prefill = candidate(source_prefill, 3)
+float Pair2_prefill = pair_mean(source_prefill)
+float source_negative = i < 13 ? -power : base
+float Native2_negative = ta.sma(source_negative, 2)
+float Native3_negative = ta.sma(source_negative, 3)
+float Candidate2_negative = candidate(source_negative, 2)
+float Candidate3_negative = candidate(source_negative, 3)
+float Pair2_negative = pair_mean(source_negative)
+float source_mixed = i % 4 == 0 ? power : i % 4 == 1 ? -power : base
+float Native2_mixed = ta.sma(source_mixed, 2)
+float Native3_mixed = ta.sma(source_mixed, 3)
+float Candidate2_mixed = candidate(source_mixed, 2)
+float Candidate3_mixed = candidate(source_mixed, 3)
+float Pair2_mixed = pair_mean(source_mixed)
+float source_holes = i >= 13 and (i % 9 == 1 or i % 9 == 4 or i % 9 == 5) ? na : i < 13 ? power : base
+float Native2_holes = ta.sma(source_holes, 2)
+float Native3_holes = ta.sma(source_holes, 3)
+float Candidate2_holes = candidate(source_holes, 2)
+float Candidate3_holes = candidate(source_holes, 3)
+float Pair2_holes = pair_mean(source_holes)
+float source_leading = i < 5 ? na : 1000000000000.0 + base
+float Native2_leading = ta.sma(source_leading, 2)
+float Native3_leading = ta.sma(source_leading, 3)
+float Candidate2_leading = candidate(source_leading, 2)
+float Candidate3_leading = candidate(source_leading, 3)
+float Pair2_leading = pair_mean(source_leading)
+float source_empty = na
+float Native2_empty = ta.sma(source_empty, 2)
+float Native3_empty = ta.sma(source_empty, 3)
+float Candidate2_empty = candidate(source_empty, 2)
+float Candidate3_empty = candidate(source_empty, 3)
+float Pair2_empty = pair_mean(source_empty)
+float source_singleGap = i == 17 ? na : i < 25 ? 1000000000000.0 + base : base
+float Native2_singleGap = ta.sma(source_singleGap, 2)
+float Native3_singleGap = ta.sma(source_singleGap, 3)
+float Candidate2_singleGap = candidate(source_singleGap, 2)
+float Candidate3_singleGap = candidate(source_singleGap, 3)
+float Pair2_singleGap = pair_mean(source_singleGap)
+float source_alternate = i % 2 == 0 ? power : na
+float Native2_alternate = ta.sma(source_alternate, 2)
+float Native3_alternate = ta.sma(source_alternate, 3)
+float Candidate2_alternate = candidate(source_alternate, 2)
+float Candidate3_alternate = candidate(source_alternate, 3)
+float Pair2_alternate = pair_mean(source_alternate)
+float source_regime = i < 24 ? power : i < 48 ? base : i < 72 ? -power : base
+float Native2_regime = ta.sma(source_regime, 2)
+float Native3_regime = ta.sma(source_regime, 3)
+float Candidate2_regime = candidate(source_regime, 2)
+float Candidate3_regime = candidate(source_regime, 3)
+float Pair2_regime = pair_mean(source_regime)
+if barstate.isconfirmed and i < 96
+    log.info("PYNE_SMA_TWO_HOLDOUT|" + str.tostring(i) + "|" + str.tostring(source_base, "#.#################") + "|" + str.tostring(Native2_base, "#.#################") + "|" + str.tostring(Native3_base, "#.#################") + "|" + str.tostring(Candidate2_base, "#.#################") + "|" + str.tostring(Candidate3_base, "#.#################") + "|" + str.tostring(Pair2_base, "#.#################") + "|" + str.tostring(source_offset, "#.#################") + "|" + str.tostring(Native2_offset, "#.#################") + "|" + str.tostring(Native3_offset, "#.#################") + "|" + str.tostring(Candidate2_offset, "#.#################") + "|" + str.tostring(Candidate3_offset, "#.#################") + "|" + str.tostring(Pair2_offset, "#.#################") + "|" + str.tostring(source_power, "#.#################") + "|" + str.tostring(Native2_power, "#.#################") + "|" + str.tostring(Native3_power, "#.#################") + "|" + str.tostring(Candidate2_power, "#.#################") + "|" + str.tostring(Candidate3_power, "#.#################") + "|" + str.tostring(Pair2_power, "#.#################") + "|" + str.tostring(source_prefill, "#.#################") + "|" + str.tostring(Native2_prefill, "#.#################") + "|" + str.tostring(Native3_prefill, "#.#################") + "|" + str.tostring(Candidate2_prefill, "#.#################") + "|" + str.tostring(Candidate3_prefill, "#.#################") + "|" + str.tostring(Pair2_prefill, "#.#################") + "|" + str.tostring(source_negative, "#.#################") + "|" + str.tostring(Native2_negative, "#.#################") + "|" + str.tostring(Native3_negative, "#.#################") + "|" + str.tostring(Candidate2_negative, "#.#################") + "|" + str.tostring(Candidate3_negative, "#.#################") + "|" + str.tostring(Pair2_negative, "#.#################") + "|" + str.tostring(source_mixed, "#.#################") + "|" + str.tostring(Native2_mixed, "#.#################") + "|" + str.tostring(Native3_mixed, "#.#################") + "|" + str.tostring(Candidate2_mixed, "#.#################") + "|" + str.tostring(Candidate3_mixed, "#.#################") + "|" + str.tostring(Pair2_mixed, "#.#################") + "|" + str.tostring(source_holes, "#.#################") + "|" + str.tostring(Native2_holes, "#.#################") + "|" + str.tostring(Native3_holes, "#.#################") + "|" + str.tostring(Candidate2_holes, "#.#################") + "|" + str.tostring(Candidate3_holes, "#.#################") + "|" + str.tostring(Pair2_holes, "#.#################") + "|" + str.tostring(source_leading, "#.#################") + "|" + str.tostring(Native2_leading, "#.#################") + "|" + str.tostring(Native3_leading, "#.#################") + "|" + str.tostring(Candidate2_leading, "#.#################") + "|" + str.tostring(Candidate3_leading, "#.#################") + "|" + str.tostring(Pair2_leading, "#.#################") + "|" + str.tostring(source_empty, "#.#################") + "|" + str.tostring(Native2_empty, "#.#################") + "|" + str.tostring(Native3_empty, "#.#################") + "|" + str.tostring(Candidate2_empty, "#.#################") + "|" + str.tostring(Candidate3_empty, "#.#################") + "|" + str.tostring(Pair2_empty, "#.#################") + "|" + str.tostring(source_singleGap, "#.#################") + "|" + str.tostring(Native2_singleGap, "#.#################") + "|" + str.tostring(Native3_singleGap, "#.#################") + "|" + str.tostring(Candidate2_singleGap, "#.#################") + "|" + str.tostring(Candidate3_singleGap, "#.#################") + "|" + str.tostring(Pair2_singleGap, "#.#################") + "|" + str.tostring(source_alternate, "#.#################") + "|" + str.tostring(Native2_alternate, "#.#################") + "|" + str.tostring(Native3_alternate, "#.#################") + "|" + str.tostring(Candidate2_alternate, "#.#################") + "|" + str.tostring(Candidate3_alternate, "#.#################") + "|" + str.tostring(Pair2_alternate, "#.#################") + "|" + str.tostring(source_regime, "#.#################") + "|" + str.tostring(Native2_regime, "#.#################") + "|" + str.tostring(Native3_regime, "#.#################") + "|" + str.tostring(Candidate2_regime, "#.#################") + "|" + str.tostring(Candidate3_regime, "#.#################") + "|" + str.tostring(Pair2_regime, "#.#################"))
+plot(float(na), "No chart change")

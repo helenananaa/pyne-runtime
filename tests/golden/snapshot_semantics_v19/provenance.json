@@ -1,0 +1,12 @@
+{
+  "description": "Real installed semantics-19 snapshots before pending order replacement and OCA reassignment; no relabeling.",
+  "packageVersion": "0.4.1rc14",
+  "semanticsVersion": 19,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round23-20261001\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "26f88733439e68f02485a3dd328723d19c9ac2c4d08ec468b9b63b9b1a7ab4f2",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "d82b047fec1656cc567c7aa23c989c9b5d0f59734106f81168b0935bbd605ddf",
+    "state.json": "64a0b7084182311c63306b2428ac89e543ad8da54b88ce79ce3f8df7fec0f8ba"
+  }
+}

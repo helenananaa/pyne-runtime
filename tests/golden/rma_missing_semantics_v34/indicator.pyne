@@ -1,0 +1,5 @@
+indicator("RMA missing output",mode="incremental")
+def on_bar(ctx,bar):
+    values=(1.,3.,None,None,5.,7.,None,9.)
+    value=values[ctx.bar_index % len(values)]
+    ctx.plot("RMA2",ctx.ta.rma("RMA2",2).update(value))

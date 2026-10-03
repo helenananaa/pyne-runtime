@@ -1,0 +1,102 @@
+//@version=6
+indicator("Pyne map scalar mutation 20261002",overlay=false)
+f(float v) => str.tostring(v,"#.##########")
+geti(array<int> a,int k) => k < array.size(a) ? float(array.get(a,k)) : float(na)
+getf(array<float> a,int k) => k < array.size(a) ? array.get(a,k) : float(na)
+var string rows = ""
+if bar_index < 32
+    int c = bar_index % 16
+    map<int,float> m = map.new<int,float>()
+    map.put(m,20,2.0)
+    map.put(m,10,1.0)
+    map.put(m,30,3.0)
+    map<int,float> cp = map.copy(m)
+    array<int> ks = map.keys(m)
+    array<float> vs = map.values(m)
+    float returned = na
+    if c == 1
+        map.put(m,20,8.0)
+    else if c == 2
+        returned := map.remove(m,10)
+    else if c == 3
+        returned := map.remove(m,99)
+    else if c == 4
+        map.remove(m,20)
+        map.put(m,20,8.0)
+    else if c == 5
+        map.put(cp,20,8.0)
+    else if c == 6
+        array.set(ks,0,99)
+        array.push(ks,77)
+    else if c == 7
+        array.set(vs,0,99.0)
+        array.push(vs,77.0)
+    else if c == 8
+        map<int,float> other = map.new<int,float>()
+        map.put(other,10,11.0)
+        map.put(other,40,4.0)
+        map.put(other,20,22.0)
+        map.put_all(m,other)
+    else if c == 9
+        map.put_all(m,m)
+    else if c == 10
+        map.clear(m)
+        map.put(m,30,9.0)
+    else if c == 11
+        map.put(m,10,float(na))
+    else if c == 12
+        map.clear(cp)
+    else if c == 13
+        map.remove(m,20)
+        map.remove(m,10)
+        map.remove(m,30)
+    else if c == 14
+        map.put(m,20,-2.5)
+        map.put(m,10,0.0)
+        map.put(m,30,float(na))
+    else if c == 15
+        map.put(m,30,3.0)
+    rows += "PYNE_MAP_SCALAR|"+str.tostring(bar_index)+"|"+f(c)+"|"+f(returned)+"|"+f(map.contains(m,10) ? 1.0 : 0.0)+"|"+f(map.contains(m,99) ? 1.0 : 0.0)+"|"+f(map.get(m,10))+"|"+f(map.get(m,99))
+    array<int> mk = map.keys(m)
+    array<float> mv = map.values(m)
+    rows += "|"+f(map.size(m))
+    rows += "|"+f(geti(mk,0))
+    rows += "|"+f(geti(mk,1))
+    rows += "|"+f(geti(mk,2))
+    rows += "|"+f(geti(mk,3))
+    rows += "|"+f(geti(mk,4))
+    rows += "|"+f(getf(mv,0))
+    rows += "|"+f(getf(mv,1))
+    rows += "|"+f(getf(mv,2))
+    rows += "|"+f(getf(mv,3))
+    rows += "|"+f(getf(mv,4))
+    array<int> cpk = map.keys(cp)
+    array<float> cpv = map.values(cp)
+    rows += "|"+f(map.size(cp))
+    rows += "|"+f(geti(cpk,0))
+    rows += "|"+f(geti(cpk,1))
+    rows += "|"+f(geti(cpk,2))
+    rows += "|"+f(geti(cpk,3))
+    rows += "|"+f(geti(cpk,4))
+    rows += "|"+f(getf(cpv,0))
+    rows += "|"+f(getf(cpv,1))
+    rows += "|"+f(getf(cpv,2))
+    rows += "|"+f(getf(cpv,3))
+    rows += "|"+f(getf(cpv,4))
+    rows += "|"+f(array.size(ks))
+    rows += "|"+f(geti(ks,0))
+    rows += "|"+f(geti(ks,1))
+    rows += "|"+f(geti(ks,2))
+    rows += "|"+f(geti(ks,3))
+    rows += "|"+f(geti(ks,4))
+    rows += "|"+f(array.size(vs))
+    rows += "|"+f(getf(vs,0))
+    rows += "|"+f(getf(vs,1))
+    rows += "|"+f(getf(vs,2))
+    rows += "|"+f(getf(vs,3))
+    rows += "|"+f(getf(vs,4))
+    rows += ";"
+    if bar_index % 8 == 7
+        log.info(rows)
+        rows := ""
+plot(float(na),"Native map probe")

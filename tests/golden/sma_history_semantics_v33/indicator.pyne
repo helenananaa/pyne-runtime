@@ -1,0 +1,5 @@
+indicator("SMA lost small tail",mode="incremental")
+def on_bar(ctx,bar):
+    ctx.plot("SMA2",ctx.ta.sma("SMA2",2).update(bar.close))
+    mid,upper,lower=ctx.ta.bb("BB2",2).update(bar.close)
+    ctx.plot("BB2",mid)

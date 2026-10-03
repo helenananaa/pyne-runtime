@@ -1,0 +1,12 @@
+{
+  "description": "Real installed semantics-23 snapshots before matrix missing arithmetic and in-place reshape; no relabeling.",
+  "packageVersion": "0.4.1rc18",
+  "semanticsVersion": 23,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round28-20261002\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "f36910f9413f3fe6904ca1b250f153340dbc31548036c266bfe0a3dcc7690a46",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "f6e49948021f258ceeb7eb6e97bb7bf5d5384ff7ebafd08080e2f7d77e68f65d",
+    "state.json": "501586a0d97a5606e66bfdf4ff0230202c7d796d5f9de6418b082e6ad855c382"
+  }
+}

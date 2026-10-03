@@ -1,0 +1,28 @@
+//@version=6
+indicator("Pyne conditions pivot oracle 20260930", precision=10)
+int i = bar_index
+float src = float((i * 7) % 13 - 4)
+float holes = i == 1 or i == 7 or i == 8 or i == 12 or i == 23 ? na : src
+float ties = float(int(i / 2) % 3)
+float r1 = ta.rising(src, 1) ? 1 : 0
+float f1 = ta.falling(src, 1) ? 1 : 0
+float r3 = ta.rising(src, 3) ? 1 : 0
+float f3 = ta.falling(src, 3) ? 1 : 0
+float rh = ta.rising(holes, 3) ? 1 : 0
+float fh = ta.falling(holes, 3) ? 1 : 0
+float pht = ta.pivothigh(ties, 2, 2)
+float plt = ta.pivotlow(ties, 2, 2)
+float phh = ta.pivothigh(holes, 2, 2)
+float plh = ta.pivotlow(holes, 2, 2)
+float ph02 = ta.pivothigh(ties, 0, 2)
+float pl02 = ta.pivotlow(ties, 0, 2)
+float ph20 = ta.pivothigh(ties, 2, 0)
+float pl20 = ta.pivotlow(ties, 2, 0)
+f(float x) => str.tostring(x, "#.##########")
+var string rows = ""
+if i < 48
+    rows += "PYNE_COND_PIVOT|" + str.tostring(i) + "|" + f(src) + "|" + f(holes) + "|" + f(ties) + "|" + f(r1) + "|" + f(f1) + "|" + f(r3) + "|" + f(f3) + "|" + f(rh) + "|" + f(fh) + "|" + f(pht) + "|" + f(plt) + "|" + f(phh) + "|" + f(plh) + "|" + f(ph02) + "|" + f(pl02) + "|" + f(ph20) + "|" + f(pl20) + ";"
+    if i % 8 == 7
+        log.info(rows)
+        rows := ""
+plot(pht, "Conditions pivot oracle")

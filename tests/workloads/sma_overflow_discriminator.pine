@@ -1,0 +1,13 @@
+//@version=6
+indicator("Pyne overflow discriminator round51", precision=10)
+int i = bar_index
+float unit = math.pow(2., 1021)
+var supplied = array.from(0., -2. * unit, 0., 4. * unit, -3. * unit, 3. * unit, 0., 0., 0.25, -2. * unit, 0., 4. * unit, 2. * unit, 3. * unit, -3. * unit, 0.25, -unit, 3. * unit, 4. * unit, -3. * unit, -0.5, -2. * unit, -unit, -4. * unit, 0., -3. * unit, -3. * unit, -0.5, -3. * unit, -unit, -2. * unit, -0.5)
+float src = array.get(supplied, i % 32)
+float native7 = ta.sma(src, 7)
+float sum7 = math.sum(src, 7)
+int missingNative7 = na(native7) ? 1 : 0
+int missingSum7 = na(sum7) ? 1 : 0
+if i < 32
+    log.info("PYNE_OVERFLOW_DISCRIMINATOR51|" + str.tostring(i) + "|" + str.tostring(src, "0.00000000000000000") + "|" + str.tostring(native7, "0.00000000000000000") + "|" + str.tostring(sum7, "0.00000000000000000") + "|" + str.tostring(missingNative7) + "|" + str.tostring(missingSum7) + ";")
+plot(0., display=display.none)

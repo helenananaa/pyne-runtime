@@ -1,0 +1,12 @@
+{
+  "description": "Real installed semantics-22 snapshots before missing-value array sorting and descending tie indices; no relabeling.",
+  "packageVersion": "0.4.1rc17",
+  "semanticsVersion": 22,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round26-20261001\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "fd432919d747d8681d52c20dd7ebe9dc37f989bc0a502f6c954e41240568c558",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "750e7d185945143ebacddc444348eba97eee7eaf035ea7a7b7176fbc7b89bc47",
+    "state.json": "7495c6f8213266eb87191b585fdc897f4890ac6a50f2f48e1eab436d29d302fa"
+  }
+}

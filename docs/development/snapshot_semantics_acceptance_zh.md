@@ -51,3 +51,39 @@ portable 测试继续覆盖跨进程恢复。高偏移方差的两列仍为 refe
 完整日志：`build/snapshot-semantics/check.log`（本地生成产物）。唯一 pytest warning
 仍是 `incremental/session.py` 体积提示；本批只添加兼容性校验，没有拆分会话实现。
 提交属于本地收敛，不代表推送、发布或远端多平台验收。
+
+
+## 2026-10-03 开发计算语义36
+
+RMA在缺失输入位置输出缺失，并保留平滑状态，不增加种子计数或重置累加器。
+这是输出和历史续算契约变化，因此INCREMENTAL_SEMANTICS_VERSION从34升至36，
+候选版本为0.4.1rc31。旧身份不能重新标记以绕过检查。由真实独立安装rc29 /
+语义34生成的`tests/golden/snapshot_semantics_v34`和
+`tests/golden/rma_missing_semantics_v34`保存state/replay、已提交结果、输入和
+wheel哈希。两种portable模式均在会话构造之前拒绝；请用权威调用方OHLCV重建。
+新版本local/state/replay继续运行在原生holdout种子准备、缺失块和数值区间切换
+期间，preview不改变已提交状态。该语义变化不涉及宿主资源策略。
+
+中间候选rc30 /语义35曾真实构建和安装，其DMI缺失处理出现连带变化。
+最终rc31 /语义36显式保留ATR、DMI原有组合策略，因此还保存真实中间版本的
+`tests/golden/snapshot_semantics_v35`与`tests/golden/dmi_composition_semantics_v35`，
+升级拒绝发生在构造前。中间版本身份保持不变；其4,307项回归不能作为最终版本
+验证。组合策略控制样本只证明旧行为保留，不是TradingView DMI官方对齐证据。
+
+最终rc31 /36完整回归4,315项通过，源码和独立wheel各439项定向测试通过；
+同版本local/state/replay续算与preview隔离、真实旧34/35拒绝均纳入验证。
+本轮官方RMA修复308处差异，不构成完整Pine API、宿主接入或发布资格。
+
+
+## 2026-10-03 开发计算语义37
+
+DMI分母RMA的首根种子改为严格前收盘真实波幅，公开TR/ATR首根回退不变。
+候选rc32 /37拒绝由真实独立安装rc31 /36生成的
+`tests/golden/snapshot_semantics_v36`与`tests/golden/dmi_initial_tr_semantics_v36`。
+保留原wheel哈希、输入、已提交DI值、state/replay与原始身份，构造前拒绝升级，
+权威OHLCV重建。新版本local/state/replay、preview跨越DI/ADX初始化并续算。
+该计算变化不涉及宿主策略或资源预算；两组原生完整OHLCV并非缺失场景全集资格。
+
+最终rc32 /37完整回归4,381项通过，源码和真实独立wheel各518项定向测试通过。
+真实旧36升级拒绝、同版本local/state/replay续算及preview隔离均纳入最终检查；
+收据为`.tmp/tv-alignment-round55-20261003/dmi-origin-qualification.json`。

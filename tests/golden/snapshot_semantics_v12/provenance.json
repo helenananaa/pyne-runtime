@@ -1,0 +1,12 @@
+{
+  "description": "Real installed semantics-12 snapshots before strategy live-slot correction; no relabeling.",
+  "packageVersion": "0.4.1rc7",
+  "semanticsVersion": 12,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round10-20261001\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "fb1f56ed57628aabeb01f7721bbb553fdc39e7adc06fd389a8458ed6b0ebf669",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "2baf0a51a0a7aeeb01d039a89bb0dc47b4dae13339f92e5e28902150a46c5724",
+    "state.json": "a185747f525a3a5bda258eeb346d4deababa0edd21767ce1a80b57c9543d0900"
+  }
+}

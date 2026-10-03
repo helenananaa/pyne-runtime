@@ -1,0 +1,22 @@
+//@version=6
+indicator("Pyne oscillator flat oracle 20260930", precision=10)
+int i = bar_index
+float src = float((i * 7) % 13 - 4)
+float holes = i == 1 or i == 7 or i == 8 or i == 12 or i == 23 ? na : src
+float flat = 5.0
+float cmo = ta.cmo(holes, 3)
+float cmoFlat = ta.cmo(flat, 3)
+float cci = ta.cci(holes, 3)
+float cciFlat = ta.cci(flat, 3)
+float stochFlat = ta.stoch(flat, flat, flat, 3)
+float stochHole = ta.stoch(holes, holes + 1, holes - 1, 3)
+float corr = ta.correlation(holes, src, 3)
+float corrFlat = ta.correlation(flat, src, 3)
+f(float x) => str.tostring(x, "#.##########")
+var string rows = ""
+if i < 32
+    rows += "PYNE_OSC_FLAT|" + str.tostring(i) + "|" + f(src) + "|" + f(holes) + "|" + f(cmo) + "|" + f(cmoFlat) + "|" + f(cci) + "|" + f(cciFlat) + "|" + f(stochFlat) + "|" + f(stochHole) + "|" + f(corr) + "|" + f(corrFlat) + ";"
+    if i % 8 == 7
+        log.info(rows)
+        rows := ""
+plot(cmo, "CMO holes")

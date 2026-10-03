@@ -1,0 +1,345 @@
+{
+  "schema": "pyne.workload-oracle/1",
+  "source": "TradingView Pine v6 authenticated Codex in-app browser",
+  "capturedAt": "2026-10-03T01:53:04.199380+00:00",
+  "url": "https://www.tradingview.com/chart/wf5lRGkJ/",
+  "symbol": "BINANCE:BTCUSDT",
+  "timeframe": "1M",
+  "columns": [
+    "Input",
+    "Native",
+    "Sum",
+    "IsNaNative",
+    "IsNaSum"
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "values": [
+        8.988465674311578e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 1,
+      "values": [
+        2.2471164185778954e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 2,
+      "values": [
+        2.247116418577895e+307,
+        4.4942328371557893e+307,
+        1.3482698511467367e+308,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 3,
+      "values": [
+        2.247116418577895e+307,
+        2.247116418577895e+307,
+        6.741349255733685e+307,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 4,
+      "values": [
+        0.0,
+        1.4980776123852632e+307,
+        4.4942328371557893e+307,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 5,
+      "values": [
+        2.2471164185778944e+307,
+        1.4980776123852627e+307,
+        4.4942328371557883e+307,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 6,
+      "values": [
+        4.49423283715579e+307,
+        2.2471164185778941e+307,
+        6.741349255733683e+307,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 7,
+      "values": [
+        -4.49423283715579e+307,
+        7.490388061926311e+306,
+        2.2471164185778934e+307,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 8,
+      "values": [
+        4.9896007738368e+291,
+        -1.6632002579455998e+291,
+        -4.9896007738368e+291,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 9,
+      "values": [
+        -8.988465674311578e+307,
+        -4.4942328371557893e+307,
+        -1.3482698511467367e+308,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 10,
+      "values": [
+        -2.2471164185778954e+307,
+        -3.7451940309631583e+307,
+        -1.1235582092889474e+308,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 11,
+      "values": [
+        -4.9896007738368e+291,
+        -3.7451940309631583e+307,
+        -1.1235582092889474e+308,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 12,
+      "values": [
+        -4.49423283715579e+307,
+        -2.2471164185778954e+307,
+        -6.741349255733687e+307,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 13,
+      "values": [
+        -4.49423283715579e+307,
+        -2.9961552247705263e+307,
+        -8.98846567431158e+307,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 14,
+      "values": [
+        -8.988465674311578e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 15,
+      "values": [
+        -8.988465674311578e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 16,
+      "values": [
+        -4.49423283715579e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 17,
+      "values": [
+        -2.2471164185778954e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 18,
+      "values": [
+        -4.49423283715579e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 19,
+      "values": [
+        4.9896007738368e+291,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 20,
+      "values": [
+        8.988465674311578e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 21,
+      "values": [
+        -2.2471164185778944e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 22,
+      "values": [
+        -4.49423283715579e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 23,
+      "values": [
+        4.49423283715579e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 24,
+      "values": [
+        2.2471164185778954e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 25,
+      "values": [
+        -2.2471164185778954e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 26,
+      "values": [
+        2.247116418577895e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 27,
+      "values": [
+        -2.2471164185778954e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 28,
+      "values": [
+        2.2471164185778954e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 29,
+      "values": [
+        8.988465674311578e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 30,
+      "values": [
+        -8.988465674311578e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 31,
+      "values": [
+        8.988465674311578e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    }
+  ],
+  "scriptSha256": "1c847fe765da3892bebf722ea04f4f07204bfda8b93b412691a4508d7761140b",
+  "logSha256": "0da4395ccd76f5e07fa470c2fc642442d6ca9f01f77cee3410dbc6a7bb66832d",
+  "diagnosticOnly": true,
+  "sourceExpressionClass": "series_array_lookup_isolated_calls",
+  "period": 3,
+  "tolerance": 0.0,
+  "countedAsAdditionalRuntimeAgreement": false,
+  "qualification": "Independent native recapture with one SMA and one SUM call. Same input profile already measured in Round52; excluded from runtime agreement totals. No universal source-context or accumulator qualification."
+}

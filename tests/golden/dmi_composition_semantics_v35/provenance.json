@@ -1,0 +1,14 @@
+{
+  "description": "Genuine intermediate installed rc30 /35. Never relabeled; composed DMI emits missing at high gaps.",
+  "packageVersion": "0.4.1rc30",
+  "semanticsVersion": 35,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round54-20261003\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "a455e6da19cc193221d6072c208c3a832f001804d9172f982ecf43adc8114325",
+  "sha256": {
+    "indicator.pyne": "619a8a3819fe38ba608d8a67e62baad23cb088da77be4cc4ad34fef0d9bc1f8e",
+    "state.json": "1a413c92fb776348326df5dae6c7678fc42de0e086a4194b22d9c0dc9298f9dd",
+    "replay.json": "9acccde978363de42503a533114a953f26a0a0596d0c82ae74c8ec876c796352",
+    "bars.json": "f2ad74cb85151ad870492f351a036a1c801adf5711e9a3b716f1eb27901be59e",
+    "committed-result.json": "7519b1ddb24e3a27fd0722a28c17e48fc838e10c95ea3c823e1247d97c466e4a"
+  }
+}

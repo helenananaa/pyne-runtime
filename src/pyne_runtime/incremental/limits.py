@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from itertools import chain
 from typing import Any
 
-from ..collections import PyneArray, PyneMap, PyneMatrix
+from ..collections import PyneArray, PyneMap, PyneMatrix, _ArraySliceStorage
 from ..security import PyneResourceLimitError, PyneStateContractError, PyneSecurityPolicy
 
 SAFE_MAX_WINDOW_SIZE = 10_000
@@ -463,6 +463,10 @@ def _state_payload_items(value: Any) -> int:
         if isinstance(current, PyneArray):
             children = current._values
             slot_count = len(children)
+            if isinstance(children, _ArraySliceStorage):
+                # A small view retains its entire parent, including values
+                # outside the visible range. Account for that retained graph.
+                pending.append(children.parent)
         elif isinstance(current, PyneMap):
             mapping = current._values
             children = chain(mapping.keys(), mapping.values())

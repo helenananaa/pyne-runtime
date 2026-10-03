@@ -36,7 +36,7 @@ def seal(envelope):
 
 
 @pytest.mark.parametrize("mode", ["replay", "state"])
-@pytest.mark.parametrize("folder", ["snapshot_semantics", "snapshot_semantics_v1", "snapshot_semantics_v2", "snapshot_semantics_v3", "snapshot_semantics_v4"])
+@pytest.mark.parametrize("folder", ["snapshot_semantics", "snapshot_semantics_v1", "snapshot_semantics_v2", "snapshot_semantics_v3", "snapshot_semantics_v4", "snapshot_semantics_v5", "snapshot_semantics_v6", "snapshot_semantics_v7", "snapshot_semantics_v8", "snapshot_semantics_v9", "snapshot_semantics_v10", "snapshot_semantics_v11", "snapshot_semantics_v12", "snapshot_semantics_v13", "snapshot_semantics_v14", "snapshot_semantics_v15", "snapshot_semantics_v16", "snapshot_semantics_v17", "snapshot_semantics_v18", "snapshot_semantics_v19", "snapshot_semantics_v20", "snapshot_semantics_v21", "snapshot_semantics_v22", "snapshot_semantics_v23", "snapshot_semantics_v24", "snapshot_semantics_v25", "snapshot_semantics_v26", "snapshot_semantics_v27", "snapshot_semantics_v28", "snapshot_semantics_v29", "snapshot_semantics_v30", "snapshot_semantics_v31", "snapshot_semantics_v32", "snapshot_semantics_v33", "snapshot_semantics_v34", "snapshot_semantics_v35", "snapshot_semantics_v36"])
 def test_real_legacy_snapshot_rejected_before_session_construction(mode, folder, monkeypatch):
     fixtures = FIXTURES.parent / folder
     provenance = json.loads((fixtures / "provenance.json").read_text())
@@ -56,7 +56,7 @@ def test_real_legacy_snapshot_rejected_before_session_construction(mode, folder,
     assert error.value.code == "PYNE_SNAPSHOT_SEMANTICS_MISMATCH"
 
 
-@pytest.mark.parametrize("version", [None, 0, 1, 2, 3, 4, INCREMENTAL_SEMANTICS_VERSION + 1, True, "2", 2.0,
+@pytest.mark.parametrize("version", [None, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, INCREMENTAL_SEMANTICS_VERSION + 1, True, "2", 2.0,
                                      str(INCREMENTAL_SEMANTICS_VERSION), float(INCREMENTAL_SEMANTICS_VERSION)])
 @pytest.mark.parametrize("mode", ["replay", "state"])
 def test_unknown_or_malformed_portable_semantics_rejected(mode, version):
@@ -67,7 +67,7 @@ def test_unknown_or_malformed_portable_semantics_rejected(mode, version):
         pn.PyneIncrementalSession.from_portable_snapshot(seal(envelope), script=SCRIPT)
 
 
-@pytest.mark.parametrize("version", [None, 0, 1, 2, 3, 4, INCREMENTAL_SEMANTICS_VERSION + 1, True, "2", 2.0,
+@pytest.mark.parametrize("version", [None, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, INCREMENTAL_SEMANTICS_VERSION + 1, True, "2", 2.0,
                                      str(INCREMENTAL_SEMANTICS_VERSION), float(INCREMENTAL_SEMANTICS_VERSION)])
 def test_local_rejection_preserves_committed_and_preview_state(version):
     original = session()

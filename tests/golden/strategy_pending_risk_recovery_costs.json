@@ -3,7 +3,7 @@
     {
       "name": "global_risk_lock_keeps_pending_entry_but_allows_exit_recovery_costs",
       "source": "pyne-defined deterministic strategy pending risk recovery cost semantics",
-      "script": "strategy(\"Pending Risk Exit Recovery\", overlay=True, initial_capital=1000, commission_type=strategy.commission.cash_per_order, commission_value=1)\nstrategy.risk.max_drawdown(5, strategy.percent_of_equity)\nstrategy.entry_when(bar_index == 0, \"Long\", strategy.long, qty=10, price=close)\nstrategy.entry(\"Breakout\", strategy.long, qty=1, when=bar_index == 0, stop=120)\nstrategy.exit(\"Stop\", from_entry=\"Long\", stop=88)\nplot(strategy.position_size, \"Position\")\nplot(strategy.equity, \"Equity\")\nplot(strategy.netprofit, \"Net Profit\")\nplot(strategy.closedtrades.commission(0), \"Closed Commission\")\n",
+      "script": "strategy(\"Pending Risk Exit Recovery\", overlay=True, initial_capital=1000, pyramiding=2, commission_type=strategy.commission.cash_per_order, commission_value=1)\nstrategy.risk.max_drawdown(5, strategy.percent_of_equity)\nstrategy.entry_when(bar_index == 0, \"Long\", strategy.long, qty=10, price=close)\nstrategy.entry(\"Breakout\", strategy.long, qty=1, when=bar_index == 0, stop=120)\nstrategy.exit(\"Stop\", from_entry=\"Long\", stop=88)\nplot(strategy.position_size, \"Position\")\nplot(strategy.equity, \"Equity\")\nplot(strategy.netprofit, \"Net Profit\")\nplot(strategy.closedtrades.commission(0), \"Closed Commission\")\n",
       "bars": [
         {
           "time": 1,

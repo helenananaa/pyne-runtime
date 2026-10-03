@@ -45,5 +45,7 @@ library revisions are not silently substituted. These adapters are local,
 reviewed implementations. A checked-in 16-bar TradingView capture now parity
 gates dynamic `ema2`, `rma2`, and `atr2` together with pivot and traditional
 pivot-level behavior: 8 plotted series and 78 checked points currently report
-0 diff. This evidence applies only to the captured cases and does not promote
+one disclosed pivot startup-context difference and zero unexpected differences.
+The raw first pivot remains in the capture and diagnostic difference count.
+This evidence applies only to the captured cases and does not promote
 the pinned adapter beyond its explicit batch-only allowlist.

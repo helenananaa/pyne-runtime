@@ -83,6 +83,7 @@ def replay_strategy_orders(
     )
     for order in _orders_in_replay_order(source_orders):
         order["_active"] = False
+        order.pop("_stop_limit_activated", None)
         order.pop("_filled_qty", None)
         order.pop("_requested_fill_qty", None)
         order.pop("_target_qty", None)
@@ -109,6 +110,204 @@ def replay_strategy_orders(
             order.pop("canceled", None)
         orders_by_time.setdefault(int(order.get("time", 0)), []).append(order)
 
+    def fill_pending_orders(idx: int, timestamp: int, *, carried_only: bool | None) -> None:
+        nonlocal current_size, current_avg, same_direction_entry_count
+        nonlocal gross_profit, gross_loss, total_commission, open_trades
+        nonlocal intraday_filled_orders, filled_orders_locked, risk_locked
+        if pending_orders and not risk_locked:
+            open_price = float(self._context.open.values[idx])
+            high = float(self._context.high.values[idx])
+            low = float(self._context.low.values[idx])
+            for order in pending_orders.candidates(high=high, low=low):
+                if not pending_orders.contains(order):
+                    continue
+                if risk_locked and order.get("type") in {"entry", "order"}:
+                    pending_orders.reindex(order)
+                    continue
+                submitted_before_bar = int(order.get("_submit_time", order.get("time", 0))) < timestamp
+                if carried_only is not None and submitted_before_bar != carried_only:
+                    pending_orders.reindex(order)
+                    continue
+                _consume_pending_order_operations(self)
+                trigger_reference_price = open_price
+                trigger_high, trigger_low = high, low
+                if (
+                    self._process_orders_on_close
+                    and int(order.get("_submit_time", order.get("time", 0))) == timestamp
+                ):
+                    trigger_reference_price = float(self._context.close.values[idx])
+                    trigger_high = trigger_low = trigger_reference_price
+                trigger = _pending_trigger(
+                    side=_normalize_direction(str(order.get("side", self.long))),
+                    open_price=trigger_reference_price,
+                    high=trigger_high,
+                    low=trigger_low,
+                    limit=order.get("_limit"),
+                    stop=order.get("_stop"),
+                    tick_verify=self._limit_fill_verification_amount(),
+                    same_bar_fill_priority=self._same_bar_fill_priority,
+                    intrabar_path=self._intrabar_path,
+                    order_state=order,
+                    close_price=float(self._context.close.values[idx]),
+                )
+                if trigger is None:
+                    pending_orders.reindex(order)
+                    continue
+                reason, trigger_price = trigger
+                order["time"] = timestamp
+                if reason is not None:
+                    order["reason"] = reason
+                else:
+                    order.pop("reason", None)
+                order["_base_price"] = float(trigger_price)
+                if order.get("type") == "entry":
+                    side = _normalize_direction(str(order.get("side", self.long)))
+                    rejection_reason = _entry_rejection_reason(
+                        side=side,
+                        previous_size=current_size,
+                        same_direction_entry_count=len(open_trades),
+                        pyramiding=self._pyramiding,
+                        allow_entry_in=self._allow_entry_in,
+                        check_pyramiding=False,
+                    )
+                    if rejection_reason is not None:
+                        _reject_order(order, timestamp=timestamp, reason=rejection_reason)
+                        pending_orders.remove(order)
+                        continue
+                    fill_side = "buy" if side == self.long else "sell"
+                    fill_price = self._fill_price(float(trigger_price), fill_side)
+                    qty = _entry_qty_for_max_position_size(
+                        side=side,
+                        previous_size=current_size,
+                        requested_qty=float(order.get("qty", 0.0)),
+                        max_position_size=self._max_position_size,
+                    )
+                    order["_requested_fill_qty"] = float(
+                        order.get("_original_qty", order.get("qty", 0.0))
+                    )
+                    if qty <= 0:
+                        order["_filled_qty"] = 0.0
+                        _reject_order(order, timestamp=timestamp, reason="max_position_size")
+                        pending_orders.remove(order)
+                        continue
+                    position_after, avg_after = _entry_position_after(
+                        previous_size=current_size,
+                        previous_avg=current_avg,
+                        side=side,
+                        qty=qty,
+                        price=fill_price,
+                    )
+                    pre_fill_equity = _strategy_equity(
+                        initial_capital=self._initial_capital,
+                        gross_profit=gross_profit,
+                        gross_loss=gross_loss,
+                        total_commission=total_commission,
+                        position_size=current_size,
+                        position_avg=current_avg,
+                        close_price=float(self._context.close.values[idx]),
+                    )
+                    if not self._margin_allows_position(
+                        previous_size=current_size,
+                        next_size=position_after,
+                        price=fill_price,
+                        equity=pre_fill_equity,
+                    ):
+                        pending_orders.reindex(order)
+                        continue
+                    if current_size == 0 or (current_size > 0) != (position_after > 0):
+                        same_direction_entry_count = 1
+                    else:
+                        same_direction_entry_count += 1
+                else:
+                    side = _normalize_direction(str(order.get("side", self.long)))
+                    fill_side = "buy" if side == self.long else "sell"
+                    fill_price = self._fill_price(float(trigger_price), fill_side)
+                    qty = float(order.get("qty", 0.0))
+                    order["_requested_fill_qty"] = float(order.get("_original_qty", qty))
+                    position_after, avg_after = _order_position_after(
+                        previous_size=current_size,
+                        previous_avg=current_avg,
+                        side=side,
+                        qty=qty,
+                        price=fill_price,
+                    )
+                    pre_fill_equity = _strategy_equity(
+                        initial_capital=self._initial_capital,
+                        gross_profit=gross_profit,
+                        gross_loss=gross_loss,
+                        total_commission=total_commission,
+                        position_size=current_size,
+                        position_avg=current_avg,
+                        close_price=float(self._context.close.values[idx]),
+                    )
+                    if not self._margin_allows_position(
+                        previous_size=current_size,
+                        next_size=position_after,
+                        price=fill_price,
+                        equity=pre_fill_equity,
+                    ):
+                        pending_orders.reindex(order)
+                        continue
+                    if position_after == 0:
+                        same_direction_entry_count = 0
+                    elif current_size == 0 or (current_size > 0) != (position_after > 0):
+                        same_direction_entry_count = 1
+                previous_size = current_size
+                current_size = position_after
+                current_avg = avg_after
+                if order.get("type") == "entry":
+                    order["qty"] = round(qty, 8)
+                order["_filled_qty"] = round(float(qty), 8)
+                order["price"] = round(float(fill_price), 8)
+                order["position_after"] = round(float(position_after), 8)
+                if order.get("_oca_name"):
+                    order["oca_name"] = order.get("_oca_name")
+                    order["oca_type"] = order.get("_oca_type") or StrategyOca.none
+                fill_qty = float(order.get("qty", 0.0))
+                signed_qty = fill_qty if side == self.long else -fill_qty
+                transaction_qty = abs(position_after - previous_size)
+                commission_qty = transaction_qty if order.get("type") == "entry" else fill_qty
+                if order.get("type") == "entry" and abs(transaction_qty - fill_qty) > 1e-9:
+                    order["_transaction_qty"] = round(transaction_qty, 8)
+                commission = self._apply_commission(
+                    order,
+                    qty=commission_qty,
+                    price=fill_price,
+                )
+                order["_fill_bar_index"] = idx
+                gross_profit, gross_loss, total_commission, open_trades = _record_fill(
+                    order=order,
+                    signed_qty=(
+                        position_after - previous_size
+                        if order.get("type") == "entry"
+                        else signed_qty
+                    ),
+                    previous_size=previous_size,
+                    fill_price=fill_price,
+                    next_size=position_after,
+                    commission=commission,
+                    open_trades=open_trades,
+                    closed_trades=closed_trades,
+                    gross_profit=gross_profit,
+                    gross_loss=gross_loss,
+                    total_commission=total_commission,
+                    open_trade_events=open_trade_events,
+                )
+                order["_avg_price_after"] = (
+                    round(float(avg_after), 8) if not is_na_value(avg_after) else None
+                )
+                order["_active"] = True
+                pending_orders.remove(order)
+                if order.get("type") in {"entry", "order"}:
+                    intraday_filled_orders += 1
+                    if _intraday_filled_orders_hit(
+                        filled_orders=intraday_filled_orders,
+                        threshold=self._max_intraday_filled_orders,
+                    ):
+                        filled_orders_locked = True
+                        risk_locked = True
+                pending_orders.apply_oca_after_fill(order)
+
     materialize_sentinel = object()
     for idx, timestamp in enumerate(self._context.times):
         if session_first[idx]:
@@ -123,6 +322,10 @@ def replay_strategy_orders(
             )
         risk_locked = drawdown_locked or intraday_locked or filled_orders_locked
         same_bar_visible_fill = False
+        if self._process_orders_on_close:
+            # Orders carried from earlier calculations trigger before this
+            # bar's calculation observes state or submits close-fill commands.
+            fill_pending_orders(idx, timestamp, carried_only=True)
         bar_open_size = current_size
         if self._process_orders_on_close:
             _write_strategy_snapshot(
@@ -150,17 +353,33 @@ def replay_strategy_orders(
             else:
                 order = scheduled_order
             if order.get("type") == "entry":
+                pending_orders.validate_entry_direction(order)
                 if risk_locked:
                     _reject_order(order, timestamp=timestamp, reason="risk_locked")
                     continue
                 if _is_pending_submission(order):
+                    admission_size, admission_count = pending_orders.entry_admission_state(
+                        order, size=current_size, count=len(open_trades),
+                    )
+                    rejection_reason = _entry_rejection_reason(
+                        side=_normalize_direction(str(order.get("side", self.long))),
+                        previous_size=admission_size,
+                        same_direction_entry_count=admission_count,
+                        pyramiding=self._pyramiding,
+                        allow_entry_in=self._allow_entry_in,
+                    )
+                    if rejection_reason is not None:
+                        if rejection_reason == "pyramiding_exceeded" and not order.get("_market_submission"):
+                            pending_orders.cancel_market_entry(order)
+                        _reject_order(order, timestamp=timestamp, reason=rejection_reason)
+                        continue
                     pending_orders.add(order)
                     continue
                 side = _normalize_direction(str(order.get("side", self.long)))
                 rejection_reason = _entry_rejection_reason(
                     side=side,
                     previous_size=current_size,
-                    same_direction_entry_count=same_direction_entry_count,
+                    same_direction_entry_count=len(open_trades),
                     pyramiding=self._pyramiding,
                     allow_entry_in=self._allow_entry_in,
                 )
@@ -390,7 +609,7 @@ def replay_strategy_orders(
                     open_trade_events=open_trade_events,
                 )
                 order["_active"] = True
-                if order.get("_fifo_close") and next_size != 0:
+                if next_size != 0:
                     current_avg = _position_avg_from_open_trades(open_trades, next_size)
                 if (
                     order.get("type") == "exit"
@@ -422,187 +641,9 @@ def replay_strategy_orders(
                     order["canceled"] = len(canceled)
                     order["_active"] = True
 
-        if pending_orders and not risk_locked:
-            open_price = float(self._context.open.values[idx])
-            high = float(self._context.high.values[idx])
-            low = float(self._context.low.values[idx])
-            for order in pending_orders.candidates(high=high, low=low):
-                if not pending_orders.contains(order):
-                    continue
-                if risk_locked and order.get("type") in {"entry", "order"}:
-                    pending_orders.reindex(order)
-                    continue
-                _consume_pending_order_operations(self)
-                trigger_reference_price = open_price
-                if (
-                    self._process_orders_on_close
-                    and int(order.get("_submit_time", order.get("time", 0))) == timestamp
-                ):
-                    trigger_reference_price = float(self._context.close.values[idx])
-                trigger = _pending_trigger(
-                    side=_normalize_direction(str(order.get("side", self.long))),
-                    open_price=trigger_reference_price,
-                    high=high,
-                    low=low,
-                    limit=order.get("_limit"),
-                    stop=order.get("_stop"),
-                    tick_verify=self._limit_fill_verification_amount(),
-                    same_bar_fill_priority=self._same_bar_fill_priority,
-                    intrabar_path=self._intrabar_path,
-                )
-                if trigger is None:
-                    pending_orders.reindex(order)
-                    continue
-                reason, trigger_price = trigger
-                order["time"] = timestamp
-                order["reason"] = reason
-                order["_base_price"] = float(trigger_price)
-                if order.get("type") == "entry":
-                    side = _normalize_direction(str(order.get("side", self.long)))
-                    rejection_reason = _entry_rejection_reason(
-                        side=side,
-                        previous_size=current_size,
-                        same_direction_entry_count=same_direction_entry_count,
-                        pyramiding=self._pyramiding,
-                        allow_entry_in=self._allow_entry_in,
-                    )
-                    if rejection_reason is not None:
-                        _reject_order(order, timestamp=timestamp, reason=rejection_reason)
-                        pending_orders.remove(order)
-                        continue
-                    fill_side = "buy" if side == self.long else "sell"
-                    fill_price = self._fill_price(float(trigger_price), fill_side)
-                    qty = _entry_qty_for_max_position_size(
-                        side=side,
-                        previous_size=current_size,
-                        requested_qty=float(order.get("qty", 0.0)),
-                        max_position_size=self._max_position_size,
-                    )
-                    order["_requested_fill_qty"] = float(
-                        order.get("_original_qty", order.get("qty", 0.0))
-                    )
-                    if qty <= 0:
-                        order["_filled_qty"] = 0.0
-                        _reject_order(order, timestamp=timestamp, reason="max_position_size")
-                        pending_orders.remove(order)
-                        continue
-                    position_after, avg_after = _entry_position_after(
-                        previous_size=current_size,
-                        previous_avg=current_avg,
-                        side=side,
-                        qty=qty,
-                        price=fill_price,
-                    )
-                    pre_fill_equity = _strategy_equity(
-                        initial_capital=self._initial_capital,
-                        gross_profit=gross_profit,
-                        gross_loss=gross_loss,
-                        total_commission=total_commission,
-                        position_size=current_size,
-                        position_avg=current_avg,
-                        close_price=float(self._context.close.values[idx]),
-                    )
-                    if not self._margin_allows_position(
-                        previous_size=current_size,
-                        next_size=position_after,
-                        price=fill_price,
-                        equity=pre_fill_equity,
-                    ):
-                        pending_orders.reindex(order)
-                        continue
-                    if current_size == 0 or (current_size > 0) != (position_after > 0):
-                        same_direction_entry_count = 1
-                    else:
-                        same_direction_entry_count += 1
-                else:
-                    side = _normalize_direction(str(order.get("side", self.long)))
-                    fill_side = "buy" if side == self.long else "sell"
-                    fill_price = self._fill_price(float(trigger_price), fill_side)
-                    qty = float(order.get("qty", 0.0))
-                    order["_requested_fill_qty"] = float(order.get("_original_qty", qty))
-                    position_after, avg_after = _order_position_after(
-                        previous_size=current_size,
-                        previous_avg=current_avg,
-                        side=side,
-                        qty=qty,
-                        price=fill_price,
-                    )
-                    pre_fill_equity = _strategy_equity(
-                        initial_capital=self._initial_capital,
-                        gross_profit=gross_profit,
-                        gross_loss=gross_loss,
-                        total_commission=total_commission,
-                        position_size=current_size,
-                        position_avg=current_avg,
-                        close_price=float(self._context.close.values[idx]),
-                    )
-                    if not self._margin_allows_position(
-                        previous_size=current_size,
-                        next_size=position_after,
-                        price=fill_price,
-                        equity=pre_fill_equity,
-                    ):
-                        pending_orders.reindex(order)
-                        continue
-                    if position_after == 0:
-                        same_direction_entry_count = 0
-                    elif current_size == 0 or (current_size > 0) != (position_after > 0):
-                        same_direction_entry_count = 1
-                previous_size = current_size
-                current_size = position_after
-                current_avg = avg_after
-                if order.get("type") == "entry":
-                    order["qty"] = round(qty, 8)
-                order["_filled_qty"] = round(float(qty), 8)
-                order["price"] = round(float(fill_price), 8)
-                order["position_after"] = round(float(position_after), 8)
-                if order.get("_oca_name"):
-                    order["oca_name"] = order.get("_oca_name")
-                    order["oca_type"] = order.get("_oca_type") or StrategyOca.none
-                fill_qty = float(order.get("qty", 0.0))
-                signed_qty = fill_qty if side == self.long else -fill_qty
-                transaction_qty = abs(position_after - previous_size)
-                commission_qty = transaction_qty if order.get("type") == "entry" else fill_qty
-                if order.get("type") == "entry" and abs(transaction_qty - fill_qty) > 1e-9:
-                    order["_transaction_qty"] = round(transaction_qty, 8)
-                commission = self._apply_commission(
-                    order,
-                    qty=commission_qty,
-                    price=fill_price,
-                )
-                order["_fill_bar_index"] = idx
-                gross_profit, gross_loss, total_commission, open_trades = _record_fill(
-                    order=order,
-                    signed_qty=(
-                        position_after - previous_size
-                        if order.get("type") == "entry"
-                        else signed_qty
-                    ),
-                    previous_size=previous_size,
-                    fill_price=fill_price,
-                    next_size=position_after,
-                    commission=commission,
-                    open_trades=open_trades,
-                    closed_trades=closed_trades,
-                    gross_profit=gross_profit,
-                    gross_loss=gross_loss,
-                    total_commission=total_commission,
-                    open_trade_events=open_trade_events,
-                )
-                order["_avg_price_after"] = (
-                    round(float(avg_after), 8) if not is_na_value(avg_after) else None
-                )
-                order["_active"] = True
-                pending_orders.remove(order)
-                if order.get("type") in {"entry", "order"}:
-                    intraday_filled_orders += 1
-                    if _intraday_filled_orders_hit(
-                        filled_orders=intraday_filled_orders,
-                        threshold=self._max_intraday_filled_orders,
-                    ):
-                        filled_orders_locked = True
-                        risk_locked = True
-                pending_orders.apply_oca_after_fill(order)
+        fill_pending_orders(
+            idx, timestamp, carried_only=False if self._process_orders_on_close else None
+        )
         risk_liquidation = _risk_liquidation_reason(
             self,
             idx=idx,

@@ -1,0 +1,12 @@
+{
+  "description": "Generated before round-two extrema correction by the independently installed semantics-6 wheel from the previous goal; no relabeling.",
+  "packageVersion": "0.4.1rc1",
+  "semanticsVersion": 6,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-20260930\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "6c7bf5a499a9edee8067611ddcb66b8877e7eaec18ae9ceca129a4d4cae8e4a1",
+  "sha256": {
+    "indicator.pyne": "e13fc88a045fa9e04268d88ee5f2b7ba5b1e7009ff2221d9f526a8b5d1e8b3f4",
+    "replay.json": "b18d4efe8ceb3c20ed87626718af812c15a6774d5c225cf71603e9e8c49ef27c",
+    "state.json": "2a69fcd1bfa04f6579708800e8f66688b111aedc675f31bac84c9643e7fd6d25"
+  }
+}

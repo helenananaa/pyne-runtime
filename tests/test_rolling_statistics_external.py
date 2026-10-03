@@ -46,7 +46,7 @@ def _assert_result(result, count):
         if title in CAPTURE["referenceOnlyColumns"]:
             continue
         expected = {
-            r["index"] * 60: round(r["values"][col], 8)
+            r["index"] * 60: r["values"][col]
             for r in CAPTURE["rows"][:count]
             if r["values"][col] is not None
         }
@@ -64,9 +64,9 @@ def _assert_result(result, count):
         if len(window) == 3:
             centered = np.asarray(window) - window[0]
             variance[row["index"] * 60] = float(np.var(centered))
-    stdev = {time: round(math.sqrt(value), 8) for time, value in variance.items()}
+    stdev = {time: math.sqrt(value) for time, value in variance.items()}
     assert lines.get("High Variance", {}) == pytest.approx(
-        {time: round(value, 8) for time, value in variance.items()}, abs=1e-8, rel=0
+        {time: value for time, value in variance.items()}, abs=1e-8, rel=0
     )
     assert lines.get("High Stdev", {}) == pytest.approx(stdev, abs=1e-8, rel=0)
 
@@ -224,7 +224,7 @@ def on_bar(ctx, bar):
     actual = _view(pn.run(source, data, executor_mode="inline"))
     for name, column in (("Native ratio", 13), ("Custom ratio", 17)):
         expected = {
-            r["values"][0]: round(r["values"][column], 8)
+            r["values"][0]: r["values"][column]
             for r in capture["rows"]
             if r["values"][column] is not None
         }

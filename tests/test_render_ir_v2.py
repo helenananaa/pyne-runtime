@@ -211,7 +211,7 @@ plot(tv_ta.cagr(0, 100, 31536000, 121), "CAGR")
     assert result.values("Change") == [0.0, 10.0, 10.0]
     assert result.values("Highest Since") == [100.0, 110.0, 121.0]
     assert result.values("Lowest Since") == [100.0, 110.0, 110.0]
-    assert result.values("CAGR") == [21.0]
+    assert result.values("CAGR") == pytest.approx([21.],abs=1e-12,rel=0)
 
 
 def test_pinned_tradingview_ta_10_dynamic_smoothing_members() -> None:

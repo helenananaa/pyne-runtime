@@ -20,7 +20,7 @@ def bars():
 
 def expected(end=80, start=0):
     return {
-        name: [{"time": row["time"], "value": round(row["values"][index], 8)}
+        name: [{"time": row["time"], "value": row["values"][index]}
                for row in CAPTURE["rows"][start:end] if row["values"][index] is not None]
         for index, name in enumerate(CAPTURE["columns"])
     }

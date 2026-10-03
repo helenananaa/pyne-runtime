@@ -1,0 +1,28 @@
+//@version=6
+indicator("Pyne extrema order oracle 20260930", precision=10)
+int i = bar_index
+float src = float((i * 7) % 13 - 4)
+float holes = i == 1 or i == 7 or i == 8 or i == 12 or i >= 23 and i <= 27 ? na : src
+float ties = float(int(i / 2) % 3)
+float lead = i < 5 ? na : src
+float hi = ta.highest(holes, 3)
+float lo = ta.lowest(holes, 3)
+float hib = ta.highestbars(holes, 3)
+float lob = ta.lowestbars(holes, 3)
+float hit = ta.highest(ties, 3)
+float lot = ta.lowest(ties, 3)
+float hibt = ta.highestbars(ties, 3)
+float lobt = ta.lowestbars(ties, 3)
+float hil = ta.highest(lead, 3)
+float lol = ta.lowest(lead, 3)
+float lr = ta.linreg(holes, 3, 0)
+float nr = ta.percentile_nearest_rank(holes, 3, 50)
+float li = ta.percentile_linear_interpolation(holes, 3, 50)
+f(float x) => str.tostring(x, "#.##########")
+var string rows = ""
+if i < 32
+    rows += "PYNE_EXT_ORDER|" + str.tostring(i) + "|" + f(src) + "|" + f(holes) + "|" + f(ties) + "|" + f(lead) + "|" + f(hi) + "|" + f(lo) + "|" + f(hib) + "|" + f(lob) + "|" + f(hit) + "|" + f(lot) + "|" + f(hibt) + "|" + f(lobt) + "|" + f(hil) + "|" + f(lol) + "|" + f(lr) + "|" + f(nr) + "|" + f(li) + ";"
+    if i % 8 == 7
+        log.info(rows)
+        rows := ""
+plot(hi, "Extrema oracle")

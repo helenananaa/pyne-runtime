@@ -855,83 +855,83 @@
     "Plus DI 4": [
       {
         "time": 5,
-        "value": 58.71559633
+        "value": 53.33333333
       },
       {
         "time": 6,
-        "value": 35.88785047
+        "value": 33.8028169
       },
       {
         "time": 7,
-        "value": 23.03078768
+        "value": 22.15384615
       },
       {
         "time": 8,
-        "value": 16.34042553
+        "value": 15.89403974
       },
       {
         "time": 9,
-        "value": 12.35315144
+        "value": 12.09632257
       },
       {
         "time": 10,
-        "value": 18.24424297
+        "value": 17.9698402
       },
       {
         "time": 11,
-        "value": 34.41247845
+        "value": 34.05058909
       },
       {
         "time": 12,
-        "value": 42.7291562
+        "value": 42.39476389
       },
       {
         "time": 13,
-        "value": 37.66746643
+        "value": 37.43793251
       },
       {
         "time": 14,
-        "value": 26.60697391
+        "value": 26.49224238
       },
       {
         "time": 15,
-        "value": 19.92161709
+        "value": 19.85722808
       },
       {
         "time": 16,
-        "value": 18.71345987
+        "value": 18.66904383
       },
       {
         "time": 17,
-        "value": 34.66430836
+        "value": 34.60230584
       },
       {
         "time": 18,
-        "value": 48.82780384
+        "value": 48.76466724
       },
       {
         "time": 19,
-        "value": 45.09760563
+        "value": 45.05331712
       },
       {
         "time": 20,
-        "value": 31.58119881
+        "value": 31.55947334
       },
       {
         "time": 21,
-        "value": 22.56413421
+        "value": 22.55304157
       },
       {
         "time": 22,
-        "value": 16.92597774
+        "value": 16.91973524
       },
       {
         "time": 23,
-        "value": 18.51428374
+        "value": 18.50950268
       },
       {
         "time": 24,
-        "value": 35.44239151
+        "value": 35.43585285
       }
     ],
     "Minus DI 4": [
@@ -941,79 +941,79 @@
       },
       {
         "time": 6,
-        "value": 29.90654206
+        "value": 28.16901408
       },
       {
         "time": 7,
-        "value": 47.34106357
+        "value": 45.53846154
       },
       {
         "time": 8,
-        "value": 52.95508274
+        "value": 51.5084621
       },
       {
         "time": 9,
-        "value": 49.79387585
+        "value": 48.75863356
       },
       {
         "time": 10,
-        "value": 35.81209618
+        "value": 35.27346388
       },
       {
         "time": 11,
-        "value": 24.92508452
+        "value": 24.66296673
       },
       {
         "time": 12,
-        "value": 18.49820147
+        "value": 18.35343717
       },
       {
         "time": 13,
-        "value": 14.37872795
+        "value": 14.29110842
       },
       {
         "time": 14,
-        "value": 31.13056784
+        "value": 30.99633019
       },
       {
         "time": 15,
-        "value": 40.05948631
+        "value": 39.93000931
       },
       {
         "time": 16,
-        "value": 29.39205414
+        "value": 29.32229266
       },
       {
         "time": 17,
-        "value": 22.1368836
+        "value": 22.09728833
       },
       {
         "time": 18,
-        "value": 15.99514432
+        "value": 15.97446186
       },
       {
         "time": 19,
-        "value": 12.14441198
+        "value": 12.13248545
       },
       {
         "time": 20,
-        "value": 30.98314381
+        "value": 30.96182975
       },
       {
         "time": 21,
-        "value": 43.55083759
+        "value": 43.5294278
       },
       {
         "time": 22,
-        "value": 46.9471094
+        "value": 46.92979477
       },
       {
         "time": 23,
-        "value": 32.86800565
+        "value": 32.85951795
       },
       {
         "time": 24,
-        "value": 23.4795423
+        "value": 23.47521064
       }
     ],
     "ADX 4 3": [
@@ -2186,7 +2186,850 @@
     ],
     "notes": [
       "TradingView export 2026-06-02, BINANCE:BTCUSDT.P 60m, trend switch TA capture",
-      "Promoted to parity after aligning ta.sar() with the TradingView reference helper and allowing 1e-8 float tail tolerance."
+      "Promoted to parity after aligning ta.sar() with the TradingView reference helper and allowing 1e-8 float tail tolerance.",
+      "Round55 retains all raw imported values. 115 DI values reproduce exactly with the old explicit-source wrapper; 111 differ from strict DMI. This is bounded custom-formula attribution, not verified historical provenance or native built-in parity."
+    ],
+    "known_differences": [
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780311600,
+          "value": 10.71401425900288
+        },
+        "pyne": {
+          "time": 1780311600,
+          "value": 11.759994660615147
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 0,
+          "nativeLegacyValue": 10.71401425900288,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780315200,
+          "value": 6.7612119274121705
+        },
+        "pyne": {
+          "time": 1780315200,
+          "value": 7.163281070020099
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 1,
+          "nativeLegacyValue": 6.7612119274121705,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780318800,
+          "value": 4.122990324960371
+        },
+        "pyne": {
+          "time": 1780318800,
+          "value": 4.269111799687118
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 2,
+          "nativeLegacyValue": 4.122990324960371,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780322400,
+          "value": 3.2316148581328292
+        },
+        "pyne": {
+          "time": 1780322400,
+          "value": 3.320701721077496
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 3,
+          "nativeLegacyValue": 3.2316148581328292,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780326000,
+          "value": 2.369884916816256
+        },
+        "pyne": {
+          "time": 1780326000,
+          "value": 2.417445609506332
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 4,
+          "nativeLegacyValue": 2.369884916816256,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780329600,
+          "value": 1.5409560529116173
+        },
+        "pyne": {
+          "time": 1780329600,
+          "value": 1.5609241302561303
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 5,
+          "nativeLegacyValue": 1.5409560529116173,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780333200,
+          "value": 9.219646263542744
+        },
+        "pyne": {
+          "time": 1780333200,
+          "value": 9.321408733667086
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 6,
+          "nativeLegacyValue": 9.219646263542744,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780336800,
+          "value": 7.818197312639094
+        },
+        "pyne": {
+          "time": 1780336800,
+          "value": 7.891251368853634
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 7,
+          "nativeLegacyValue": 7.818197312639094,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780340400,
+          "value": 6.616837388652437
+        },
+        "pyne": {
+          "time": 1780340400,
+          "value": 6.66909010559281
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 8,
+          "nativeLegacyValue": 6.616837388652437,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780344000,
+          "value": 6.9641530528319215
+        },
+        "pyne": {
+          "time": 1780344000,
+          "value": 7.009762842060227
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 9,
+          "nativeLegacyValue": 6.9641530528319215,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780347600,
+          "value": 4.967649628327679
+        },
+        "pyne": {
+          "time": 1780347600,
+          "value": 4.990813370390988
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 10,
+          "nativeLegacyValue": 4.967649628327679,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780351200,
+          "value": 3.3657835892200674
+        },
+        "pyne": {
+          "time": 1780351200,
+          "value": 3.3764011967330063
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 11,
+          "nativeLegacyValue": 3.3657835892200674,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780354800,
+          "value": 9.469591738394183
+        },
+        "pyne": {
+          "time": 1780354800,
+          "value": 9.49351844106808
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 12,
+          "nativeLegacyValue": 9.469591738394183,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780358400,
+          "value": 7.661050413568105
+        },
+        "pyne": {
+          "time": 1780358400,
+          "value": 7.676703048652956
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 13,
+          "nativeLegacyValue": 7.661050413568105,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780362000,
+          "value": 4.708609871864248
+        },
+        "pyne": {
+          "time": 1780362000,
+          "value": 4.714518061295947
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 14,
+          "nativeLegacyValue": 4.708609871864248,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780365600,
+          "value": 3.0889125323062543
+        },
+        "pyne": {
+          "time": 1780365600,
+          "value": 3.0914540480535515
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 15,
+          "nativeLegacyValue": 3.0889125323062543,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780369200,
+          "value": 10.876982510476216
+        },
+        "pyne": {
+          "time": 1780369200,
+          "value": 10.884815748489267
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 16,
+          "nativeLegacyValue": 10.876982510476216,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780372800,
+          "value": 8.932500423328133
+        },
+        "pyne": {
+          "time": 1780372800,
+          "value": 8.93778262093209
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 17,
+          "nativeLegacyValue": 8.932500423328133,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780376400,
+          "value": 6.250912070687843
+        },
+        "pyne": {
+          "time": 1780376400,
+          "value": 6.253498366765958
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 18,
+          "nativeLegacyValue": 6.250912070687843,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Plus DI 4",
+        "tradingview": {
+          "time": 1780380000,
+          "value": 4.624843897250313
+        },
+        "pyne": {
+          "time": 1780380000,
+          "value": 4.626259491788438
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Plus DI 4",
+          "originalPointIndex": 19,
+          "nativeLegacyValue": 4.624843897250313,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780311600,
+          "value": 43.026313789277104
+        },
+        "pyne": {
+          "time": 1780311600,
+          "value": 47.22685710471898
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 0,
+          "nativeLegacyValue": 43.026313789277104,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780315200,
+          "value": 43.80078343592618
+        },
+        "pyne": {
+          "time": 1780315200,
+          "value": 46.40548561516684
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 1,
+          "nativeLegacyValue": 43.80078343592618,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780318800,
+          "value": 48.033435272783095
+        },
+        "pyne": {
+          "time": 1780318800,
+          "value": 49.735771646400046
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 2,
+          "nativeLegacyValue": 48.033435272783095,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780322400,
+          "value": 37.64878180163553
+        },
+        "pyne": {
+          "time": 1780322400,
+          "value": 38.686656675850536
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 3,
+          "nativeLegacyValue": 37.64878180163553,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780326000,
+          "value": 42.58526544867253
+        },
+        "pyne": {
+          "time": 1780326000,
+          "value": 43.43989965844275
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 4,
+          "nativeLegacyValue": 42.58526544867253,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780329600,
+          "value": 41.85642401840582
+        },
+        "pyne": {
+          "time": 1780329600,
+          "value": 42.39880957871109
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 5,
+          "nativeLegacyValue": 41.85642401840582,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780333200,
+          "value": 35.72018953082791
+        },
+        "pyne": {
+          "time": 1780333200,
+          "value": 36.11445354227275
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 6,
+          "nativeLegacyValue": 35.72018953082791,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780336800,
+          "value": 34.50077220088575
+        },
+        "pyne": {
+          "time": 1780336800,
+          "value": 34.82315103721084
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 7,
+          "nativeLegacyValue": 34.50077220088575,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780340400,
+          "value": 29.19931415227249
+        },
+        "pyne": {
+          "time": 1780340400,
+          "value": 29.429899159525093
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 8,
+          "nativeLegacyValue": 29.19931415227249,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780344000,
+          "value": 24.248512318734832
+        },
+        "pyne": {
+          "time": 1780344000,
+          "value": 24.407321225943974
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 9,
+          "nativeLegacyValue": 24.248512318734832,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780347600,
+          "value": 43.93675007736874
+        },
+        "pyne": {
+          "time": 1780347600,
+          "value": 44.141623533034505
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 10,
+          "nativeLegacyValue": 43.93675007736874,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780351200,
+          "value": 35.11355897987415
+        },
+        "pyne": {
+          "time": 1780351200,
+          "value": 35.22432723866084
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 11,
+          "nativeLegacyValue": 35.11355897987415,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780354800,
+          "value": 28.142189486160913
+        },
+        "pyne": {
+          "time": 1780354800,
+          "value": 28.21329601525211
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 12,
+          "nativeLegacyValue": 28.142189486160913,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780358400,
+          "value": 30.248422612121615
+        },
+        "pyne": {
+          "time": 1780358400,
+          "value": 30.31022451858099
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 13,
+          "nativeLegacyValue": 30.248422612121615,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780362000,
+          "value": 43.39227036699982
+        },
+        "pyne": {
+          "time": 1780362000,
+          "value": 43.44671738218611
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 14,
+          "nativeLegacyValue": 43.39227036699982,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780365600,
+          "value": 50.238965685171415
+        },
+        "pyne": {
+          "time": 1780365600,
+          "value": 50.280301631424784
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 15,
+          "nativeLegacyValue": 50.238965685171415,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780369200,
+          "value": 43.97753884941545
+        },
+        "pyne": {
+          "time": 1780369200,
+          "value": 44.00920999798113
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 16,
+          "nativeLegacyValue": 43.97753884941545,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780372800,
+          "value": 40.329607938538054
+        },
+        "pyne": {
+          "time": 1780372800,
+          "value": 40.35345668730107
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 17,
+          "nativeLegacyValue": 40.329607938538054,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780376400,
+          "value": 51.68822788151323
+        },
+        "pyne": {
+          "time": 1780376400,
+          "value": 51.70961373041703
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 18,
+          "nativeLegacyValue": 51.68822788151323,
+          "historicalOriginProved": false
+        }
+      },
+      {
+        "plot": "Minus DI 4",
+        "tradingview": {
+          "time": 1780380000,
+          "value": 54.722121021046895
+        },
+        "pyne": {
+          "time": 1780380000,
+          "value": 54.73887063192091
+        },
+        "reason": "The explicitly evaluated legacy DMI custom formula uses high-low when previous close is missing. Native re-evaluation reproduces this imported DI value exactly. The strict previous-close formula differs here and matches the current supplied-data runtime; direct built-in DMI agrees separately on initial monthly and weekly data. Historical capture origin remains unverified.",
+        "evidence": "tests/workloads/legacy_dmi_wrapper_discriminator.tradingview.json; scripts/legacy_dmi_wrapper_diagnostic.py; tests/workloads/recursive_composition_ohlcv_holdout.tradingview.json; tests/workloads/recursive_composition_weekly_holdout.tradingview.json",
+        "classification": "legacy_custom_formula_reference",
+        "wrapperWitness": {
+          "fixture": "ta_trend_switch_indicators",
+          "plot": "Minus DI 4",
+          "originalPointIndex": 19,
+          "nativeLegacyValue": 54.722121021046895,
+          "historicalOriginProved": false
+        }
+      }
     ]
   }
 }

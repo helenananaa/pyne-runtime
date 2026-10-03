@@ -1,0 +1,14 @@
+//@version=6
+indicator("Pyne near edge isolated case1 round53", precision=10)
+int i = bar_index
+float unit = math.pow(2., 1021)
+float ulp = math.pow(2., 969)
+var supplied = array.from(4. * unit - 4. * ulp, unit, unit, ulp, 0., unit + ulp, -unit + ulp, 4. * unit - 4. * ulp, unit + ulp, 0., unit + ulp, -ulp, 2. * unit, 0., unit - ulp, -unit + ulp, ulp, -unit + ulp, 2. * unit, -2. * unit, unit, -4. * unit + 4. * ulp, -unit, unit + ulp, 4. * unit - 4. * ulp, -unit - ulp, -2. * unit, unit + ulp, -unit + ulp, unit + ulp, -unit + ulp, 4. * unit - 4. * ulp)
+float src = array.get(supplied, i % 32)
+float native = ta.sma(src, 7)
+float summed = math.sum(src, 7)
+int missingNative = na(native) ? 1 : 0
+int missingSum = na(summed) ? 1 : 0
+if i < 32
+    log.info("PYNE_NEAR_EDGE_ISOLATED53_C1|" + str.tostring(i) + "|" + str.tostring(src, "0.00000000000000000") + "|" + str.tostring(native, "0.00000000000000000") + "|" + str.tostring(summed, "0.00000000000000000") + "|" + str.tostring(missingNative) + "|" + str.tostring(missingSum) + ";")
+plot(0., display=display.none)

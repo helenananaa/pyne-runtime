@@ -2,6 +2,14 @@
 
 Plot helpers are injected into scripts.
 
+Calculation values in line, histogram, candle, marker, drawing-coordinate and
+signal-price payloads preserve their binary64 precision. `indicator(precision=2)`
+and `plot(precision=0)` supply display hints; they do not round calculation data.
+JSON round trips retain ordinary finite float values. Existing missing-value
+filtering and output shapes remain unchanged. Hosts choose how to render values.
+This contract does not provide arbitrary-precision arithmetic or remove the
+strategy ledger/report's existing eight-decimal formatting.
+
 ```python
 indicator("Bands", overlay=True, format=format.price, scale=scale.right)
 

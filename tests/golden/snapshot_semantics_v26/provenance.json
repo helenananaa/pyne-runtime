@@ -1,0 +1,12 @@
+{
+  "description": "Real installed semantics-26 snapshots before native array missing search, bool defaults and joining; no relabeling.",
+  "packageVersion": "0.4.1rc21",
+  "semanticsVersion": 26,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round31-20261002\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "d45ff31d3c06ba75a802deead1502bfb65aede7ddc0975cc86f875b704ad6bc2",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "945c68a3f39a6996a751ba4e623ab23c668500707c6836459bd0ed2f8dc5ac96",
+    "state.json": "38809820f11e4c5be79204caa049fade3e94ddfc646f7f1d03998e835ec79654"
+  }
+}

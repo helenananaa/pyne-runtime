@@ -1,0 +1,76 @@
+//@version=6
+indicator("Pyne SMA history sources round46", precision=10)
+int i = bar_index
+float base = float((i * 13) % 23 - 10) * 0.25
+float power = math.pow(2., 80) + base * math.pow(2., 28)
+float src_power = power
+var cache_power = array.new_float()
+array.push(cache_power, src_power)
+if array.size(cache_power) > 3
+    array.shift(cache_power)
+float Input_power = src_power
+float History1_power = src_power[1]
+float History2_power = src_power[2]
+float Array1_power = array.size(cache_power) > 1 ? array.get(cache_power, array.size(cache_power) - 2) : na
+float Array2_power = array.size(cache_power) > 2 ? array.get(cache_power, array.size(cache_power) - 3) : na
+float PairHistory_power = (src_power + src_power[1]) / 2.
+float PairArray_power = (src_power + (array.size(cache_power) > 1 ? array.get(cache_power, array.size(cache_power) - 2) : na)) / 2.
+float Native2_power = ta.sma(src_power, 2)
+float Sum2_power = math.sum(src_power, 2)
+float Scaled2_power = ta.sma(src_power / 2., 2) * 2.
+float Native3_power = ta.sma(src_power, 3)
+float Sum3_power = math.sum(src_power, 3)
+float src_prefill = i < 13 ? power : base
+var cache_prefill = array.new_float()
+array.push(cache_prefill, src_prefill)
+if array.size(cache_prefill) > 3
+    array.shift(cache_prefill)
+float Input_prefill = src_prefill
+float History1_prefill = src_prefill[1]
+float History2_prefill = src_prefill[2]
+float Array1_prefill = array.size(cache_prefill) > 1 ? array.get(cache_prefill, array.size(cache_prefill) - 2) : na
+float Array2_prefill = array.size(cache_prefill) > 2 ? array.get(cache_prefill, array.size(cache_prefill) - 3) : na
+float PairHistory_prefill = (src_prefill + src_prefill[1]) / 2.
+float PairArray_prefill = (src_prefill + (array.size(cache_prefill) > 1 ? array.get(cache_prefill, array.size(cache_prefill) - 2) : na)) / 2.
+float Native2_prefill = ta.sma(src_prefill, 2)
+float Sum2_prefill = math.sum(src_prefill, 2)
+float Scaled2_prefill = ta.sma(src_prefill / 2., 2) * 2.
+float Native3_prefill = ta.sma(src_prefill, 3)
+float Sum3_prefill = math.sum(src_prefill, 3)
+float src_holes = i >= 13 and (i % 9 == 1 or i % 9 == 4 or i % 9 == 5) ? na : i < 13 ? power : base
+var cache_holes = array.new_float()
+array.push(cache_holes, src_holes)
+if array.size(cache_holes) > 3
+    array.shift(cache_holes)
+float Input_holes = src_holes
+float History1_holes = src_holes[1]
+float History2_holes = src_holes[2]
+float Array1_holes = array.size(cache_holes) > 1 ? array.get(cache_holes, array.size(cache_holes) - 2) : na
+float Array2_holes = array.size(cache_holes) > 2 ? array.get(cache_holes, array.size(cache_holes) - 3) : na
+float PairHistory_holes = (src_holes + src_holes[1]) / 2.
+float PairArray_holes = (src_holes + (array.size(cache_holes) > 1 ? array.get(cache_holes, array.size(cache_holes) - 2) : na)) / 2.
+float Native2_holes = ta.sma(src_holes, 2)
+float Sum2_holes = math.sum(src_holes, 2)
+float Scaled2_holes = ta.sma(src_holes / 2., 2) * 2.
+float Native3_holes = ta.sma(src_holes, 3)
+float Sum3_holes = math.sum(src_holes, 3)
+float src_regime = i < 24 ? power : i < 48 ? base : i < 72 ? -power : base
+var cache_regime = array.new_float()
+array.push(cache_regime, src_regime)
+if array.size(cache_regime) > 3
+    array.shift(cache_regime)
+float Input_regime = src_regime
+float History1_regime = src_regime[1]
+float History2_regime = src_regime[2]
+float Array1_regime = array.size(cache_regime) > 1 ? array.get(cache_regime, array.size(cache_regime) - 2) : na
+float Array2_regime = array.size(cache_regime) > 2 ? array.get(cache_regime, array.size(cache_regime) - 3) : na
+float PairHistory_regime = (src_regime + src_regime[1]) / 2.
+float PairArray_regime = (src_regime + (array.size(cache_regime) > 1 ? array.get(cache_regime, array.size(cache_regime) - 2) : na)) / 2.
+float Native2_regime = ta.sma(src_regime, 2)
+float Sum2_regime = math.sum(src_regime, 2)
+float Scaled2_regime = ta.sma(src_regime / 2., 2) * 2.
+float Native3_regime = ta.sma(src_regime, 3)
+float Sum3_regime = math.sum(src_regime, 3)
+if i < 40
+    log.info("PYNE_SMA_HISTORY_SOURCES46|" + str.tostring(i) + "|" + str.tostring(Input_power, "0.00000000000000000") + "|" + str.tostring(History1_power, "0.00000000000000000") + "|" + str.tostring(History2_power, "0.00000000000000000") + "|" + str.tostring(Array1_power, "0.00000000000000000") + "|" + str.tostring(Array2_power, "0.00000000000000000") + "|" + str.tostring(PairHistory_power, "0.00000000000000000") + "|" + str.tostring(PairArray_power, "0.00000000000000000") + "|" + str.tostring(Native2_power, "0.00000000000000000") + "|" + str.tostring(Sum2_power, "0.00000000000000000") + "|" + str.tostring(Scaled2_power, "0.00000000000000000") + "|" + str.tostring(Native3_power, "0.00000000000000000") + "|" + str.tostring(Sum3_power, "0.00000000000000000") + "|" + str.tostring(Input_prefill, "0.00000000000000000") + "|" + str.tostring(History1_prefill, "0.00000000000000000") + "|" + str.tostring(History2_prefill, "0.00000000000000000") + "|" + str.tostring(Array1_prefill, "0.00000000000000000") + "|" + str.tostring(Array2_prefill, "0.00000000000000000") + "|" + str.tostring(PairHistory_prefill, "0.00000000000000000") + "|" + str.tostring(PairArray_prefill, "0.00000000000000000") + "|" + str.tostring(Native2_prefill, "0.00000000000000000") + "|" + str.tostring(Sum2_prefill, "0.00000000000000000") + "|" + str.tostring(Scaled2_prefill, "0.00000000000000000") + "|" + str.tostring(Native3_prefill, "0.00000000000000000") + "|" + str.tostring(Sum3_prefill, "0.00000000000000000") + "|" + str.tostring(Input_holes, "0.00000000000000000") + "|" + str.tostring(History1_holes, "0.00000000000000000") + "|" + str.tostring(History2_holes, "0.00000000000000000") + "|" + str.tostring(Array1_holes, "0.00000000000000000") + "|" + str.tostring(Array2_holes, "0.00000000000000000") + "|" + str.tostring(PairHistory_holes, "0.00000000000000000") + "|" + str.tostring(PairArray_holes, "0.00000000000000000") + "|" + str.tostring(Native2_holes, "0.00000000000000000") + "|" + str.tostring(Sum2_holes, "0.00000000000000000") + "|" + str.tostring(Scaled2_holes, "0.00000000000000000") + "|" + str.tostring(Native3_holes, "0.00000000000000000") + "|" + str.tostring(Sum3_holes, "0.00000000000000000") + "|" + str.tostring(Input_regime, "0.00000000000000000") + "|" + str.tostring(History1_regime, "0.00000000000000000") + "|" + str.tostring(History2_regime, "0.00000000000000000") + "|" + str.tostring(Array1_regime, "0.00000000000000000") + "|" + str.tostring(Array2_regime, "0.00000000000000000") + "|" + str.tostring(PairHistory_regime, "0.00000000000000000") + "|" + str.tostring(PairArray_regime, "0.00000000000000000") + "|" + str.tostring(Native2_regime, "0.00000000000000000") + "|" + str.tostring(Sum2_regime, "0.00000000000000000") + "|" + str.tostring(Scaled2_regime, "0.00000000000000000") + "|" + str.tostring(Native3_regime, "0.00000000000000000") + "|" + str.tostring(Sum3_regime, "0.00000000000000000") + ";")
+plot(0., display=display.none)

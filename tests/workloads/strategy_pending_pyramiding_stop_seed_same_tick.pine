@@ -1,0 +1,24 @@
+//@version=6
+strategy("Pyne pending stop_seed_same_tick 20261001", overlay=true, initial_capital=1000000000, pyramiding=1, process_orders_on_close=true, calc_on_order_fills=false, margin_long=0, margin_short=0, commission_value=0, slippage=0)
+if bar_index == 0
+    strategy.entry("Seed", strategy.long, qty=1)
+    strategy.entry("A", strategy.long, qty=1, stop=371)
+if bar_index == 0
+    strategy.entry("B", strategy.long, qty=2, stop=371)
+if bar_index == 0
+    strategy.entry("C", strategy.long, qty=3, stop=371)
+held(string id) =>
+    float quantity = 0
+    if strategy.opentrades > 0
+        for j = 0 to strategy.opentrades-1
+            if strategy.opentrades.entry_id(j) == id
+                quantity += strategy.opentrades.size(j)
+    quantity
+f(float v) => str.tostring(v,"#.##########")
+var string rows = ""
+if bar_index < 32
+    rows += "PYNE_PENDING_PYRAMID|"+str.tostring(bar_index)+"|"+f(time)+"|"+f(open)+"|"+f(high)+"|"+f(low)+"|"+f(close)+"|"+f(volume)+"|"+f(strategy.position_size)+"|"+f(strategy.opentrades)+"|"+f(strategy.closedtrades)+"|"+f(strategy.position_avg_price)+"|"+f(strategy.netprofit)+"|"+f(held("Seed"))+"|"+f(held("A"))+"|"+f(held("B"))+"|"+f(held("C"))+";"
+    if bar_index % 8 == 7
+        log.info(rows)
+        rows := ""
+plot(strategy.position_size,"Position")

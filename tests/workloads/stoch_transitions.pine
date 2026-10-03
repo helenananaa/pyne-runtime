@@ -1,0 +1,27 @@
+//@version=6
+indicator("Pyne stochastic transition oracle 20260930", precision=10)
+int i = bar_index
+float src = float((i * 7) % 13 - 4)
+float holes = i == 1 or i == 7 or i == 8 or i == 12 or i == 23 ? na : src
+float highHole = i == 7 or i == 8 ? na : src + 1
+float lowHole = i == 12 ? na : src - 1
+float tail = i >= 16 ? 5 : src
+float tHigh = i >= 16 ? 5 : src + 1
+float tLow = i >= 16 ? 5 : src - 1
+float lead = i < 8 ? 5 : src
+float lHigh = i < 8 ? 5 : src + 1
+float lLow = i < 8 ? 5 : src - 1
+float sBase = ta.stoch(src, src + 1, src - 1, 3)
+float sSource = ta.stoch(holes, src + 1, src - 1, 3)
+float sHigh = ta.stoch(src, highHole, src - 1, 3)
+float sLow = ta.stoch(src, src + 1, lowHole, 3)
+float sTail = ta.stoch(tail, tHigh, tLow, 3)
+float sLead = ta.stoch(lead, lHigh, lLow, 3)
+f(float x) => str.tostring(x, "#.##########")
+var string rows = ""
+if i < 32
+    rows += "PYNE_STOCH_TRANS|" + str.tostring(i) + "|" + f(sBase) + "|" + f(sSource) + "|" + f(sHigh) + "|" + f(sLow) + "|" + f(sTail) + "|" + f(sLead) + ";"
+    if i % 8 == 7
+        log.info(rows)
+        rows := ""
+plot(sBase, "Stoch transitions")

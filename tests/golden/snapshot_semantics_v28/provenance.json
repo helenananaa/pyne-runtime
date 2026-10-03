@@ -1,0 +1,12 @@
+{
+  "description": "Real installed semantics-28 snapshots before native empty matrix shape preservation; no relabeling.",
+  "packageVersion": "0.4.1rc23",
+  "semanticsVersion": 28,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round33-20261002\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "be1c55b1dadb9610cec2d0920ccd52571d9d195776e17cbe7a6e9dffd1a6534c",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "fc42c69319f23fdff682076826ba10166c6171e380fc9d6698da2fde233f466c",
+    "state.json": "1ecbf9c3f7b96c98697419ada2a4400084428ad3b3fcc40458ed061f13f411e1"
+  }
+}

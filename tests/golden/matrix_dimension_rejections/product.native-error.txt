@@ -1,0 +1,1 @@
+Error on bar 0: In the 'matrix.mult()' function. The number of columns in the matrix 'id1' must be equal to the number of rows in the matrix (or the number of elements in the array) 'id2'.

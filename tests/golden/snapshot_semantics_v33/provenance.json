@@ -1,0 +1,14 @@
+{
+  "description": "Genuine installed rc28 /semantics33 state; affected SMA has lost finite small tail. Never relabeled.",
+  "packageVersion": "0.4.1rc28",
+  "semanticsVersion": 33,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round41-20261002\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "325c85a5ca8ddc28c458b40bc73a5a4e755ecca36c6f31794d2c07357b65e6ed",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "state.json": "d8a2abcd3f1127b20c39d344599c7c71408dfc53a80ca2e191117c41265da11b",
+    "replay.json": "e7df34d177244e945e82393568b901f7dae24377e9628d965fb1992d774a57dd",
+    "bars.json": "51351344f76f21bdcaa127fe563a3f49bd6a70a0af4dbb91bbda84341bf04bc8",
+    "committed-result.json": "9323c385a0667f08b5689efbbb6bc38a227a051c67f88a333c6721b9ec2f2dea"
+  }
+}

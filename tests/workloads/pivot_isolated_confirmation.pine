@@ -1,0 +1,33 @@
+//@version=6
+indicator("Pyne pivot isolated confirmation 20260930", precision=10)
+int i = bar_index
+int j = i % 8
+float lh = j == 0 ? 4 : j == 1 ? na : j == 2 ? 3 : j == 3 ? 2 : j == 4 ? 1 : 0
+float rh = j == 0 ? 1 : j == 1 ? 2 : j == 2 ? 3 : j == 3 ? na : j == 4 ? 4 : 0
+float ll = -lh
+float rl = -rh
+float tie = j == 0 ? 1 : j == 1 ? 2 : j == 2 or j == 3 ? 3 : j == 4 ? 2 : j == 5 ? 1 : 0
+float wave = i % 12 == 0 ? 2 : i % 12 == 1 ? 1 : i % 12 == 2 ? 2 : i % 12 == 3 ? 3 : i % 12 == 4 ? 4 : i % 12 == 5 ? 3 : i % 12 == 6 ? 4 : i % 12 == 7 ? 5 : i % 12 == 8 ? 6 : i % 12 == 9 ? 3 : i % 12 == 10 ? 2 : 1
+float holes = i == 5 or i == 17 or i == 18 ? na : wave
+float phl = ta.pivothigh(lh, 2, 2)
+float phr = ta.pivothigh(rh, 2, 2)
+float pll = ta.pivotlow(ll, 2, 2)
+float plr = ta.pivotlow(rl, 2, 2)
+float pht = ta.pivothigh(tie, 2, 2)
+float plt = ta.pivotlow(-tie, 2, 2)
+float phdesc = ta.pivothigh(float(100 - i), 2, 2)
+float plasc = ta.pivotlow(float(i), 2, 2)
+float phflat = ta.pivothigh(5.0, 2, 0)
+float plflat = ta.pivotlow(5.0, 2, 0)
+float nativeRise = ta.rising(wave, 3) ? 1 : 0
+float strictRise = wave > wave[1] and wave[1] > wave[2] and wave[2] > wave[3] ? 1 : 0
+float recordRise = wave > ta.highest(wave[1], 3) ? 1 : 0
+float holeRise = ta.rising(holes, 3) ? 1 : 0
+f(float x) => str.tostring(x, "#.##########")
+var string rows = ""
+if i < 32
+    rows += "PYNE_PIVOT_CONFIRM|" + str.tostring(i) + "|" + f(lh) + "|" + f(rh) + "|" + f(tie) + "|" + f(wave) + "|" + f(holes) + "|" + f(phl) + "|" + f(phr) + "|" + f(pll) + "|" + f(plr) + "|" + f(pht) + "|" + f(plt) + "|" + f(phdesc) + "|" + f(plasc) + "|" + f(phflat) + "|" + f(plflat) + "|" + f(nativeRise) + "|" + f(strictRise) + "|" + f(recordRise) + "|" + f(holeRise) + ";"
+    if i % 8 == 7
+        log.info(rows)
+        rows := ""
+plot(pht, "Pivot isolated oracle")

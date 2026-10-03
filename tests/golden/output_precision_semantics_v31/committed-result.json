@@ -1,0 +1,189 @@
+{
+  "ok": true,
+  "error": null,
+  "code": null,
+  "line": null,
+  "column": null,
+  "hint": null,
+  "lines": [
+    {
+      "id": "precise",
+      "name": "Precise",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 0,
+          "value": 0.12345679
+        },
+        {
+          "time": 1,
+          "value": 0.12345679
+        },
+        {
+          "time": 2,
+          "value": 0.12345679
+        },
+        {
+          "time": 3,
+          "value": 0.12345679
+        }
+      ]
+    },
+    {
+      "id": "histogram",
+      "name": "Histogram",
+      "color": "#f59e0b",
+      "type": "histogram",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "histogram",
+      "data": [
+        {
+          "time": 0,
+          "value": 0.12345679,
+          "color": "#f59e0b"
+        },
+        {
+          "time": 1,
+          "value": 0.12345679,
+          "color": "#f59e0b"
+        },
+        {
+          "time": 2,
+          "value": 0.12345679,
+          "color": "#f59e0b"
+        },
+        {
+          "time": 3,
+          "value": 0.12345679,
+          "color": "#f59e0b"
+        }
+      ]
+    }
+  ],
+  "output": {
+    "lines": [
+      {
+        "id": "precise",
+        "title": "Precise",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 0,
+            "value": 0.12345679
+          },
+          {
+            "time": 1,
+            "value": 0.12345679
+          },
+          {
+            "time": 2,
+            "value": 0.12345679
+          },
+          {
+            "time": 3,
+            "value": 0.12345679
+          }
+        ]
+      }
+    ],
+    "histograms": [
+      {
+        "title": "Histogram",
+        "color_up": "#f59e0b",
+        "color_down": "#f59e0b",
+        "pane": "main",
+        "data": [
+          {
+            "time": 0,
+            "value": 0.12345679,
+            "color": "#f59e0b"
+          },
+          {
+            "time": 1,
+            "value": 0.12345679,
+            "color": "#f59e0b"
+          },
+          {
+            "time": 2,
+            "value": 0.12345679,
+            "color": "#f59e0b"
+          },
+          {
+            "time": 3,
+            "value": 0.12345679,
+            "color": "#f59e0b"
+          }
+        ]
+      }
+    ],
+    "candles": [
+      {
+        "title": "Candle",
+        "pane": "main",
+        "data": [
+          {
+            "time": 0,
+            "open": 0.12345679,
+            "high": 0.12345679,
+            "low": 0.12345679,
+            "close": 0.12345679
+          },
+          {
+            "time": 1,
+            "open": 0.12345679,
+            "high": 0.12345679,
+            "low": 0.12345679,
+            "close": 0.12345679
+          },
+          {
+            "time": 2,
+            "open": 0.12345679,
+            "high": 0.12345679,
+            "low": 0.12345679,
+            "close": 0.12345679
+          },
+          {
+            "time": 3,
+            "open": 0.12345679,
+            "high": 0.12345679,
+            "low": 0.12345679,
+            "close": 0.12345679
+          }
+        ],
+        "precision": 2
+      }
+    ]
+  },
+  "param_schema": [],
+  "meta": {
+    "title": "Precise output checkpoint",
+    "overlay": true,
+    "mode": "incremental",
+    "precision": 2,
+    "bar_index": 3,
+    "last_bar_index": 3,
+    "barstate": {
+      "isfirst": false,
+      "islast": true,
+      "ishistory": true,
+      "isrealtime": false,
+      "isnew": true,
+      "isconfirmed": true,
+      "islastconfirmedhistory": true
+    },
+    "retentionBars": null,
+    "retainedBars": 4,
+    "totalCommittedBars": 4,
+    "snapshotVersion": 3
+  }
+}

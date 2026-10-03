@@ -1,0 +1,450 @@
+{
+  "schema": "pyne.workload-oracle/1",
+  "provider": "tradingview",
+  "captureDate": "2026-10-02",
+  "columns": [
+    "Case",
+    "Bool first",
+    "Bool last",
+    "Rows",
+    "Columns",
+    "Row detached",
+    "Col detached",
+    "Map detached",
+    "Copy detached"
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 1,
+      "values": [
+        1.0,
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 2,
+      "values": [
+        2.0,
+        0.0,
+        0.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 3,
+      "values": [
+        3.0,
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 4,
+      "values": [
+        4.0,
+        0.0,
+        0.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 5,
+      "values": [
+        5.0,
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 6,
+      "values": [
+        6.0,
+        0.0,
+        0.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 7,
+      "values": [
+        7.0,
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 8,
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 9,
+      "values": [
+        1.0,
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 10,
+      "values": [
+        2.0,
+        0.0,
+        0.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 11,
+      "values": [
+        3.0,
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 12,
+      "values": [
+        4.0,
+        0.0,
+        0.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 13,
+      "values": [
+        5.0,
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 14,
+      "values": [
+        6.0,
+        0.0,
+        0.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 15,
+      "values": [
+        7.0,
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  ],
+  "textColumns": [
+    "Matrix row",
+    "Matrix col",
+    "Matrix copy",
+    "Matrix transpose",
+    "Matrix reshape",
+    "Map values",
+    "Map copy"
+  ],
+  "textRows": [
+    {
+      "index": 0,
+      "values": [
+        "|",
+        "|",
+        "|",
+        "|",
+        "|||",
+        "|",
+        "|"
+      ]
+    },
+    {
+      "index": 1,
+      "values": [
+        "|",
+        "|",
+        "|",
+        "|",
+        "|||",
+        "|",
+        "|"
+      ]
+    },
+    {
+      "index": 2,
+      "values": [
+        "|",
+        "|",
+        "|",
+        "|",
+        "|||",
+        "|",
+        "|"
+      ]
+    },
+    {
+      "index": 3,
+      "values": [
+        "猫|猫",
+        "猫|猫",
+        "猫|猫",
+        "猫|猫",
+        "猫|猫|猫|猫",
+        "猫|猫",
+        "猫|猫"
+      ]
+    },
+    {
+      "index": 4,
+      "values": [
+        "a\"b|",
+        "|β",
+        "a\"b|",
+        "|β",
+        "a\"b|||β",
+        "a\"b|β",
+        "a\"b|β"
+      ]
+    },
+    {
+      "index": 5,
+      "values": [
+        "|",
+        "|",
+        "|",
+        "|",
+        "|||",
+        "|",
+        "|"
+      ]
+    },
+    {
+      "index": 6,
+      "values": [
+        "|NaN",
+        "NaN|",
+        "|NaN",
+        "NaN|",
+        "|NaN||",
+        "|NaN",
+        "|NaN"
+      ]
+    },
+    {
+      "index": 7,
+      "values": [
+        "|",
+        "|",
+        "|",
+        "|",
+        "|||",
+        "|",
+        "|"
+      ]
+    },
+    {
+      "index": 8,
+      "values": [
+        "|",
+        "|",
+        "|",
+        "|",
+        "|||",
+        "|",
+        "|"
+      ]
+    },
+    {
+      "index": 9,
+      "values": [
+        "|",
+        "|",
+        "|",
+        "|",
+        "|||",
+        "|",
+        "|"
+      ]
+    },
+    {
+      "index": 10,
+      "values": [
+        "|",
+        "|",
+        "|",
+        "|",
+        "|||",
+        "|",
+        "|"
+      ]
+    },
+    {
+      "index": 11,
+      "values": [
+        "猫|猫",
+        "猫|猫",
+        "猫|猫",
+        "猫|猫",
+        "猫|猫|猫|猫",
+        "猫|猫",
+        "猫|猫"
+      ]
+    },
+    {
+      "index": 12,
+      "values": [
+        "a\"b|",
+        "|β",
+        "a\"b|",
+        "|β",
+        "a\"b|||β",
+        "a\"b|β",
+        "a\"b|β"
+      ]
+    },
+    {
+      "index": 13,
+      "values": [
+        "|",
+        "|",
+        "|",
+        "|",
+        "|||",
+        "|",
+        "|"
+      ]
+    },
+    {
+      "index": 14,
+      "values": [
+        "|NaN",
+        "NaN|",
+        "|NaN",
+        "NaN|",
+        "|NaN||",
+        "|NaN",
+        "|NaN"
+      ]
+    },
+    {
+      "index": 15,
+      "values": [
+        "|",
+        "|",
+        "|",
+        "|",
+        "|||",
+        "|",
+        "|"
+      ]
+    }
+  ],
+  "tolerance": 1e-10,
+  "scriptSha256": "d9cc102c53ac35783b9dcfabcbc0c2d5d1d22cbb8ee3e1adf62ac6943e519031",
+  "logSha256": "a5e3096e748f9931500faf02da07aa0c7cff7b5fb256aff8fa929ea81005455f",
+  "captureMethod": "Chrome visible Pine Logs; complete two log blocks from one DOM snapshot; YAML quoted strings decoded as JSON",
+  "qualification": "Eight fixed scalar string matrix/map cases, two bool matrix constructors, detached scalar row/column/value extraction; no full type, bounds, reference-valued, initially-all-missing generic map or formatting qualification"
+}

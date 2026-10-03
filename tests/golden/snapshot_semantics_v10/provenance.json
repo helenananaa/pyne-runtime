@@ -1,0 +1,12 @@
+{
+  "description": "Real installed semantics-10 candidate snapshots before Keltner default-width correction; no version relabeling.",
+  "packageVersion": "0.4.1rc5",
+  "semanticsVersion": 10,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round5-20260930\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "bcd4d0aad2d5a072e0b1435f1e45416eb322b7083ab492307c21015dce2a762c",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "7cd235cb37226c4d080c42fbaabc43d8472da489c066641ebb426f02b89d0e65",
+    "state.json": "1ddf3ba9227c2ae1766521da1ea90db696f52735f6f416267a8d49b54f706761"
+  }
+}

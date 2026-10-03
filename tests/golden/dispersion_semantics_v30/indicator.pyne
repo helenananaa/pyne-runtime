@@ -1,0 +1,11 @@
+import numpy as np
+import pyne_runtime.ta as batch_ta
+def on_bar(ctx,bar):
+    history = ctx.state("history",[]).value
+    history.append(bar.close)
+    values = np.array(history)
+    module = batch_ta.TaModule()
+    ctx.plot("Stdev",float(module.stdev(values,1)[-1]))
+    ctx.plot("Population",float(module.variance(values,1)[-1]))
+    ctx.plot("Sample",float(module.variance(values,1,False)[-1]))
+    ctx.plot("Upper",float(module.bb(values,1,2.)[1][-1]))

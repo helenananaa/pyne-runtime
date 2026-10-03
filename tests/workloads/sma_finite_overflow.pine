@@ -1,0 +1,53 @@
+//@version=6
+indicator("Pyne finite sum overflow round47", precision=10)
+safe_mean(source, length) =>
+    var values = array.new_float()
+    if not na(source)
+        array.push(values, source)
+        if array.size(values) > length
+            array.shift(values)
+    float total = 0.
+    if array.size(values) == length
+        for j = 0 to length - 1
+            total += array.get(values, j) / length
+    array.size(values) == length ? total : na
+int i = bar_index
+float src_positive = 160000000.0 * math.pow(10., 300)
+float Input_positive = src_positive
+float Native1_positive = ta.sma(src_positive, 1)
+float Native2_positive = ta.sma(src_positive, 2)
+float Native3_positive = ta.sma(src_positive, 3)
+float Sum2_positive = math.sum(src_positive, 2)
+float Sum3_positive = math.sum(src_positive, 3)
+float Safe2_positive = safe_mean(src_positive, 2)
+float Safe3_positive = safe_mean(src_positive, 3)
+float src_negative = -160000000.0 * math.pow(10., 300)
+float Input_negative = src_negative
+float Native1_negative = ta.sma(src_negative, 1)
+float Native2_negative = ta.sma(src_negative, 2)
+float Native3_negative = ta.sma(src_negative, 3)
+float Sum2_negative = math.sum(src_negative, 2)
+float Sum3_negative = math.sum(src_negative, 3)
+float Safe2_negative = safe_mean(src_negative, 2)
+float Safe3_negative = safe_mean(src_negative, 3)
+float src_mixed = i % 2 == 0 ? 160000000.0 * math.pow(10., 300) : -160000000.0 * math.pow(10., 300)
+float Input_mixed = src_mixed
+float Native1_mixed = ta.sma(src_mixed, 1)
+float Native2_mixed = ta.sma(src_mixed, 2)
+float Native3_mixed = ta.sma(src_mixed, 3)
+float Sum2_mixed = math.sum(src_mixed, 2)
+float Sum3_mixed = math.sum(src_mixed, 3)
+float Safe2_mixed = safe_mean(src_mixed, 2)
+float Safe3_mixed = safe_mean(src_mixed, 3)
+float src_recovery = i < 6 ? 160000000.0 * math.pow(10., 300) : float((i * 11) % 17 - 6) * 0.25
+float Input_recovery = src_recovery
+float Native1_recovery = ta.sma(src_recovery, 1)
+float Native2_recovery = ta.sma(src_recovery, 2)
+float Native3_recovery = ta.sma(src_recovery, 3)
+float Sum2_recovery = math.sum(src_recovery, 2)
+float Sum3_recovery = math.sum(src_recovery, 3)
+float Safe2_recovery = safe_mean(src_recovery, 2)
+float Safe3_recovery = safe_mean(src_recovery, 3)
+if i < 24
+    log.info("PYNE_SMA_FINITE_OVERFLOW47|" + str.tostring(i) + "|" + str.tostring(Input_positive, "0.00000000000000000") + "|" + str.tostring(Native1_positive, "0.00000000000000000") + "|" + str.tostring(Native2_positive, "0.00000000000000000") + "|" + str.tostring(Native3_positive, "0.00000000000000000") + "|" + str.tostring(Sum2_positive, "0.00000000000000000") + "|" + str.tostring(Sum3_positive, "0.00000000000000000") + "|" + str.tostring(Safe2_positive, "0.00000000000000000") + "|" + str.tostring(Safe3_positive, "0.00000000000000000") + "|" + str.tostring(Input_negative, "0.00000000000000000") + "|" + str.tostring(Native1_negative, "0.00000000000000000") + "|" + str.tostring(Native2_negative, "0.00000000000000000") + "|" + str.tostring(Native3_negative, "0.00000000000000000") + "|" + str.tostring(Sum2_negative, "0.00000000000000000") + "|" + str.tostring(Sum3_negative, "0.00000000000000000") + "|" + str.tostring(Safe2_negative, "0.00000000000000000") + "|" + str.tostring(Safe3_negative, "0.00000000000000000") + "|" + str.tostring(Input_mixed, "0.00000000000000000") + "|" + str.tostring(Native1_mixed, "0.00000000000000000") + "|" + str.tostring(Native2_mixed, "0.00000000000000000") + "|" + str.tostring(Native3_mixed, "0.00000000000000000") + "|" + str.tostring(Sum2_mixed, "0.00000000000000000") + "|" + str.tostring(Sum3_mixed, "0.00000000000000000") + "|" + str.tostring(Safe2_mixed, "0.00000000000000000") + "|" + str.tostring(Safe3_mixed, "0.00000000000000000") + "|" + str.tostring(Input_recovery, "0.00000000000000000") + "|" + str.tostring(Native1_recovery, "0.00000000000000000") + "|" + str.tostring(Native2_recovery, "0.00000000000000000") + "|" + str.tostring(Native3_recovery, "0.00000000000000000") + "|" + str.tostring(Sum2_recovery, "0.00000000000000000") + "|" + str.tostring(Sum3_recovery, "0.00000000000000000") + "|" + str.tostring(Safe2_recovery, "0.00000000000000000") + "|" + str.tostring(Safe3_recovery, "0.00000000000000000") + ";")
+plot(0., display=display.none)

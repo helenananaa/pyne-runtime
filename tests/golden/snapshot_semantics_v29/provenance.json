@@ -1,0 +1,12 @@
+{
+  "description": "Real installed semantics-29 snapshots before independent-observation correlation semantics; no relabeling.",
+  "packageVersion": "0.4.1rc24",
+  "semanticsVersion": 29,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round34-20261002\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "06eca229a1721eb1b1a0096b42d30e12569c29df5aa24deaff6e8e41d6564d03",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "80e75ef3f5556c2be9655c0ab6968f51571d18b1c7c5cf8ed7e5bb674b83bd61",
+    "state.json": "c0e227eb1fd9c79a9c1e93f669882ef24c7be18352fdb04c4e66b405eed1e372"
+  }
+}

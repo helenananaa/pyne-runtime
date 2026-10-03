@@ -22,6 +22,7 @@ from collections import deque
 import numpy as np
 
 from .series import PyneSeries, to_numpy, wrap_like, _truthy
+from .ta_kernels import _rolling_nonmissing_sum
 from .values import is_na, is_na_value, na as _na, to_missing_scalar
 
 
@@ -145,7 +146,8 @@ def crossover(
 
     Pine equivalent: ``ta.crossover(a, b)``
 
-    Returns True at bars where ``a[i-1] <= b[i-1]`` and ``a[i] > b[i]``.
+    Compare against the previous pair with both values present. The previous
+    pair permits equality; the current pair must be strictly above.
 
     Args:
         a: First series.
@@ -154,20 +156,7 @@ def crossover(
     Returns:
         Boolean array — True at crossover points.
     """
-    a_arr = to_numpy(a, dtype=np.float64)
-    b_arr = (
-        np.full_like(a_arr, b, dtype=np.float64)
-        if isinstance(b, (int, float))
-        else to_numpy(b, dtype=np.float64)
-    )
-    result = np.zeros(len(a_arr), dtype=bool)
-    if len(a_arr) < 2:
-        return wrap_like(result, a, b)
-    prev_a = to_numpy(shift(a_arr, 1), dtype=np.float64)
-    prev_b = to_numpy(shift(b_arr, 1), dtype=np.float64)
-    valid = ~(np.isnan(prev_a) | np.isnan(prev_b) | np.isnan(a_arr) | np.isnan(b_arr))
-    result[valid] = (prev_a[valid] <= prev_b[valid]) & (a_arr[valid] > b_arr[valid])
-    return wrap_like(result, a, b)
+    return _cross(a, b, direction="over")
 
 
 def crossunder(
@@ -177,7 +166,8 @@ def crossunder(
 
     Pine equivalent: ``ta.crossunder(a, b)``
 
-    Returns True at bars where ``a[i-1] >= b[i-1]`` and ``a[i] < b[i]``.
+    Compare against the previous pair with both values present. The previous
+    pair permits equality; the current pair must be strictly below.
 
     Args:
         a: First series.
@@ -186,6 +176,10 @@ def crossunder(
     Returns:
         Boolean array — True at crossunder points.
     """
+    return _cross(a, b, direction="under")
+
+
+def _cross(a, b, *, direction):
     a_arr = to_numpy(a, dtype=np.float64)
     b_arr = (
         np.full_like(a_arr, b, dtype=np.float64)
@@ -193,12 +187,18 @@ def crossunder(
         else to_numpy(b, dtype=np.float64)
     )
     result = np.zeros(len(a_arr), dtype=bool)
-    if len(a_arr) < 2:
+    valid = np.flatnonzero(~(np.isnan(a_arr) | np.isnan(b_arr)))
+    if len(valid) < 2:
         return wrap_like(result, a, b)
-    prev_a = to_numpy(shift(a_arr, 1), dtype=np.float64)
-    prev_b = to_numpy(shift(b_arr, 1), dtype=np.float64)
-    valid = ~(np.isnan(prev_a) | np.isnan(prev_b) | np.isnan(a_arr) | np.isnan(b_arr))
-    result[valid] = (prev_a[valid] >= prev_b[valid]) & (a_arr[valid] < b_arr[valid])
+    previous, current = valid[:-1], valid[1:]
+    if direction == "over":
+        crossed = (a_arr[previous] <= b_arr[previous]) & (a_arr[current] > b_arr[current])
+    elif direction == "under":
+        crossed = (a_arr[previous] >= b_arr[previous]) & (a_arr[current] < b_arr[current])
+    else:
+        crossed = ((a_arr[previous] < b_arr[previous]) & (a_arr[current] > b_arr[current])) | (
+            (a_arr[previous] > b_arr[previous]) & (a_arr[current] < b_arr[current]))
+    result[current] = crossed
     return wrap_like(result, a, b)
 
 
@@ -209,7 +209,7 @@ def cross(
 
     Pine equivalent: ``ta.cross(a, b)``.
     """
-    return crossover(a, b) | crossunder(a, b)
+    return _cross(a, b, direction="either")
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -227,9 +227,11 @@ def highest(src: PyneSeries | np.ndarray, period: int) -> PyneSeries | np.ndarra
         period: Lookback window size.
 
     Returns:
-        Array of rolling maximums over the available history up to ``period`` bars.
+        Rolling maximums after the initial ``period`` bar span. Missing input
+        resets the window; later values use only bars after that gap without
+        restarting the initial readiness clock.
     """
-    return _rolling_extreme(src, period, highest=True, return_offset=False)
+    return _rolling_extreme(src, period, highest=True, return_offset=False, reset_on_missing=True)
 
 
 def lowest(src: PyneSeries | np.ndarray, period: int) -> PyneSeries | np.ndarray:
@@ -242,18 +244,21 @@ def lowest(src: PyneSeries | np.ndarray, period: int) -> PyneSeries | np.ndarray
         period: Lookback window size.
 
     Returns:
-        Array of rolling minimums over the available history up to ``period`` bars.
+        Rolling minimums after the initial ``period`` bar span. Missing input
+        resets the window; later values use only bars after that gap without
+        restarting the initial readiness clock.
     """
-    return _rolling_extreme(src, period, highest=False, return_offset=False)
+    return _rolling_extreme(src, period, highest=False, return_offset=False, reset_on_missing=True)
 
 
 def highestbars(src: PyneSeries | np.ndarray, period: int) -> PyneSeries | np.ndarray:
     """Bars back to the highest value in the last ``period`` bars.
 
     Pine equivalent: ``ta.highestbars(source, length)``.
-    Returns ``0`` when the current bar is the highest value, or a negative
-    offset when the most recent highest value is in the past. If the highest
-    value appears more than once in the window, the most recent occurrence wins.
+    Returns ``0`` when the current bar is the selected highest, or a negative
+    offset when the highest value is in the past. If the highest value appears
+    more than once in the window, the earliest occurrence wins. Missing input
+    resets the window and yields zero after the initial lookback span.
     """
     return _extreme_bars(src, period, highest=True)
 
@@ -262,9 +267,10 @@ def lowestbars(src: PyneSeries | np.ndarray, period: int) -> PyneSeries | np.nda
     """Bars back to the lowest value in the last ``period`` bars.
 
     Pine equivalent: ``ta.lowestbars(source, length)``.
-    Returns ``0`` when the current bar is the lowest value, or a negative
-    offset when the most recent lowest value is in the past. If the lowest value
-    appears more than once in the window, the most recent occurrence wins.
+    Returns ``0`` when the current bar is the selected lowest, or a negative
+    offset when the lowest value is in the past. If the lowest value appears
+    more than once in the window, the earliest occurrence wins. Missing input
+    resets the window and yields zero after the initial lookback span.
     """
     return _extreme_bars(src, period, highest=False)
 
@@ -272,7 +278,7 @@ def lowestbars(src: PyneSeries | np.ndarray, period: int) -> PyneSeries | np.nda
 def _extreme_bars(
     src: PyneSeries | np.ndarray, period: int, *, highest: bool
 ) -> PyneSeries | np.ndarray:
-    return _rolling_extreme(src, period, highest=highest, return_offset=True)
+    return _rolling_extreme(src, period, highest=highest, return_offset=True, reset_on_missing=True)
 
 
 def _rolling_extreme(
@@ -281,8 +287,9 @@ def _rolling_extreme(
     *,
     highest: bool,
     return_offset: bool,
+    reset_on_missing: bool = False,
 ) -> PyneSeries | np.ndarray:
-    """Return rolling extrema or their most-recent bars-back offsets in O(n)."""
+    """Return rolling extrema or their earliest bars-back offsets in O(n)."""
     source = to_numpy(src, dtype=np.float64)
     n = len(source)
     result = np.full(n, np.nan)
@@ -295,16 +302,20 @@ def _rolling_extreme(
         while candidates and candidates[0] < window_start:
             candidates.popleft()
 
+        if np.isnan(value) and reset_on_missing:
+            candidates.clear()
+            if return_offset and idx >= period - 1:
+                result[idx] = 0.0
         if not np.isnan(value):
             if highest:
-                while candidates and source[candidates[-1]] <= value:
+                while candidates and source[candidates[-1]] < value:
                     candidates.pop()
             else:
-                while candidates and source[candidates[-1]] >= value:
+                while candidates and source[candidates[-1]] > value:
                     candidates.pop()
             candidates.append(idx)
 
-        if candidates:
+        if candidates and idx >= period - 1:
             extreme_idx = candidates[0]
             result[idx] = float(extreme_idx - idx) if return_offset else source[extreme_idx]
     return wrap_like(result, src)
@@ -482,7 +493,7 @@ def _pivot(
     *,
     highest: bool,
 ) -> PyneSeries | np.ndarray:
-    """Detect unique centered extrema in O(n), returning causal confirmations."""
+    """Confirm rightmost extrema within contiguous present segments in O(n)."""
     source = to_numpy(src, dtype=np.float64)
     n = len(source)
     result = np.full(n, np.nan)
@@ -490,34 +501,38 @@ def _pivot(
     right = int(right)
     if left < 0 or right < 0:
         return wrap_like(result, src)
-    window_size = left + right + 1
     if right >= n:
         return wrap_like(result, src)
 
-    candidates: deque[int] = deque()
-    for index, value in enumerate(source):
-        window_start = max(index - window_size + 1, 0)
-        while candidates and candidates[0] < window_start:
-            candidates.popleft()
-
-        if not np.isnan(value):
-            if highest:
-                while candidates and source[candidates[-1]] < value:
-                    candidates.pop()
-            else:
-                while candidates and source[candidates[-1]] > value:
-                    candidates.pop()
-            candidates.append(index)
-
-        if index < right:
+    # A missing neighbour ends comparison on that side of the center. Process
+    # each present segment separately, while keeping the global warmup span.
+    start = 0
+    while start < n:
+        if np.isnan(source[start]):
+            start += 1
             continue
-        center = index - right
-        if np.isnan(source[center]) or not candidates:
-            continue
-        extreme_index = candidates[0]
-        duplicated = len(candidates) > 1 and source[candidates[1]] == source[extreme_index]
-        if extreme_index == center and not duplicated:
-            result[index] = source[center]
+        end = start + 1
+        while end < n and not np.isnan(source[end]):
+            end += 1
+        candidates: deque[int] = deque()
+        added = start
+        for center in range(start, end):
+            stop = min(end, center + right + 1)
+            while added < stop:
+                value = source[added]
+                if highest:
+                    while candidates and source[candidates[-1]] <= value:
+                        candidates.pop()
+                else:
+                    while candidates and source[candidates[-1]] >= value:
+                        candidates.pop()
+                candidates.append(added)
+                added += 1
+            while candidates and candidates[0] < center - left:
+                candidates.popleft()
+            if center >= left and center + right < n and candidates[0] == center:
+                result[center + right] = source[center]
+        start = end
     return wrap_like(result, src)
 
 
@@ -537,11 +552,14 @@ def cum(src: PyneSeries | np.ndarray) -> PyneSeries | np.ndarray:
     Returns:
         Cumulative sum array (NaN-aware).
     """
-    return wrap_like(np.nancumsum(to_numpy(src, dtype=np.float64)), src)
+    source = to_numpy(src, dtype=np.float64)
+    result = np.nancumsum(source)
+    result[np.isnan(source)] = np.nan
+    return wrap_like(result, src)
 
 
 def sum_(src: PyneSeries | np.ndarray, period: int) -> PyneSeries | np.ndarray:
-    """Rolling sum over the last ``period`` bars.
+    """Sum the last ``period`` non-missing observations, carrying across gaps.
 
     Pine equivalent: ``math.sum(src, period)``
 
@@ -550,9 +568,13 @@ def sum_(src: PyneSeries | np.ndarray, period: int) -> PyneSeries | np.ndarray:
         period: Window size.
 
     Returns:
-        Rolling sum array. NaN for the first ``period-1`` bars.
+        Rolling sum array. NaN until ``period`` observations are available.
     """
     source = to_numpy(src, dtype=np.float64)
+    if period > 0:
+        return wrap_like(_rolling_nonmissing_sum(source, period), src)
+    # Preserve the prior Python contract for non-positive periods; this branch
+    # is outside the captured native positive-length qualification.
     n = len(source)
     result = np.full(n, np.nan)
     rolling = 0.0
@@ -584,29 +606,23 @@ def sum_(src: PyneSeries | np.ndarray, period: int) -> PyneSeries | np.ndarray:
 
 
 def rising(src: PyneSeries | np.ndarray, period: int = 1) -> PyneSeries | np.ndarray:
-    """True when src has been rising for ``period`` consecutive bars.
+    """True when the latest ``period`` valid adjacent comparisons all rise.
 
     Pine equivalent: ``ta.rising(close, 5)``
     """
-    source = to_numpy(src, dtype=np.float64)
-    result = np.zeros(len(source), dtype=bool)
-    if period <= 0:
-        result[:] = True
-        return wrap_like(result, src)
-    if period >= len(source):
-        return wrap_like(result, src)
-
-    transitions = ~np.isnan(source[1:]) & ~np.isnan(source[:-1]) & (source[1:] > source[:-1])
-    counts = np.concatenate(([0], np.cumsum(transitions, dtype=np.int64)))
-    result[period:] = counts[period:] - counts[:-period] == period
-    return wrap_like(result, src)
+    return _direction(src, period, upward=True)
 
 
 def falling(src: PyneSeries | np.ndarray, period: int = 1) -> PyneSeries | np.ndarray:
-    """True when src has been falling for ``period`` consecutive bars.
+    """True when the latest ``period`` valid adjacent comparisons all fall.
 
     Pine equivalent: ``ta.falling(close, 5)``
     """
+    return _direction(src, period, upward=False)
+
+
+def _direction(src: PyneSeries | np.ndarray, period: int, *, upward: bool) -> PyneSeries | np.ndarray:
+    """Missing pairs do not enter or advance the observation window, in O(n)."""
     source = to_numpy(src, dtype=np.float64)
     result = np.zeros(len(source), dtype=bool)
     if period <= 0:
@@ -615,7 +631,13 @@ def falling(src: PyneSeries | np.ndarray, period: int = 1) -> PyneSeries | np.nd
     if period >= len(source):
         return wrap_like(result, src)
 
-    transitions = ~np.isnan(source[1:]) & ~np.isnan(source[:-1]) & (source[1:] < source[:-1])
-    counts = np.concatenate(([0], np.cumsum(transitions, dtype=np.int64)))
-    result[period:] = counts[period:] - counts[:-period] == period
+    valid = ~np.isnan(source[1:]) & ~np.isnan(source[:-1])
+    observed = (source[1:] > source[:-1] if upward else source[1:] < source[:-1])[valid]
+    if len(observed) < period:
+        return wrap_like(result, src)
+    failures = np.concatenate(([0], np.cumsum(~observed, dtype=np.int64)))
+    states = np.zeros(len(observed), dtype=bool)
+    states[period - 1:] = failures[period:] - failures[:-period] == 0
+    counts = np.cumsum(valid, dtype=np.int64)
+    result[1:] = (counts >= period) & states[np.maximum(counts - 1, 0)]
     return wrap_like(result, src)

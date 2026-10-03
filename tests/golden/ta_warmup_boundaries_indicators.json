@@ -294,22 +294,6 @@
     ],
     "Stoch 5": [
       {
-        "time": 1,
-        "value": 66.66666667
-      },
-      {
-        "time": 2,
-        "value": 75.0
-      },
-      {
-        "time": 3,
-        "value": 30.0
-      },
-      {
-        "time": 4,
-        "value": 12.5
-      },
-      {
         "time": 5,
         "value": 38.88888889
       },
@@ -1203,6 +1187,112 @@
     ],
     "plot_tolerances": {
       "VAR 5": 1e-05
-    }
+    },
+    "known_differences": [
+      {
+        "plot": "Stoch 5",
+        "tradingview": {
+          "time": 1780318800,
+          "value": 37.174840085287535
+        },
+        "pyne": null,
+        "reason": "The legacy exporter masks source OHLCV before an interior chart window but retains preceding chart bars. Supplied input starts a new dataset and must satisfy initial lookback readiness. Fresh Pine v5 and v6 reproduce this exact captured startup value after sixteen missing source bars. The native origin witness is missing at this exact input index.",
+        "evidence": "tests/workloads/legacy_masked_history_context.tradingview.json; tests/workloads/legacy_masked_history_context_v5.tradingview.json; scripts/legacy_capture_context_diagnostic.py",
+        "classification": "capture_context_mismatch",
+        "contextWitness": {
+          "fixture": "ta_warmup_boundaries_indicators.json",
+          "plot": "Stoch 5",
+          "tradingview": {
+            "time": 1780318800,
+            "value": 37.174840085287535
+          },
+          "pyne": null,
+          "tolerance": 1e-08,
+          "originalInputIndex": 0,
+          "nativeOrigin": null,
+          "nativeLeading": 37.174840085287535,
+          "nativeLeadingIndex": 16,
+          "outputKind": "native builtin"
+        }
+      },
+      {
+        "plot": "Stoch 5",
+        "tradingview": {
+          "time": 1780322400,
+          "value": 21.162046908315563
+        },
+        "pyne": null,
+        "reason": "The legacy exporter masks source OHLCV before an interior chart window but retains preceding chart bars. Supplied input starts a new dataset and must satisfy initial lookback readiness. Fresh Pine v5 and v6 reproduce this exact captured startup value after sixteen missing source bars. The native origin witness is missing at this exact input index.",
+        "evidence": "tests/workloads/legacy_masked_history_context.tradingview.json; tests/workloads/legacy_masked_history_context_v5.tradingview.json; scripts/legacy_capture_context_diagnostic.py",
+        "classification": "capture_context_mismatch",
+        "contextWitness": {
+          "fixture": "ta_warmup_boundaries_indicators.json",
+          "plot": "Stoch 5",
+          "tradingview": {
+            "time": 1780322400,
+            "value": 21.162046908315563
+          },
+          "pyne": null,
+          "tolerance": 1e-08,
+          "originalInputIndex": 1,
+          "nativeOrigin": null,
+          "nativeLeading": 21.162046908315563,
+          "nativeLeadingIndex": 17,
+          "outputKind": "native builtin"
+        }
+      },
+      {
+        "plot": "Stoch 5",
+        "tradingview": {
+          "time": 1780326000,
+          "value": 5.116947393629075
+        },
+        "pyne": null,
+        "reason": "The legacy exporter masks source OHLCV before an interior chart window but retains preceding chart bars. Supplied input starts a new dataset and must satisfy initial lookback readiness. Fresh Pine v5 and v6 reproduce this exact captured startup value after sixteen missing source bars. The native origin witness is missing at this exact input index.",
+        "evidence": "tests/workloads/legacy_masked_history_context.tradingview.json; tests/workloads/legacy_masked_history_context_v5.tradingview.json; scripts/legacy_capture_context_diagnostic.py",
+        "classification": "capture_context_mismatch",
+        "contextWitness": {
+          "fixture": "ta_warmup_boundaries_indicators.json",
+          "plot": "Stoch 5",
+          "tradingview": {
+            "time": 1780326000,
+            "value": 5.116947393629075
+          },
+          "pyne": null,
+          "tolerance": 1e-08,
+          "originalInputIndex": 2,
+          "nativeOrigin": null,
+          "nativeLeading": 5.116947393629075,
+          "nativeLeadingIndex": 18,
+          "outputKind": "native builtin"
+        }
+      },
+      {
+        "plot": "Stoch 5",
+        "tradingview": {
+          "time": 1780329600,
+          "value": 54.16895730254717
+        },
+        "pyne": null,
+        "reason": "The legacy exporter masks source OHLCV before an interior chart window but retains preceding chart bars. Supplied input starts a new dataset and must satisfy initial lookback readiness. Fresh Pine v5 and v6 reproduce this exact captured startup value after sixteen missing source bars. The native origin witness is missing at this exact input index.",
+        "evidence": "tests/workloads/legacy_masked_history_context.tradingview.json; tests/workloads/legacy_masked_history_context_v5.tradingview.json; scripts/legacy_capture_context_diagnostic.py",
+        "classification": "capture_context_mismatch",
+        "contextWitness": {
+          "fixture": "ta_warmup_boundaries_indicators.json",
+          "plot": "Stoch 5",
+          "tradingview": {
+            "time": 1780329600,
+            "value": 54.16895730254717
+          },
+          "pyne": null,
+          "tolerance": 1e-08,
+          "originalInputIndex": 3,
+          "nativeOrigin": null,
+          "nativeLeading": 54.16895730254717,
+          "nativeLeadingIndex": 19,
+          "outputKind": "native builtin"
+        }
+      }
+    ]
   }
 }

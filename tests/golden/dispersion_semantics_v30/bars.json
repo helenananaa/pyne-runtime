@@ -1,0 +1,106 @@
+[
+  {
+    "time": 0,
+    "open": -6.0,
+    "high": -5.0,
+    "low": -7.0,
+    "close": -6.0,
+    "volume": 10.0
+  },
+  {
+    "time": 1,
+    "open": 5.0,
+    "high": 6.0,
+    "low": 4.0,
+    "close": 5.0,
+    "volume": 10.0
+  },
+  {
+    "time": 2,
+    "open": -1.0,
+    "high": 0.0,
+    "low": -2.0,
+    "close": -1.0,
+    "volume": 10.0
+  },
+  {
+    "time": 3,
+    "open": 10.0,
+    "high": 11.0,
+    "low": 9.0,
+    "close": 10.0,
+    "volume": 10.0
+  },
+  {
+    "time": 4,
+    "open": 4.0,
+    "high": 5.0,
+    "low": 3.0,
+    "close": 4.0,
+    "volume": 10.0
+  },
+  {
+    "time": 5,
+    "open": -2.0,
+    "high": -1.0,
+    "low": -3.0,
+    "close": -2.0,
+    "volume": 10.0
+  },
+  {
+    "time": 6,
+    "open": 9.0,
+    "high": 10.0,
+    "low": 8.0,
+    "close": 9.0,
+    "volume": 10.0
+  },
+  {
+    "time": 7,
+    "open": 3.0,
+    "high": 4.0,
+    "low": 2.0,
+    "close": 3.0,
+    "volume": 10.0
+  },
+  {
+    "time": 8,
+    "open": -3.0,
+    "high": -2.0,
+    "low": -4.0,
+    "close": -3.0,
+    "volume": 10.0
+  },
+  {
+    "time": 9,
+    "open": 8.0,
+    "high": 9.0,
+    "low": 7.0,
+    "close": 8.0,
+    "volume": 10.0
+  },
+  {
+    "time": 10,
+    "open": 2.0,
+    "high": 3.0,
+    "low": 1.0,
+    "close": 2.0,
+    "volume": 10.0
+  },
+  {
+    "time": 11,
+    "open": -4.0,
+    "high": -3.0,
+    "low": -5.0,
+    "close": -4.0,
+    "volume": 10.0
+  },
+  {
+    "time": 12,
+    "open": 7.0,
+    "high": 8.0,
+    "low": 6.0,
+    "close": 7.0,
+    "volume": 10.0
+  }
+]

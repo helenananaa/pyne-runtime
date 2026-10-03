@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pyne_runtime as pn
+import pytest
 
 
 def _bars() -> list[dict[str, float]]:
@@ -668,6 +669,7 @@ plot(strategy.position_size, "Position")
 """,
         [
             {"time": 1, "open": 10, "high": 13, "low": 7, "close": 10, "volume": 100},
+            {"time": 2, "open": 10, "high": 11, "low": 7, "close": 10, "volume": 100},
         ],
         executor_mode="inline",
     )
@@ -675,19 +677,19 @@ plot(strategy.position_size, "Position")
     assert result.ok
     assert result.output["strategy"]["orders"] == [
         {
-            "time": 1,
+            "time": 2,
             "id": "Breakout",
             "type": "entry",
             "side": "long",
             "qty": 1.0,
-            "price": 12.0,
+            "price": 8.0,
             "position_after": 1.0,
             "comment": "",
-            "reason": "stop",
+            "reason": "limit",
         },
     ]
     assert result.output["strategy"]["summary"]["same_bar_fill_priority"] == "stop_first"
-    assert result.values("Position") == [1.0]
+    assert result.values("Position") == [0.0, 1.0]
 
 
 def test_strategy_pending_same_bar_stop_limit_can_prefer_limit_first() -> None:
@@ -699,6 +701,7 @@ plot(strategy.position_size, "Position")
 """,
         [
             {"time": 1, "open": 10, "high": 13, "low": 7, "close": 10, "volume": 100},
+            {"time": 2, "open": 10, "high": 11, "low": 7, "close": 10, "volume": 100},
         ],
         executor_mode="inline",
     )
@@ -706,7 +709,7 @@ plot(strategy.position_size, "Position")
     assert result.ok
     assert result.output["strategy"]["orders"] == [
         {
-            "time": 1,
+            "time": 2,
             "id": "Breakout",
             "type": "entry",
             "side": "long",
@@ -718,7 +721,7 @@ plot(strategy.position_size, "Position")
         },
     ]
     assert result.output["strategy"]["summary"]["same_bar_fill_priority"] == "limit_first"
-    assert result.values("Position") == [1.0]
+    assert result.values("Position") == [0.0, 1.0]
 
 
 def test_strategy_pending_intrabar_path_can_choose_high_before_low() -> None:
@@ -735,8 +738,8 @@ plot(strategy.position_size, "Position")
     )
 
     assert result.ok
-    assert result.output["strategy"]["orders"][0]["reason"] == "stop"
-    assert result.output["strategy"]["orders"][0]["price"] == 12.0
+    assert result.output["strategy"]["orders"][0]["reason"] == "limit"
+    assert result.output["strategy"]["orders"][0]["price"] == 8.0
     assert result.output["strategy"]["summary"]["intrabar_path"] == "open_high_low_close"
     assert result.values("Position") == [1.0]
 
@@ -750,6 +753,7 @@ plot(strategy.position_size, "Position")
 """,
         [
             {"time": 1, "open": 10, "high": 13, "low": 7, "close": 10, "volume": 100},
+            {"time": 2, "open": 10, "high": 11, "low": 7, "close": 10, "volume": 100},
         ],
         executor_mode="inline",
     )
@@ -758,7 +762,7 @@ plot(strategy.position_size, "Position")
     assert result.output["strategy"]["orders"][0]["reason"] == "limit"
     assert result.output["strategy"]["orders"][0]["price"] == 8.0
     assert result.output["strategy"]["summary"]["intrabar_path"] == "open_low_high_close"
-    assert result.values("Position") == [1.0]
+    assert result.values("Position") == [0.0, 1.0]
 
 
 def test_strategy_margin_blocks_entry_when_required_margin_exceeds_equity() -> None:
@@ -860,7 +864,7 @@ plot(strategy.closedtrades.profit(0), "First Closed Profit")
     assert result.values("Position") == [0.0, 1.0, 3.0, 2.0]
     assert result.values("Equity") == [1000.0, 1001.0, 1004.0, 1006.0]
     assert result.values("Net Profit") == [0.0, 0.0, 0.0, 2.0]
-    assert result.values("Open Profit") == [0.0, 1.0, 4.0, 4.0]
+    assert result.values("Open Profit") == pytest.approx([0.,1.,4.,4.],abs=1e-12,rel=0)
     assert result.values("Closed Trades") == [0.0, 0.0, 0.0, 1.0]
     assert result.values("Open Trades") == [0.0, 1.0, 2.0, 1.0]
     assert result.values("First Closed Profit") == [0.0, 0.0, 0.0, 2.0]

@@ -1,0 +1,47 @@
+# ruff: noqa: F821
+import numpy as np
+indicator("SMA history arithmetic",mode="batch")
+def values_at(index):
+    base = float((index*11)%17-6)
+    power = 2.**80+base*2.**28
+    holes = None if index%7 in (1,2) else base
+    return dict(base=base,power=power,prefill=power if index<16 else base,
+                negativePrefill=-power if index<16 else base,holes=holes,
+                prefillHoles=power if index<16 else holes)
+rows = [values_at(i) for i in range(len(close))]
+values = np.array([np.nan if row['base'] is None else row['base'] for row in rows],dtype=np.float64)
+plot(ta.sma(values,1),'Native base 1')
+plot(ta.sma(values,2),'Native base 2')
+plot(ta.sma(values,3),'Native base 3')
+plot(ta.sma(values,7),'Native base 7')
+plot(ta.sma(values,11),'Native base 11')
+values = np.array([np.nan if row['power'] is None else row['power'] for row in rows],dtype=np.float64)
+plot(ta.sma(values,1),'Native power 1')
+plot(ta.sma(values,2),'Native power 2')
+plot(ta.sma(values,3),'Native power 3')
+plot(ta.sma(values,7),'Native power 7')
+plot(ta.sma(values,11),'Native power 11')
+values = np.array([np.nan if row['prefill'] is None else row['prefill'] for row in rows],dtype=np.float64)
+plot(ta.sma(values,1),'Native prefill 1')
+plot(ta.sma(values,2),'Native prefill 2')
+plot(ta.sma(values,3),'Native prefill 3')
+plot(ta.sma(values,7),'Native prefill 7')
+plot(ta.sma(values,11),'Native prefill 11')
+values = np.array([np.nan if row['negativePrefill'] is None else row['negativePrefill'] for row in rows],dtype=np.float64)
+plot(ta.sma(values,1),'Native negativePrefill 1')
+plot(ta.sma(values,2),'Native negativePrefill 2')
+plot(ta.sma(values,3),'Native negativePrefill 3')
+plot(ta.sma(values,7),'Native negativePrefill 7')
+plot(ta.sma(values,11),'Native negativePrefill 11')
+values = np.array([np.nan if row['holes'] is None else row['holes'] for row in rows],dtype=np.float64)
+plot(ta.sma(values,1),'Native holes 1')
+plot(ta.sma(values,2),'Native holes 2')
+plot(ta.sma(values,3),'Native holes 3')
+plot(ta.sma(values,7),'Native holes 7')
+plot(ta.sma(values,11),'Native holes 11')
+values = np.array([np.nan if row['prefillHoles'] is None else row['prefillHoles'] for row in rows],dtype=np.float64)
+plot(ta.sma(values,1),'Native prefillHoles 1')
+plot(ta.sma(values,2),'Native prefillHoles 2')
+plot(ta.sma(values,3),'Native prefillHoles 3')
+plot(ta.sma(values,7),'Native prefillHoles 7')
+plot(ta.sma(values,11),'Native prefillHoles 11')

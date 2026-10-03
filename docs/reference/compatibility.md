@@ -23,7 +23,22 @@ see [execution policies](../concepts/security_modes.md).
 - Within 0.4.x, patch releases preserve documented package-root imports, call
   signatures, and existing CLI commands. Numeric fixes may require recalculation
   and must be identified in the changelog.
-- Computation semantics is 5, separate from package and wire-format versions.
+- Development computation semantics is 33; published 0.4.0 uses 5. This identity
+  is separate from package and wire-format versions. WMA gaps (including
+  HMA/composed WMA), CMO boundaries and Stochastic cached/extrema state change
+  calculation results; extrema gap resets and earliest-tie offsets add a second
+  correction. Pivot tie/gap/startup rules add a further correction.
+  Rising/falling valid-comparison windows also affect generic Python callbacks.
+  Cumulative/OBV missing output and cross pair-state/tie rules add another correction.
+  Default Keltner EMA range widths affect batch results and generic Python replay;
+  select `width_smoothing="atr"` explicitly for the preceding ATR-width formula.
+  Missing-percentile order updates change results after differing earlier histories.
+  Strategy entry admission uses live trade slots; partial lot closure updates
+  weighted average and frees capacity. Carried pending fills precede close-fill
+  batch calculation state and current-bar commands. Version-14 and older
+  committed state must be rebuilt.
+  Public positive-length `math.sum` also uses non-missing observation windows
+  rather than rejecting a bar window containing gaps.
   Older incompatible snapshots are rejected; rebuild from authoritative OHLCV.
 - Resource policy is independent of computation identity. Compatible state may
   restore under a new budget when it fits; restored objects adopt that budget.
@@ -133,3 +148,69 @@ Known differences:
 - Strategy support emits deterministic events and a lightweight position
   timeline; it is not a full broker simulator and does not model a complete
   intrabar path or broker liquidation.
+
+
+The `collection_string_extraction` native scalar probe adds eight fixed matrix/map
+string profiles and two Boolean matrix constructors. Semantics 28 retains string
+conversion intent through extraction and committed/restored collection state;
+Boolean matrices default to false. Its 224 exact text cells remain separate from
+numeric cells and earlier join text. Broader collection types, shape/bounds,
+reference-valued extraction, and initially-all-missing generic map intent remain
+unqualified; Python extensions do not imply Pine typing equivalence. Genuine
+semantics-27 checkpoints require rebuilding from authoritative supplied OHLCV.
+
+
+The `matrix_empty_shapes` native probe qualifies eight fixed empty shape and
+reshape profiles, scalar arithmetic and degenerate products. Computation
+semantics 29 retains matrix width when no rows exist, including committed
+history and restore. Genuine semantics-28 snapshots must be rebuilt from supplied
+OHLCV. Eight fixed profiles and 1,152 numeric cells do not establish full matrix
+shape/type/parameter coverage; the cumulative alignment goal remains active.
+
+The rectangular-matrix evidence expansion keeps computation semantics 29 and
+runtime implementation unchanged. It adds twelve fixed float profiles and three
+native dimension-error witnesses. Repeated finite samples, reverse transpose
+products and zero/missing products do not establish general types, conditioning,
+dimensions or rejection boundaries. Native error-presence and Python after-error
+state tests are separate qualifications; the alignment Goal remains active.
+
+Computation semantics 30 changes correlation to independent present-observation
+windows for x, y and x*y. Ready zero numerator and denominator return zero;
+nonzero numerator with zero denominator remains missing. Period-one variance
+is exactly zero, and missing-window results are not clipped to [-1, 1]. Coherent
+finite windows retain stable centered Pearson arithmetic. Genuine installed
+rc24 /semantics-29 ordinary and correlation checkpoints are retained and rejected
+before construction; rebuild from authoritative supplied OHLCV. Moderate shifted
+roundoff and large-offset native disagreements remain counted at the original
+strict tolerance. These fixed profiles do not qualify general numerical behavior.
+
+Computation semantics 31 additionally makes ready finite period-one population
+variance/stdev exactly zero and the incremental mean exactly the latest present
+observation. Single-observation BB bounds therefore coincide. Sample variance
+remains missing and missing-observation readiness/carrying is preserved. Genuine
+installed rc25 /semantics-30 ordinary and affected dispersion state/replay
+checkpoints are retained under `tests/golden/` and rejected before construction.
+Rebuild from authoritative supplied OHLCV; changing old envelope labels is not a
+migration. Same-version local/replay/state continuation and preview isolation
+remain tested. Fixed native profiles do not qualify Python infinity behavior.
+
+Computation semantics 32 preserves raw binary64 output values independently of
+display precision and makes batch SMA(1) exactly the latest present observation.
+Incremental strategy calculation properties preserve their arithmetic before
+scripts and risk checks consume them. Existing ledger/report formatting remains
+separate; arbitrary financial precision is not qualified. Actual installed rc26
+/semantics-31 ordinary and affected output snapshots are retained and rejected
+before construction. Rebuild from authoritative supplied OHLCV; never relabel
+old envelopes. Portable wire formats remain unchanged. Same-version local,
+replay and state continuation, retention and preview isolation remain tested.
+
+Computation semantics 33 unifies the initial dataset-origin lookback for batch
+extrema, their bars-back offsets and Stoch. All modes wait the first `length`
+bars; missing input resets candidate windows without restarting that initial
+clock. Donchian and WPR inherit batch extrema readiness. Stoch retains its later
+missing/flat holding behavior. Genuine rc27 /semantics-32 ordinary and affected
+snapshots are rejected before construction. Rebuild from authoritative supplied
+OHLCV; do not relabel checkpoints. A fresh independently generated native
+holdout qualifies five fixed lengths and five input profiles. Thirty-two sparse
+imported startup conflicts lack sufficient original-history provenance and
+remain unexpected differences; full candidate qualification has not passed.

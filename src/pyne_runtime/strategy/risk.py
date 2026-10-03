@@ -79,6 +79,7 @@ def _entry_rejection_reason(
     same_direction_entry_count: int,
     pyramiding: int,
     allow_entry_in: str = StrategyDirection.all,
+    check_pyramiding: bool = True,
 ) -> str | None:
     if allow_entry_in == StrategyDirection.none:
         return "direction_not_allowed"
@@ -92,7 +93,7 @@ def _entry_rejection_reason(
         return None
     if side == "short" and previous_size > 0:
         return None
-    if same_direction_entry_count >= pyramiding:
+    if check_pyramiding and same_direction_entry_count >= pyramiding:
         return "pyramiding_exceeded"
     return None
 

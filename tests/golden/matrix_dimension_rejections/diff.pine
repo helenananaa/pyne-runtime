@@ -1,0 +1,8 @@
+//@version=6
+indicator("Pyne matrix diff dimensions rejection 20261002",overlay=false)
+if bar_index == 0
+    matrix<float> a = matrix.new<float>(2,3,1.0)
+    matrix<float> b = matrix.new<float>(3,2,2.0)
+    matrix<float> p = matrix.diff(a,b)
+    log.info(str.tostring(matrix.get(p,0,0)))
+plot(float(na))

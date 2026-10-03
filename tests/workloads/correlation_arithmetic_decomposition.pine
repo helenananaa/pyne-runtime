@@ -1,0 +1,216 @@
+//@version=6
+indicator("Pyne correlation decomposition 20261002",precision=10)
+int i=bar_index
+float base=float((i*11)%17-6)
+float holes=i%7==1 or i%7==2 ? na : base
+float shifted=i%5==3 ? na : 1000+base*0.25
+float hugeA=1000000000000.0+base
+float hugeB=-700000000000.0+base*2
+float hugeHole=i%7==1 or i%7==2 ? na : hugeA
+float Native_0=ta.correlation(base,base,3)
+float MeanA_0=ta.sma(base,3)
+float MeanB_0=ta.sma(base,3)
+float MeanXY_0=ta.sma(base*base,3)
+float MeanXX_0=ta.sma(base*base,3)
+float MeanYY_0=ta.sma(base*base,3)
+float Numerator_0=MeanXY_0-MeanA_0*MeanB_0
+float RawVarianceA_0=MeanXX_0-MeanA_0*MeanA_0
+float RawVarianceB_0=MeanYY_0-MeanB_0*MeanB_0
+float StdevA_0=ta.stdev(base,3)
+float StdevB_0=ta.stdev(base,3)
+float RawFormula_0=Numerator_0/(math.sqrt(RawVarianceA_0)*math.sqrt(RawVarianceB_0))
+float StdevFormula_0=Numerator_0/(StdevA_0*StdevB_0)
+float ZeroGuardRaw_0=Numerator_0==0 ? 0. : RawFormula_0
+float ZeroGuardStdev_0=Numerator_0==0 ? 0. : StdevFormula_0
+float SumA_0=math.sum(base,3)
+float SumB_0=math.sum(base,3)
+float SumXY_0=math.sum(base*base,3)
+float SumXX_0=math.sum(base*base,3)
+float SumYY_0=math.sum(base*base,3)
+float ScaledNumerator_0=3*SumXY_0-SumA_0*SumB_0
+float ScaledVarianceA_0=3*SumXX_0-SumA_0*SumA_0
+float ScaledVarianceB_0=3*SumYY_0-SumB_0*SumB_0
+float ScaledRawFormula_0=ScaledNumerator_0/(math.sqrt(ScaledVarianceA_0)*math.sqrt(ScaledVarianceB_0))
+float ZeroGuardScaledRaw_0=ScaledNumerator_0==0 ? 0. : ScaledRawFormula_0
+float Native_1=ta.correlation(holes,shifted,3)
+float MeanA_1=ta.sma(holes,3)
+float MeanB_1=ta.sma(shifted,3)
+float MeanXY_1=ta.sma(holes*shifted,3)
+float MeanXX_1=ta.sma(holes*holes,3)
+float MeanYY_1=ta.sma(shifted*shifted,3)
+float Numerator_1=MeanXY_1-MeanA_1*MeanB_1
+float RawVarianceA_1=MeanXX_1-MeanA_1*MeanA_1
+float RawVarianceB_1=MeanYY_1-MeanB_1*MeanB_1
+float StdevA_1=ta.stdev(holes,3)
+float StdevB_1=ta.stdev(shifted,3)
+float RawFormula_1=Numerator_1/(math.sqrt(RawVarianceA_1)*math.sqrt(RawVarianceB_1))
+float StdevFormula_1=Numerator_1/(StdevA_1*StdevB_1)
+float ZeroGuardRaw_1=Numerator_1==0 ? 0. : RawFormula_1
+float ZeroGuardStdev_1=Numerator_1==0 ? 0. : StdevFormula_1
+float SumA_1=math.sum(holes,3)
+float SumB_1=math.sum(shifted,3)
+float SumXY_1=math.sum(holes*shifted,3)
+float SumXX_1=math.sum(holes*holes,3)
+float SumYY_1=math.sum(shifted*shifted,3)
+float ScaledNumerator_1=3*SumXY_1-SumA_1*SumB_1
+float ScaledVarianceA_1=3*SumXX_1-SumA_1*SumA_1
+float ScaledVarianceB_1=3*SumYY_1-SumB_1*SumB_1
+float ScaledRawFormula_1=ScaledNumerator_1/(math.sqrt(ScaledVarianceA_1)*math.sqrt(ScaledVarianceB_1))
+float ZeroGuardScaledRaw_1=ScaledNumerator_1==0 ? 0. : ScaledRawFormula_1
+float Native_2=ta.correlation(hugeA,hugeB,2)
+float MeanA_2=ta.sma(hugeA,2)
+float MeanB_2=ta.sma(hugeB,2)
+float MeanXY_2=ta.sma(hugeA*hugeB,2)
+float MeanXX_2=ta.sma(hugeA*hugeA,2)
+float MeanYY_2=ta.sma(hugeB*hugeB,2)
+float Numerator_2=MeanXY_2-MeanA_2*MeanB_2
+float RawVarianceA_2=MeanXX_2-MeanA_2*MeanA_2
+float RawVarianceB_2=MeanYY_2-MeanB_2*MeanB_2
+float StdevA_2=ta.stdev(hugeA,2)
+float StdevB_2=ta.stdev(hugeB,2)
+float RawFormula_2=Numerator_2/(math.sqrt(RawVarianceA_2)*math.sqrt(RawVarianceB_2))
+float StdevFormula_2=Numerator_2/(StdevA_2*StdevB_2)
+float ZeroGuardRaw_2=Numerator_2==0 ? 0. : RawFormula_2
+float ZeroGuardStdev_2=Numerator_2==0 ? 0. : StdevFormula_2
+float SumA_2=math.sum(hugeA,2)
+float SumB_2=math.sum(hugeB,2)
+float SumXY_2=math.sum(hugeA*hugeB,2)
+float SumXX_2=math.sum(hugeA*hugeA,2)
+float SumYY_2=math.sum(hugeB*hugeB,2)
+float ScaledNumerator_2=2*SumXY_2-SumA_2*SumB_2
+float ScaledVarianceA_2=2*SumXX_2-SumA_2*SumA_2
+float ScaledVarianceB_2=2*SumYY_2-SumB_2*SumB_2
+float ScaledRawFormula_2=ScaledNumerator_2/(math.sqrt(ScaledVarianceA_2)*math.sqrt(ScaledVarianceB_2))
+float ZeroGuardScaledRaw_2=ScaledNumerator_2==0 ? 0. : ScaledRawFormula_2
+float Native_3=ta.correlation(hugeA,hugeB,3)
+float MeanA_3=ta.sma(hugeA,3)
+float MeanB_3=ta.sma(hugeB,3)
+float MeanXY_3=ta.sma(hugeA*hugeB,3)
+float MeanXX_3=ta.sma(hugeA*hugeA,3)
+float MeanYY_3=ta.sma(hugeB*hugeB,3)
+float Numerator_3=MeanXY_3-MeanA_3*MeanB_3
+float RawVarianceA_3=MeanXX_3-MeanA_3*MeanA_3
+float RawVarianceB_3=MeanYY_3-MeanB_3*MeanB_3
+float StdevA_3=ta.stdev(hugeA,3)
+float StdevB_3=ta.stdev(hugeB,3)
+float RawFormula_3=Numerator_3/(math.sqrt(RawVarianceA_3)*math.sqrt(RawVarianceB_3))
+float StdevFormula_3=Numerator_3/(StdevA_3*StdevB_3)
+float ZeroGuardRaw_3=Numerator_3==0 ? 0. : RawFormula_3
+float ZeroGuardStdev_3=Numerator_3==0 ? 0. : StdevFormula_3
+float SumA_3=math.sum(hugeA,3)
+float SumB_3=math.sum(hugeB,3)
+float SumXY_3=math.sum(hugeA*hugeB,3)
+float SumXX_3=math.sum(hugeA*hugeA,3)
+float SumYY_3=math.sum(hugeB*hugeB,3)
+float ScaledNumerator_3=3*SumXY_3-SumA_3*SumB_3
+float ScaledVarianceA_3=3*SumXX_3-SumA_3*SumA_3
+float ScaledVarianceB_3=3*SumYY_3-SumB_3*SumB_3
+float ScaledRawFormula_3=ScaledNumerator_3/(math.sqrt(ScaledVarianceA_3)*math.sqrt(ScaledVarianceB_3))
+float ZeroGuardScaledRaw_3=ScaledNumerator_3==0 ? 0. : ScaledRawFormula_3
+float Native_4=ta.correlation(hugeA,hugeB,7)
+float MeanA_4=ta.sma(hugeA,7)
+float MeanB_4=ta.sma(hugeB,7)
+float MeanXY_4=ta.sma(hugeA*hugeB,7)
+float MeanXX_4=ta.sma(hugeA*hugeA,7)
+float MeanYY_4=ta.sma(hugeB*hugeB,7)
+float Numerator_4=MeanXY_4-MeanA_4*MeanB_4
+float RawVarianceA_4=MeanXX_4-MeanA_4*MeanA_4
+float RawVarianceB_4=MeanYY_4-MeanB_4*MeanB_4
+float StdevA_4=ta.stdev(hugeA,7)
+float StdevB_4=ta.stdev(hugeB,7)
+float RawFormula_4=Numerator_4/(math.sqrt(RawVarianceA_4)*math.sqrt(RawVarianceB_4))
+float StdevFormula_4=Numerator_4/(StdevA_4*StdevB_4)
+float ZeroGuardRaw_4=Numerator_4==0 ? 0. : RawFormula_4
+float ZeroGuardStdev_4=Numerator_4==0 ? 0. : StdevFormula_4
+float SumA_4=math.sum(hugeA,7)
+float SumB_4=math.sum(hugeB,7)
+float SumXY_4=math.sum(hugeA*hugeB,7)
+float SumXX_4=math.sum(hugeA*hugeA,7)
+float SumYY_4=math.sum(hugeB*hugeB,7)
+float ScaledNumerator_4=7*SumXY_4-SumA_4*SumB_4
+float ScaledVarianceA_4=7*SumXX_4-SumA_4*SumA_4
+float ScaledVarianceB_4=7*SumYY_4-SumB_4*SumB_4
+float ScaledRawFormula_4=ScaledNumerator_4/(math.sqrt(ScaledVarianceA_4)*math.sqrt(ScaledVarianceB_4))
+float ZeroGuardScaledRaw_4=ScaledNumerator_4==0 ? 0. : ScaledRawFormula_4
+float Native_5=ta.correlation(hugeHole,hugeB,3)
+float MeanA_5=ta.sma(hugeHole,3)
+float MeanB_5=ta.sma(hugeB,3)
+float MeanXY_5=ta.sma(hugeHole*hugeB,3)
+float MeanXX_5=ta.sma(hugeHole*hugeHole,3)
+float MeanYY_5=ta.sma(hugeB*hugeB,3)
+float Numerator_5=MeanXY_5-MeanA_5*MeanB_5
+float RawVarianceA_5=MeanXX_5-MeanA_5*MeanA_5
+float RawVarianceB_5=MeanYY_5-MeanB_5*MeanB_5
+float StdevA_5=ta.stdev(hugeHole,3)
+float StdevB_5=ta.stdev(hugeB,3)
+float RawFormula_5=Numerator_5/(math.sqrt(RawVarianceA_5)*math.sqrt(RawVarianceB_5))
+float StdevFormula_5=Numerator_5/(StdevA_5*StdevB_5)
+float ZeroGuardRaw_5=Numerator_5==0 ? 0. : RawFormula_5
+float ZeroGuardStdev_5=Numerator_5==0 ? 0. : StdevFormula_5
+float SumA_5=math.sum(hugeHole,3)
+float SumB_5=math.sum(hugeB,3)
+float SumXY_5=math.sum(hugeHole*hugeB,3)
+float SumXX_5=math.sum(hugeHole*hugeHole,3)
+float SumYY_5=math.sum(hugeB*hugeB,3)
+float ScaledNumerator_5=3*SumXY_5-SumA_5*SumB_5
+float ScaledVarianceA_5=3*SumXX_5-SumA_5*SumA_5
+float ScaledVarianceB_5=3*SumYY_5-SumB_5*SumB_5
+float ScaledRawFormula_5=ScaledNumerator_5/(math.sqrt(ScaledVarianceA_5)*math.sqrt(ScaledVarianceB_5))
+float ZeroGuardScaledRaw_5=ScaledNumerator_5==0 ? 0. : ScaledRawFormula_5
+float Native_6=ta.correlation(hugeHole,hugeB,7)
+float MeanA_6=ta.sma(hugeHole,7)
+float MeanB_6=ta.sma(hugeB,7)
+float MeanXY_6=ta.sma(hugeHole*hugeB,7)
+float MeanXX_6=ta.sma(hugeHole*hugeHole,7)
+float MeanYY_6=ta.sma(hugeB*hugeB,7)
+float Numerator_6=MeanXY_6-MeanA_6*MeanB_6
+float RawVarianceA_6=MeanXX_6-MeanA_6*MeanA_6
+float RawVarianceB_6=MeanYY_6-MeanB_6*MeanB_6
+float StdevA_6=ta.stdev(hugeHole,7)
+float StdevB_6=ta.stdev(hugeB,7)
+float RawFormula_6=Numerator_6/(math.sqrt(RawVarianceA_6)*math.sqrt(RawVarianceB_6))
+float StdevFormula_6=Numerator_6/(StdevA_6*StdevB_6)
+float ZeroGuardRaw_6=Numerator_6==0 ? 0. : RawFormula_6
+float ZeroGuardStdev_6=Numerator_6==0 ? 0. : StdevFormula_6
+float SumA_6=math.sum(hugeHole,7)
+float SumB_6=math.sum(hugeB,7)
+float SumXY_6=math.sum(hugeHole*hugeB,7)
+float SumXX_6=math.sum(hugeHole*hugeHole,7)
+float SumYY_6=math.sum(hugeB*hugeB,7)
+float ScaledNumerator_6=7*SumXY_6-SumA_6*SumB_6
+float ScaledVarianceA_6=7*SumXX_6-SumA_6*SumA_6
+float ScaledVarianceB_6=7*SumYY_6-SumB_6*SumB_6
+float ScaledRawFormula_6=ScaledNumerator_6/(math.sqrt(ScaledVarianceA_6)*math.sqrt(ScaledVarianceB_6))
+float ZeroGuardScaledRaw_6=ScaledNumerator_6==0 ? 0. : ScaledRawFormula_6
+float Native_7=ta.correlation(hugeA,hugeA,3)
+float MeanA_7=ta.sma(hugeA,3)
+float MeanB_7=ta.sma(hugeA,3)
+float MeanXY_7=ta.sma(hugeA*hugeA,3)
+float MeanXX_7=ta.sma(hugeA*hugeA,3)
+float MeanYY_7=ta.sma(hugeA*hugeA,3)
+float Numerator_7=MeanXY_7-MeanA_7*MeanB_7
+float RawVarianceA_7=MeanXX_7-MeanA_7*MeanA_7
+float RawVarianceB_7=MeanYY_7-MeanB_7*MeanB_7
+float StdevA_7=ta.stdev(hugeA,3)
+float StdevB_7=ta.stdev(hugeA,3)
+float RawFormula_7=Numerator_7/(math.sqrt(RawVarianceA_7)*math.sqrt(RawVarianceB_7))
+float StdevFormula_7=Numerator_7/(StdevA_7*StdevB_7)
+float ZeroGuardRaw_7=Numerator_7==0 ? 0. : RawFormula_7
+float ZeroGuardStdev_7=Numerator_7==0 ? 0. : StdevFormula_7
+float SumA_7=math.sum(hugeA,3)
+float SumB_7=math.sum(hugeA,3)
+float SumXY_7=math.sum(hugeA*hugeA,3)
+float SumXX_7=math.sum(hugeA*hugeA,3)
+float SumYY_7=math.sum(hugeA*hugeA,3)
+float ScaledNumerator_7=3*SumXY_7-SumA_7*SumB_7
+float ScaledVarianceA_7=3*SumXX_7-SumA_7*SumA_7
+float ScaledVarianceB_7=3*SumYY_7-SumB_7*SumB_7
+float ScaledRawFormula_7=ScaledNumerator_7/(math.sqrt(ScaledVarianceA_7)*math.sqrt(ScaledVarianceB_7))
+float ZeroGuardScaledRaw_7=ScaledNumerator_7==0 ? 0. : ScaledRawFormula_7
+f(float x)=>str.tostring(x,"0.########################")
+var string rows=""
+if i<64
+    rows += "PYNE_CORRELATION_DECOMP|"+str.tostring(i)+"|"+f(base)+"|"+f(holes)+"|"+f(shifted)+"|"+f(hugeA)+"|"+f(hugeB)+"|"+f(hugeHole)+"|"+f(Native_0)+"|"+f(MeanA_0)+"|"+f(MeanB_0)+"|"+f(MeanXY_0)+"|"+f(MeanXX_0)+"|"+f(MeanYY_0)+"|"+f(Numerator_0)+"|"+f(RawVarianceA_0)+"|"+f(RawVarianceB_0)+"|"+f(StdevA_0)+"|"+f(StdevB_0)+"|"+f(RawFormula_0)+"|"+f(StdevFormula_0)+"|"+f(ZeroGuardRaw_0)+"|"+f(ZeroGuardStdev_0)+"|"+f(SumA_0)+"|"+f(SumB_0)+"|"+f(SumXY_0)+"|"+f(SumXX_0)+"|"+f(SumYY_0)+"|"+f(ScaledNumerator_0)+"|"+f(ScaledVarianceA_0)+"|"+f(ScaledVarianceB_0)+"|"+f(ScaledRawFormula_0)+"|"+f(ZeroGuardScaledRaw_0)+"|"+f(Native_1)+"|"+f(MeanA_1)+"|"+f(MeanB_1)+"|"+f(MeanXY_1)+"|"+f(MeanXX_1)+"|"+f(MeanYY_1)+"|"+f(Numerator_1)+"|"+f(RawVarianceA_1)+"|"+f(RawVarianceB_1)+"|"+f(StdevA_1)+"|"+f(StdevB_1)+"|"+f(RawFormula_1)+"|"+f(StdevFormula_1)+"|"+f(ZeroGuardRaw_1)+"|"+f(ZeroGuardStdev_1)+"|"+f(SumA_1)+"|"+f(SumB_1)+"|"+f(SumXY_1)+"|"+f(SumXX_1)+"|"+f(SumYY_1)+"|"+f(ScaledNumerator_1)+"|"+f(ScaledVarianceA_1)+"|"+f(ScaledVarianceB_1)+"|"+f(ScaledRawFormula_1)+"|"+f(ZeroGuardScaledRaw_1)+"|"+f(Native_2)+"|"+f(MeanA_2)+"|"+f(MeanB_2)+"|"+f(MeanXY_2)+"|"+f(MeanXX_2)+"|"+f(MeanYY_2)+"|"+f(Numerator_2)+"|"+f(RawVarianceA_2)+"|"+f(RawVarianceB_2)+"|"+f(StdevA_2)+"|"+f(StdevB_2)+"|"+f(RawFormula_2)+"|"+f(StdevFormula_2)+"|"+f(ZeroGuardRaw_2)+"|"+f(ZeroGuardStdev_2)+"|"+f(SumA_2)+"|"+f(SumB_2)+"|"+f(SumXY_2)+"|"+f(SumXX_2)+"|"+f(SumYY_2)+"|"+f(ScaledNumerator_2)+"|"+f(ScaledVarianceA_2)+"|"+f(ScaledVarianceB_2)+"|"+f(ScaledRawFormula_2)+"|"+f(ZeroGuardScaledRaw_2)+"|"+f(Native_3)+"|"+f(MeanA_3)+"|"+f(MeanB_3)+"|"+f(MeanXY_3)+"|"+f(MeanXX_3)+"|"+f(MeanYY_3)+"|"+f(Numerator_3)+"|"+f(RawVarianceA_3)+"|"+f(RawVarianceB_3)+"|"+f(StdevA_3)+"|"+f(StdevB_3)+"|"+f(RawFormula_3)+"|"+f(StdevFormula_3)+"|"+f(ZeroGuardRaw_3)+"|"+f(ZeroGuardStdev_3)+"|"+f(SumA_3)+"|"+f(SumB_3)+"|"+f(SumXY_3)+"|"+f(SumXX_3)+"|"+f(SumYY_3)+"|"+f(ScaledNumerator_3)+"|"+f(ScaledVarianceA_3)+"|"+f(ScaledVarianceB_3)+"|"+f(ScaledRawFormula_3)+"|"+f(ZeroGuardScaledRaw_3)+"|"+f(Native_4)+"|"+f(MeanA_4)+"|"+f(MeanB_4)+"|"+f(MeanXY_4)+"|"+f(MeanXX_4)+"|"+f(MeanYY_4)+"|"+f(Numerator_4)+"|"+f(RawVarianceA_4)+"|"+f(RawVarianceB_4)+"|"+f(StdevA_4)+"|"+f(StdevB_4)+"|"+f(RawFormula_4)+"|"+f(StdevFormula_4)+"|"+f(ZeroGuardRaw_4)+"|"+f(ZeroGuardStdev_4)+"|"+f(SumA_4)+"|"+f(SumB_4)+"|"+f(SumXY_4)+"|"+f(SumXX_4)+"|"+f(SumYY_4)+"|"+f(ScaledNumerator_4)+"|"+f(ScaledVarianceA_4)+"|"+f(ScaledVarianceB_4)+"|"+f(ScaledRawFormula_4)+"|"+f(ZeroGuardScaledRaw_4)+"|"+f(Native_5)+"|"+f(MeanA_5)+"|"+f(MeanB_5)+"|"+f(MeanXY_5)+"|"+f(MeanXX_5)+"|"+f(MeanYY_5)+"|"+f(Numerator_5)+"|"+f(RawVarianceA_5)+"|"+f(RawVarianceB_5)+"|"+f(StdevA_5)+"|"+f(StdevB_5)+"|"+f(RawFormula_5)+"|"+f(StdevFormula_5)+"|"+f(ZeroGuardRaw_5)+"|"+f(ZeroGuardStdev_5)+"|"+f(SumA_5)+"|"+f(SumB_5)+"|"+f(SumXY_5)+"|"+f(SumXX_5)+"|"+f(SumYY_5)+"|"+f(ScaledNumerator_5)+"|"+f(ScaledVarianceA_5)+"|"+f(ScaledVarianceB_5)+"|"+f(ScaledRawFormula_5)+"|"+f(ZeroGuardScaledRaw_5)+"|"+f(Native_6)+"|"+f(MeanA_6)+"|"+f(MeanB_6)+"|"+f(MeanXY_6)+"|"+f(MeanXX_6)+"|"+f(MeanYY_6)+"|"+f(Numerator_6)+"|"+f(RawVarianceA_6)+"|"+f(RawVarianceB_6)+"|"+f(StdevA_6)+"|"+f(StdevB_6)+"|"+f(RawFormula_6)+"|"+f(StdevFormula_6)+"|"+f(ZeroGuardRaw_6)+"|"+f(ZeroGuardStdev_6)+"|"+f(SumA_6)+"|"+f(SumB_6)+"|"+f(SumXY_6)+"|"+f(SumXX_6)+"|"+f(SumYY_6)+"|"+f(ScaledNumerator_6)+"|"+f(ScaledVarianceA_6)+"|"+f(ScaledVarianceB_6)+"|"+f(ScaledRawFormula_6)+"|"+f(ZeroGuardScaledRaw_6)+"|"+f(Native_7)+"|"+f(MeanA_7)+"|"+f(MeanB_7)+"|"+f(MeanXY_7)+"|"+f(MeanXX_7)+"|"+f(MeanYY_7)+"|"+f(Numerator_7)+"|"+f(RawVarianceA_7)+"|"+f(RawVarianceB_7)+"|"+f(StdevA_7)+"|"+f(StdevB_7)+"|"+f(RawFormula_7)+"|"+f(StdevFormula_7)+"|"+f(ZeroGuardRaw_7)+"|"+f(ZeroGuardStdev_7)+"|"+f(SumA_7)+"|"+f(SumB_7)+"|"+f(SumXY_7)+"|"+f(SumXX_7)+"|"+f(SumYY_7)+"|"+f(ScaledNumerator_7)+"|"+f(ScaledVarianceA_7)+"|"+f(ScaledVarianceB_7)+"|"+f(ScaledRawFormula_7)+"|"+f(ZeroGuardScaledRaw_7)+";"
+    log.info(rows)
+    rows:=""
+plot(Native_0,"Correlation decomposition")

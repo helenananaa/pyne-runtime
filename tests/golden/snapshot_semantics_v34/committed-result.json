@@ -1,0 +1,89 @@
+{
+  "ok": true,
+  "error": null,
+  "code": null,
+  "line": null,
+  "column": null,
+  "hint": null,
+  "lines": [
+    {
+      "id": "ema",
+      "name": "EMA",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 120,
+          "value": 1.0
+        },
+        {
+          "time": 180,
+          "value": 1.0
+        },
+        {
+          "time": 240,
+          "value": 1.0
+        },
+        {
+          "time": 300,
+          "value": 1.0
+        }
+      ]
+    }
+  ],
+  "output": {
+    "lines": [
+      {
+        "id": "ema",
+        "title": "EMA",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 120,
+            "value": 1.0
+          },
+          {
+            "time": 180,
+            "value": 1.0
+          },
+          {
+            "time": 240,
+            "value": 1.0
+          },
+          {
+            "time": 300,
+            "value": 1.0
+          }
+        ]
+      }
+    ]
+  },
+  "param_schema": [],
+  "meta": {
+    "title": "Snapshot semantics",
+    "overlay": true,
+    "mode": "incremental",
+    "bar_index": 5,
+    "last_bar_index": 5,
+    "barstate": {
+      "isfirst": false,
+      "islast": true,
+      "ishistory": true,
+      "isrealtime": false,
+      "isnew": true,
+      "isconfirmed": true,
+      "islastconfirmedhistory": true
+    },
+    "retentionBars": null,
+    "retainedBars": 6,
+    "totalCommittedBars": 6,
+    "snapshotVersion": 3
+  }
+}

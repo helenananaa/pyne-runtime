@@ -147,19 +147,6 @@
           "price": 89.0,
           "position_after": 0.0,
           "comment": ""
-        },
-        {
-          "time": 4,
-          "id": "Breakout",
-          "type": "entry",
-          "side": "long",
-          "qty": 1.0,
-          "price": 120.0,
-          "position_after": 1.0,
-          "comment": "",
-          "reason": "stop",
-          "oca_name": "risk_group",
-          "oca_type": "cancel"
         }
       ],
       "lifecycle": [
@@ -183,40 +170,37 @@
         {
           "id": "Breakout",
           "type": "entry",
-          "status": "filled",
-          "phase": "pending_fill",
+          "status": "rejected",
+          "phase": "pending_rejected",
           "submitted_time": 1,
-          "filled_time": 4,
+          "filled_time": null,
           "canceled_time": null,
-          "rejected_time": null,
+          "rejected_time": 1,
           "side": "long",
           "qty": 1.0,
-          "price": 120.0,
-          "position_after": 1.0,
-          "reason": "stop",
+          "price": 100.0,
+          "position_after": 0.0,
           "comment": "",
-          "oca_name": "risk_group",
-          "oca_type": "cancel",
           "stop": 120.0,
           "requested_qty": 1.0,
-          "filled_qty": 1.0
+          "filled_qty": 0.0,
+          "rejected_reason": "pyramiding_exceeded"
         },
         {
           "id": "Fade",
           "type": "order",
-          "status": "canceled",
-          "phase": "pending_canceled",
+          "status": "pending",
+          "phase": "pending",
           "submitted_time": 1,
           "filled_time": null,
-          "canceled_time": 4,
+          "canceled_time": null,
           "rejected_time": null,
           "side": "short",
           "qty": 1.0,
           "price": 100.0,
           "position_after": 0.0,
           "comment": "",
-          "limit": 130.0,
-          "canceled_by": "Breakout"
+          "limit": 130.0
         },
         {
           "id": "risk.max_intraday_loss",
@@ -252,16 +236,7 @@
           "net_profit": -110.0
         }
       ],
-      "opentrades": [
-        {
-          "entry_time": 4,
-          "entry_id": "Breakout",
-          "side": "long",
-          "qty": 1.0,
-          "entry_price": 120.0,
-          "profit": 0.0
-        }
-      ],
+      "opentrades": [],
       "values": {
         "Position": [
           0.0,
@@ -496,24 +471,11 @@
           "comment": ""
         },
         {
-          "time": 4,
-          "id": "First",
-          "type": "entry",
-          "side": "long",
-          "qty": 1.0,
-          "price": 120.0,
-          "position_after": 1.0,
-          "comment": "",
-          "reason": "stop",
-          "oca_name": "scale",
-          "oca_type": "reduce"
-        },
-        {
           "time": 5,
           "id": "Second",
           "type": "order",
           "side": "long",
-          "qty": 1.0,
+          "qty": 2.0,
           "price": 125.0,
           "position_after": 2.0,
           "comment": "",
@@ -543,23 +505,21 @@
         {
           "id": "First",
           "type": "entry",
-          "status": "filled",
-          "phase": "pending_fill",
+          "status": "rejected",
+          "phase": "pending_rejected",
           "submitted_time": 1,
-          "filled_time": 4,
+          "filled_time": null,
           "canceled_time": null,
-          "rejected_time": null,
+          "rejected_time": 1,
           "side": "long",
           "qty": 1.0,
-          "price": 120.0,
-          "position_after": 1.0,
-          "reason": "stop",
+          "price": 100.0,
+          "position_after": 0.0,
           "comment": "",
-          "oca_name": "scale",
-          "oca_type": "reduce",
           "stop": 120.0,
           "requested_qty": 1.0,
-          "filled_qty": 1.0
+          "filled_qty": 0.0,
+          "rejected_reason": "pyramiding_exceeded"
         },
         {
           "id": "Second",
@@ -571,7 +531,7 @@
           "canceled_time": null,
           "rejected_time": null,
           "side": "long",
-          "qty": 1.0,
+          "qty": 2.0,
           "price": 125.0,
           "position_after": 2.0,
           "reason": "stop",
@@ -580,7 +540,7 @@
           "oca_type": "reduce",
           "stop": 125.0,
           "requested_qty": 2.0,
-          "filled_qty": 1.0
+          "filled_qty": 2.0
         },
         {
           "id": "risk.max_intraday_loss",
@@ -618,20 +578,12 @@
       ],
       "opentrades": [
         {
-          "entry_time": 4,
-          "entry_id": "First",
-          "side": "long",
-          "qty": 1.0,
-          "entry_price": 120.0,
-          "profit": 6.0
-        },
-        {
           "entry_time": 5,
           "entry_id": "Second",
           "side": "long",
-          "qty": 1.0,
+          "qty": 2.0,
           "entry_price": 125.0,
-          "profit": 1.0
+          "profit": 2.0
         }
       ],
       "values": {
@@ -640,14 +592,14 @@
           0.0,
           0.0,
           0.0,
-          1.0
+          2.0
         ],
         "Equity": [
           1000.0,
           890.0,
           890.0,
           890.0,
-          896.0
+          892.0
         ],
         "Net Profit": [
           0.0,
@@ -661,7 +613,7 @@
           0.0,
           0.0,
           0.0,
-          6.0
+          2.0
         ],
         "Closed Trades": [
           0.0,
@@ -681,9 +633,9 @@
       "summary": {
         "initial_capital": 1000.0,
         "currency": "",
-        "equity": 896.0,
+        "equity": 892.0,
         "netprofit": -110.0,
-        "openprofit": 6.0,
+        "openprofit": 2.0,
         "grossprofit": 0.0,
         "grossloss": -110.0,
         "commission": 0.0,

@@ -185,7 +185,7 @@
       ],
       "opentrades": [],
       "position": [2.0, 4.0, 3.0, 0.0],
-      "equity": [999.3, 1000.6, 1004.75, 1006.2],
+      "equity": [999.3, 1000.6, 1004.25, 1006.2],
       "netprofit": [-0.5, -1.0, 0.55, 6.2],
       "first_closed_commission": [0.5, 0.5, 0.5, 0.5],
       "last_closed_commission": [1.0, 1.0, 1.0, 1.0],

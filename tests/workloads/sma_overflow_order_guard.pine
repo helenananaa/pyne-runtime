@@ -1,0 +1,85 @@
+//@version=6
+indicator("Pyne overflow order guard round48", precision=10)
+int i = bar_index
+float large = 160000000.0 * math.pow(10., 300)
+float src_half = 80000000.0 * math.pow(10., 300)
+float Native2_half = ta.sma(src_half, 2)
+float Native3_half = ta.sma(src_half, 3)
+float Sum2_half = math.sum(src_half, 2)
+float Sum3_half = math.sum(src_half, 3)
+float src_negativeHalf = -80000000.0 * math.pow(10., 300)
+float Native2_negativeHalf = ta.sma(src_negativeHalf, 2)
+float Native3_negativeHalf = ta.sma(src_negativeHalf, 3)
+float Sum2_negativeHalf = math.sum(src_negativeHalf, 2)
+float Sum3_negativeHalf = math.sum(src_negativeHalf, 3)
+float src_rotation = i % 3 == 1 ? -large : large
+float Native2_rotation = ta.sma(src_rotation, 2)
+float Native3_rotation = ta.sma(src_rotation, 3)
+float Sum2_rotation = math.sum(src_rotation, 2)
+float Sum3_rotation = math.sum(src_rotation, 3)
+float src_negativeRotation = i % 3 == 1 ? large : -large
+float Native2_negativeRotation = ta.sma(src_negativeRotation, 2)
+float Native3_negativeRotation = ta.sma(src_negativeRotation, 3)
+float Sum2_negativeRotation = math.sum(src_negativeRotation, 2)
+float Sum3_negativeRotation = math.sum(src_negativeRotation, 3)
+float src_recovery = i < 6 ? large : float((i * 11) % 17 - 6) * 0.25
+float Native2_recovery = ta.sma(src_recovery, 2)
+float Native3_recovery = ta.sma(src_recovery, 3)
+float Sum2_recovery = math.sum(src_recovery, 2)
+float Sum3_recovery = math.sum(src_recovery, 3)
+float src_gapRecovery = i < 6 ? large : i < 12 ? na : float((i * 11) % 17 - 6) * 0.25
+float Native2_gapRecovery = ta.sma(src_gapRecovery, 2)
+float Native3_gapRecovery = ta.sma(src_gapRecovery, 3)
+float Sum2_gapRecovery = math.sum(src_gapRecovery, 2)
+float Sum3_gapRecovery = math.sum(src_gapRecovery, 3)
+float IsNa_Native2_half = na(Native2_half) ? 1 : 0
+float IsNa_Native3_half = na(Native3_half) ? 1 : 0
+float IsNa_Sum2_half = na(Sum2_half) ? 1 : 0
+float HalfInvariant_Sum2_half = not na(Sum2_half) and Sum2_half != 0 and Sum2_half / 2 == Sum2_half ? 1 : 0
+float Negative_Sum2_half = not na(Sum2_half) and Sum2_half < 0 ? 1 : 0
+float IsNa_Sum3_half = na(Sum3_half) ? 1 : 0
+float HalfInvariant_Sum3_half = not na(Sum3_half) and Sum3_half != 0 and Sum3_half / 2 == Sum3_half ? 1 : 0
+float Negative_Sum3_half = not na(Sum3_half) and Sum3_half < 0 ? 1 : 0
+float IsNa_Native2_negativeHalf = na(Native2_negativeHalf) ? 1 : 0
+float IsNa_Native3_negativeHalf = na(Native3_negativeHalf) ? 1 : 0
+float IsNa_Sum2_negativeHalf = na(Sum2_negativeHalf) ? 1 : 0
+float HalfInvariant_Sum2_negativeHalf = not na(Sum2_negativeHalf) and Sum2_negativeHalf != 0 and Sum2_negativeHalf / 2 == Sum2_negativeHalf ? 1 : 0
+float Negative_Sum2_negativeHalf = not na(Sum2_negativeHalf) and Sum2_negativeHalf < 0 ? 1 : 0
+float IsNa_Sum3_negativeHalf = na(Sum3_negativeHalf) ? 1 : 0
+float HalfInvariant_Sum3_negativeHalf = not na(Sum3_negativeHalf) and Sum3_negativeHalf != 0 and Sum3_negativeHalf / 2 == Sum3_negativeHalf ? 1 : 0
+float Negative_Sum3_negativeHalf = not na(Sum3_negativeHalf) and Sum3_negativeHalf < 0 ? 1 : 0
+float IsNa_Native2_rotation = na(Native2_rotation) ? 1 : 0
+float IsNa_Native3_rotation = na(Native3_rotation) ? 1 : 0
+float IsNa_Sum2_rotation = na(Sum2_rotation) ? 1 : 0
+float HalfInvariant_Sum2_rotation = not na(Sum2_rotation) and Sum2_rotation != 0 and Sum2_rotation / 2 == Sum2_rotation ? 1 : 0
+float Negative_Sum2_rotation = not na(Sum2_rotation) and Sum2_rotation < 0 ? 1 : 0
+float IsNa_Sum3_rotation = na(Sum3_rotation) ? 1 : 0
+float HalfInvariant_Sum3_rotation = not na(Sum3_rotation) and Sum3_rotation != 0 and Sum3_rotation / 2 == Sum3_rotation ? 1 : 0
+float Negative_Sum3_rotation = not na(Sum3_rotation) and Sum3_rotation < 0 ? 1 : 0
+float IsNa_Native2_negativeRotation = na(Native2_negativeRotation) ? 1 : 0
+float IsNa_Native3_negativeRotation = na(Native3_negativeRotation) ? 1 : 0
+float IsNa_Sum2_negativeRotation = na(Sum2_negativeRotation) ? 1 : 0
+float HalfInvariant_Sum2_negativeRotation = not na(Sum2_negativeRotation) and Sum2_negativeRotation != 0 and Sum2_negativeRotation / 2 == Sum2_negativeRotation ? 1 : 0
+float Negative_Sum2_negativeRotation = not na(Sum2_negativeRotation) and Sum2_negativeRotation < 0 ? 1 : 0
+float IsNa_Sum3_negativeRotation = na(Sum3_negativeRotation) ? 1 : 0
+float HalfInvariant_Sum3_negativeRotation = not na(Sum3_negativeRotation) and Sum3_negativeRotation != 0 and Sum3_negativeRotation / 2 == Sum3_negativeRotation ? 1 : 0
+float Negative_Sum3_negativeRotation = not na(Sum3_negativeRotation) and Sum3_negativeRotation < 0 ? 1 : 0
+float IsNa_Native2_recovery = na(Native2_recovery) ? 1 : 0
+float IsNa_Native3_recovery = na(Native3_recovery) ? 1 : 0
+float IsNa_Sum2_recovery = na(Sum2_recovery) ? 1 : 0
+float HalfInvariant_Sum2_recovery = not na(Sum2_recovery) and Sum2_recovery != 0 and Sum2_recovery / 2 == Sum2_recovery ? 1 : 0
+float Negative_Sum2_recovery = not na(Sum2_recovery) and Sum2_recovery < 0 ? 1 : 0
+float IsNa_Sum3_recovery = na(Sum3_recovery) ? 1 : 0
+float HalfInvariant_Sum3_recovery = not na(Sum3_recovery) and Sum3_recovery != 0 and Sum3_recovery / 2 == Sum3_recovery ? 1 : 0
+float Negative_Sum3_recovery = not na(Sum3_recovery) and Sum3_recovery < 0 ? 1 : 0
+float IsNa_Native2_gapRecovery = na(Native2_gapRecovery) ? 1 : 0
+float IsNa_Native3_gapRecovery = na(Native3_gapRecovery) ? 1 : 0
+float IsNa_Sum2_gapRecovery = na(Sum2_gapRecovery) ? 1 : 0
+float HalfInvariant_Sum2_gapRecovery = not na(Sum2_gapRecovery) and Sum2_gapRecovery != 0 and Sum2_gapRecovery / 2 == Sum2_gapRecovery ? 1 : 0
+float Negative_Sum2_gapRecovery = not na(Sum2_gapRecovery) and Sum2_gapRecovery < 0 ? 1 : 0
+float IsNa_Sum3_gapRecovery = na(Sum3_gapRecovery) ? 1 : 0
+float HalfInvariant_Sum3_gapRecovery = not na(Sum3_gapRecovery) and Sum3_gapRecovery != 0 and Sum3_gapRecovery / 2 == Sum3_gapRecovery ? 1 : 0
+float Negative_Sum3_gapRecovery = not na(Sum3_gapRecovery) and Sum3_gapRecovery < 0 ? 1 : 0
+if i < 32
+    log.info("PYNE_SMA_OVERFLOW_ORDER_GUARD48|" + str.tostring(i) + "|" + str.tostring(IsNa_Native2_half, "0.00000000000000000") + "|" + str.tostring(IsNa_Native3_half, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum2_half, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum2_half, "0.00000000000000000") + "|" + str.tostring(Negative_Sum2_half, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum3_half, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum3_half, "0.00000000000000000") + "|" + str.tostring(Negative_Sum3_half, "0.00000000000000000") + "|" + str.tostring(IsNa_Native2_negativeHalf, "0.00000000000000000") + "|" + str.tostring(IsNa_Native3_negativeHalf, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum2_negativeHalf, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum2_negativeHalf, "0.00000000000000000") + "|" + str.tostring(Negative_Sum2_negativeHalf, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum3_negativeHalf, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum3_negativeHalf, "0.00000000000000000") + "|" + str.tostring(Negative_Sum3_negativeHalf, "0.00000000000000000") + "|" + str.tostring(IsNa_Native2_rotation, "0.00000000000000000") + "|" + str.tostring(IsNa_Native3_rotation, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum2_rotation, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum2_rotation, "0.00000000000000000") + "|" + str.tostring(Negative_Sum2_rotation, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum3_rotation, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum3_rotation, "0.00000000000000000") + "|" + str.tostring(Negative_Sum3_rotation, "0.00000000000000000") + "|" + str.tostring(IsNa_Native2_negativeRotation, "0.00000000000000000") + "|" + str.tostring(IsNa_Native3_negativeRotation, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum2_negativeRotation, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum2_negativeRotation, "0.00000000000000000") + "|" + str.tostring(Negative_Sum2_negativeRotation, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum3_negativeRotation, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum3_negativeRotation, "0.00000000000000000") + "|" + str.tostring(Negative_Sum3_negativeRotation, "0.00000000000000000") + "|" + str.tostring(IsNa_Native2_recovery, "0.00000000000000000") + "|" + str.tostring(IsNa_Native3_recovery, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum2_recovery, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum2_recovery, "0.00000000000000000") + "|" + str.tostring(Negative_Sum2_recovery, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum3_recovery, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum3_recovery, "0.00000000000000000") + "|" + str.tostring(Negative_Sum3_recovery, "0.00000000000000000") + "|" + str.tostring(IsNa_Native2_gapRecovery, "0.00000000000000000") + "|" + str.tostring(IsNa_Native3_gapRecovery, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum2_gapRecovery, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum2_gapRecovery, "0.00000000000000000") + "|" + str.tostring(Negative_Sum2_gapRecovery, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum3_gapRecovery, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum3_gapRecovery, "0.00000000000000000") + "|" + str.tostring(Negative_Sum3_gapRecovery, "0.00000000000000000") + ";")
+plot(0., display=display.none)

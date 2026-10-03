@@ -1,0 +1,14 @@
+{
+  "description": "Genuine installed rc27 /semantics32 state with premature initial outputs; never relabeled.",
+  "packageVersion": "0.4.1rc27",
+  "semanticsVersion": 32,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round40-20261002\\installed-oracle-qualified\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "3d579b29604dab8930f9767a1081f70bccffcb3bd824a8dbd31d7c48590b4455",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "state.json": "fd104cd4b4ac76a1ffa526180cd7de1efbd3e8d358ef893155260b4745c65848",
+    "replay.json": "93102edcded59e2088483db7b2a83ad178e37c6fef9a61a5109aa392554a669f",
+    "bars.json": "742f0006983f3396e4fc28b6c2ddcd2225770d867a370cdd57a611734e8457ea",
+    "committed-result.json": "4f9432720e4be589110e023b720ed7edadda81d38d5a77bb40b04307e3033518"
+  }
+}

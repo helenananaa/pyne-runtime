@@ -1,0 +1,5 @@
+indicator("Initial window readiness",mode="incremental")
+def on_bar(ctx,bar):
+    ctx.plot("Highestbars",ctx.ta.highestbars("highest",3).update(bar.close))
+    ctx.plot("Lowestbars",ctx.ta.lowestbars("lowest",3).update(bar.close))
+    ctx.plot("Stoch",ctx.ta.stoch("stoch",3).update(bar.close,bar.high,bar.low))

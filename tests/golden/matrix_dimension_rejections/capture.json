@@ -1,0 +1,63 @@
+{
+  "schema": "pyne.matrix-native-dimension-error/1",
+  "provider": "tradingview",
+  "captureDate": "2026-10-02",
+  "captureMethod": "Chrome visible Runtime error popovers after executing each retained Pine script",
+  "cases": [
+    {
+      "name": "product",
+      "pyneOperation": "mult",
+      "leftShape": [
+        2,
+        3
+      ],
+      "rightShape": [
+        2,
+        2
+      ],
+      "nativeErrorCode": "RE10082",
+      "message": "Error on bar 0: In the 'matrix.mult()' function. The number of columns in the matrix 'id1' must be equal to the number of rows in the matrix (or the number of elements in the array) 'id2'.",
+      "pineSha256": "1461d06a8fd9089fec56f0af21c7e43b00851cdce3a76e1d20310e8b4cc9d812",
+      "errorSha256": "25581c5cc2efd6c0b4f6a71adf9cd0724681c99278fadb99614fdb40d454f7fb",
+      "domSha256": "5b1e0c178ff3b66ae9723dfe53c19df7235f74eb4cfd4fc67409843b49bb808a",
+      "screenshotSha256": "2c712122657d83fe23b074d5669d19647ebcc3503b566520cf78102b962a28e8"
+    },
+    {
+      "name": "sum",
+      "pyneOperation": "add",
+      "leftShape": [
+        2,
+        3
+      ],
+      "rightShape": [
+        3,
+        2
+      ],
+      "nativeErrorCode": "RE10081",
+      "message": "Error on bar 0: In the 'matrix.sum()' function. Matrices 'id1' and 'id2' must have an equal number of rows and columns to be added.",
+      "pineSha256": "ce1931d4a26f60aceb72ab9f4a366badfd2698b3a104f5dbcc5d0819012c0c66",
+      "errorSha256": "eb8f823f5d19d78e85d66af696d2ef8f3dffc90fed4d9337a727b988875289db",
+      "domSha256": "7a45f77fee9cd1eed4fe4d299f1b2cefc7b75139e7a7343291084d5dcdbb9c3c",
+      "screenshotSha256": "f0e5af47ae3dfcf08ff391622e11d91ea05ed0f87b2294fdef6f8729a43d3106"
+    },
+    {
+      "name": "diff",
+      "pyneOperation": "sub",
+      "leftShape": [
+        2,
+        3
+      ],
+      "rightShape": [
+        3,
+        2
+      ],
+      "nativeErrorCode": "RE10081",
+      "message": "Error on bar 0: In the 'matrix.diff()' function. Matrices 'id1' and 'id2' must have an equal number of rows and columns to be added.",
+      "pineSha256": "b7d35872cedc216d2da2d49322eb62f9c9faff2a21c77c733f187fb9c62b087f",
+      "errorSha256": "01c58ffabbb6d0f459b393c4442938a6b518daab9065b243b10eaf5f606144c7",
+      "domSha256": "df4102be150edb628119e9f84238fd960610f02742c22a23a305c23301a9ea55",
+      "screenshotSha256": "34edd04e067b3f13c380082c83f99e3c36063967bb3137f973b9e3af774921ac"
+    }
+  ],
+  "qualification": "Three fixed native error-presence witnesses. Native execution aborts on bar zero and Pine Logs report No data; native post-error atomicity, Python exception class/message equivalence and general rejection boundaries are not proved."
+}

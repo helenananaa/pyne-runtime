@@ -1,0 +1,14 @@
+{
+  "description": "Genuine installed rc31 /36 before correcting initial DMI strict true-range seed. Never relabeled.",
+  "packageVersion": "0.4.1rc31",
+  "semanticsVersion": 36,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round54-20261003\\installed-final\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "26013fafc495c85394efad343f59fbbc75d07deccb432cce6ed06c5f72189f6a",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "state.json": "2cbbe26ab3867d916ace9a22f1c51f5499337c699f2a9373585e85a6f3da94ea",
+    "replay.json": "16c8a34b754cfd3d0abaa1c90f9bccac5dad0b6d6d46f59a886c15ccab956079",
+    "bars.json": "d1487cd5bfca6c22f4f54f574873f0e66c67ff0f4660bc4adbff8a58c1e34c19",
+    "committed-result.json": "6a307bb05c2b84733ac1d2da88a2da62997b7e67ac0adb61e3083775e55e0a89"
+  }
+}

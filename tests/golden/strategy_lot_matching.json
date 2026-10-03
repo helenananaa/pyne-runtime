@@ -203,9 +203,9 @@
       "summary": {
         "initial_capital": 1000.0,
         "currency": "",
-        "equity": 1005.66666667,
+        "equity": 1006.0,
         "netprofit": 1.0,
-        "openprofit": 4.66666667,
+        "openprofit": 5.0,
         "grossprofit": 1.0,
         "grossloss": 0.0,
         "commission": 0.0,

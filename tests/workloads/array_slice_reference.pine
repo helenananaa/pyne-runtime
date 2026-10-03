@@ -1,0 +1,72 @@
+//@version=6
+indicator("Pyne array slice reference 20261002",overlay=false)
+f(float v) => str.tostring(v,"#.##########")
+getf(array<float> a,int k) => k < array.size(a) ? array.get(a,k) : float(na)
+var string rows = ""
+if bar_index < 32
+    int c = bar_index % 16
+    array<float> a = array.from(1.0,2.0,3.0,4.0,5.0,6.0,7.0)
+    array<float> w = array.slice(a,1,4)
+    array<float> n = array.slice(w,1,3)
+    array<float> cp = array.copy(w)
+    float returned = na
+    switch c
+        0 => array.set(w,0,-1)
+        1 => array.set(a,2,99)
+        2 => array.push(w,9)
+        3 => returned := array.pop(w)
+        4 => array.unshift(a,0)
+        5 => returned := array.remove(a,2)
+        6 => array.clear(w)
+        7 =>
+            array.set(n,0,-2)
+            array.push(n,8)
+        8 =>
+            for k = 0 to 5
+                array.pop(a)
+        9 =>
+            for k = 0 to 3
+                array.pop(a)
+            array.push(a,8)
+            array.push(a,9)
+        10 => array.sort(w,order.descending)
+        11 => array.reverse(w)
+        12 => returned := array.shift(w)
+        13 => array.unshift(w,8)
+        14 => array.insert(w,1,8)
+        15 => array.set(cp,0,88)
+    rows += "PYNE_SLICE|"+str.tostring(bar_index)+"|"+f(c)+"|"+f(returned)
+    rows += "|"+f(array.size(a))
+    rows += "|"+f(getf(a,0))
+    rows += "|"+f(getf(a,1))
+    rows += "|"+f(getf(a,2))
+    rows += "|"+f(getf(a,3))
+    rows += "|"+f(getf(a,4))
+    rows += "|"+f(getf(a,5))
+    rows += "|"+f(getf(a,6))
+    rows += "|"+f(getf(a,7))
+    rows += "|"+f(getf(a,8))
+    rows += "|"+f(getf(a,9))
+    rows += "|"+f(array.size(w))
+    rows += "|"+f(getf(w,0))
+    rows += "|"+f(getf(w,1))
+    rows += "|"+f(getf(w,2))
+    rows += "|"+f(getf(w,3))
+    rows += "|"+f(getf(w,4))
+    rows += "|"+f(getf(w,5))
+    rows += "|"+f(array.size(n))
+    rows += "|"+f(getf(n,0))
+    rows += "|"+f(getf(n,1))
+    rows += "|"+f(getf(n,2))
+    rows += "|"+f(getf(n,3))
+    rows += "|"+f(getf(n,4))
+    rows += "|"+f(array.size(cp))
+    rows += "|"+f(getf(cp,0))
+    rows += "|"+f(getf(cp,1))
+    rows += "|"+f(getf(cp,2))
+    rows += "|"+f(getf(cp,3))
+    rows += ";"
+    if bar_index % 4 == 3
+        log.info(rows)
+        rows := ""
+plot(float(na),"Native slice probe")

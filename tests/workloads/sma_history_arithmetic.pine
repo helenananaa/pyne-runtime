@@ -1,0 +1,80 @@
+//@version=6
+indicator("Pyne SMA history 20261002",precision=10)
+int i=bar_index
+float base=float((i*11)%17-6)
+float power=math.pow(2,80)+base*math.pow(2,28)
+float prefill=i<16 ? power : base
+float negativePrefill=i<16 ? -power : base
+float holes=i%7==1 or i%7==2 ? na : base
+float prefillHoles=i<16 ? power : holes
+rolling(float src,int p,int method)=>
+    var float total=0.
+    var float correction=0.
+    var array<float> values=array.new<float>()
+    if not na(src)
+        array.push(values,src)
+        float old=array.size(values)>p ? array.shift(values) : 0.
+        if method==0
+            total+=src
+            total-=old
+        else if method==1
+            total-=old
+            total+=src
+        else if method==2
+            total+=src-old
+        else
+            float y=src-correction
+            float next=total+y
+            correction:=(next-total)-y
+            total:=next
+            y:=-old-correction
+            next:=total+y
+            correction:=(next-total)-y
+            total:=next
+    array.size(values)>=p ? total/p : na
+float native_base_1=ta.sma(base,1)
+float native_base_2=ta.sma(base,2)
+float native_base_3=ta.sma(base,3)
+float native_base_7=ta.sma(base,7)
+float native_base_11=ta.sma(base,11)
+float native_power_1=ta.sma(power,1)
+float native_power_2=ta.sma(power,2)
+float native_power_3=ta.sma(power,3)
+float native_power_7=ta.sma(power,7)
+float native_power_11=ta.sma(power,11)
+float native_prefill_1=ta.sma(prefill,1)
+float native_prefill_2=ta.sma(prefill,2)
+float native_prefill_3=ta.sma(prefill,3)
+float native_prefill_7=ta.sma(prefill,7)
+float native_prefill_11=ta.sma(prefill,11)
+float native_negativePrefill_1=ta.sma(negativePrefill,1)
+float native_negativePrefill_2=ta.sma(negativePrefill,2)
+float native_negativePrefill_3=ta.sma(negativePrefill,3)
+float native_negativePrefill_7=ta.sma(negativePrefill,7)
+float native_negativePrefill_11=ta.sma(negativePrefill,11)
+float native_holes_1=ta.sma(holes,1)
+float native_holes_2=ta.sma(holes,2)
+float native_holes_3=ta.sma(holes,3)
+float native_holes_7=ta.sma(holes,7)
+float native_holes_11=ta.sma(holes,11)
+float native_prefillHoles_1=ta.sma(prefillHoles,1)
+float native_prefillHoles_2=ta.sma(prefillHoles,2)
+float native_prefillHoles_3=ta.sma(prefillHoles,3)
+float native_prefillHoles_7=ta.sma(prefillHoles,7)
+float native_prefillHoles_11=ta.sma(prefillHoles,11)
+float AddRemove_3=rolling(power,3,0)
+float RemoveAdd_3=rolling(power,3,1)
+float Delta_3=rolling(power,3,2)
+float Kahan_3=rolling(power,3,3)
+float AddRemove_7=rolling(power,7,0)
+float RemoveAdd_7=rolling(power,7,1)
+float Delta_7=rolling(power,7,2)
+float Kahan_7=rolling(power,7,3)
+float AddRemove_11=rolling(power,11,0)
+float RemoveAdd_11=rolling(power,11,1)
+float Delta_11=rolling(power,11,2)
+float Kahan_11=rolling(power,11,3)
+f(float x)=>str.tostring(x,"0.########################")
+if i<96
+    log.info("PYNE_SMA_HISTORY|"+str.tostring(i)+"|"+f(base)+"|"+f(power)+"|"+f(prefill)+"|"+f(negativePrefill)+"|"+f(holes)+"|"+f(prefillHoles)+"|"+f(native_base_1)+"|"+f(native_base_2)+"|"+f(native_base_3)+"|"+f(native_base_7)+"|"+f(native_base_11)+"|"+f(native_power_1)+"|"+f(native_power_2)+"|"+f(native_power_3)+"|"+f(native_power_7)+"|"+f(native_power_11)+"|"+f(native_prefill_1)+"|"+f(native_prefill_2)+"|"+f(native_prefill_3)+"|"+f(native_prefill_7)+"|"+f(native_prefill_11)+"|"+f(native_negativePrefill_1)+"|"+f(native_negativePrefill_2)+"|"+f(native_negativePrefill_3)+"|"+f(native_negativePrefill_7)+"|"+f(native_negativePrefill_11)+"|"+f(native_holes_1)+"|"+f(native_holes_2)+"|"+f(native_holes_3)+"|"+f(native_holes_7)+"|"+f(native_holes_11)+"|"+f(native_prefillHoles_1)+"|"+f(native_prefillHoles_2)+"|"+f(native_prefillHoles_3)+"|"+f(native_prefillHoles_7)+"|"+f(native_prefillHoles_11)+"|"+f(AddRemove_3)+"|"+f(RemoveAdd_3)+"|"+f(Delta_3)+"|"+f(Kahan_3)+"|"+f(AddRemove_7)+"|"+f(RemoveAdd_7)+"|"+f(Delta_7)+"|"+f(Kahan_7)+"|"+f(AddRemove_11)+"|"+f(RemoveAdd_11)+"|"+f(Delta_11)+"|"+f(Kahan_11)+";")
+plot(native_base_3,"SMA history control")

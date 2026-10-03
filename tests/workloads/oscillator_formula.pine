@@ -1,0 +1,25 @@
+//@version=6
+indicator("Pyne oscillator formula oracle 20260930", precision=10)
+int i = bar_index
+float src = float((i * 7) % 13 - 4)
+float holes = i == 1 or i == 7 or i == 8 or i == 12 or i == 23 ? na : src
+float hh = ta.highest(holes + 1, 3)
+float ll = ta.lowest(holes - 1, 3)
+float formula = 100 * (holes - ll) / (hh - ll)
+float native = ta.stoch(holes, holes + 1, holes - 1, 3)
+float sourceOnly = ta.stoch(holes, src + 1, src - 1, 3)
+float m = ta.change(holes)
+float up = m >= 0 ? m : 0
+float down = m >= 0 ? 0 : -m
+float us = math.sum(up, 3)
+float ds = math.sum(down, 3)
+float cmoFormula = 100 * (us - ds) / (us + ds)
+float cmo = ta.cmo(holes, 3)
+f(float x) => str.tostring(x, "#.##########")
+var string rows = ""
+if i < 32
+    rows += "PYNE_OSC_FORMULA|" + str.tostring(i) + "|" + f(holes) + "|" + f(hh) + "|" + f(ll) + "|" + f(formula) + "|" + f(native) + "|" + f(sourceOnly) + "|" + f(m) + "|" + f(up) + "|" + f(down) + "|" + f(us) + "|" + f(ds) + "|" + f(cmoFormula) + "|" + f(cmo) + ";"
+    if i % 8 == 7
+        log.info(rows)
+        rows := ""
+plot(native, "Stoch formula confirmation")

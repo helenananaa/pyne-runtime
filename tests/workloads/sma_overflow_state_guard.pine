@@ -1,0 +1,113 @@
+//@version=6
+indicator("Pyne overflow state guard round47", precision=10)
+safe_mean(source, length) =>
+    var values = array.new_float()
+    if not na(source)
+        array.push(values, source)
+        if array.size(values) > length
+            array.shift(values)
+    float total = 0.
+    if array.size(values) == length
+        for j = 0 to length - 1
+            total += array.get(values, j) / length
+    array.size(values) == length ? total : na
+int i = bar_index
+float src_positive = 160000000.0 * math.pow(10., 300)
+float Input_positive = src_positive
+float Native1_positive = ta.sma(src_positive, 1)
+float Native2_positive = ta.sma(src_positive, 2)
+float Native3_positive = ta.sma(src_positive, 3)
+float Sum2_positive = math.sum(src_positive, 2)
+float Sum3_positive = math.sum(src_positive, 3)
+float Safe2_positive = safe_mean(src_positive, 2)
+float Safe3_positive = safe_mean(src_positive, 3)
+float src_negative = -160000000.0 * math.pow(10., 300)
+float Input_negative = src_negative
+float Native1_negative = ta.sma(src_negative, 1)
+float Native2_negative = ta.sma(src_negative, 2)
+float Native3_negative = ta.sma(src_negative, 3)
+float Sum2_negative = math.sum(src_negative, 2)
+float Sum3_negative = math.sum(src_negative, 3)
+float Safe2_negative = safe_mean(src_negative, 2)
+float Safe3_negative = safe_mean(src_negative, 3)
+float src_mixed = i % 2 == 0 ? 160000000.0 * math.pow(10., 300) : -160000000.0 * math.pow(10., 300)
+float Input_mixed = src_mixed
+float Native1_mixed = ta.sma(src_mixed, 1)
+float Native2_mixed = ta.sma(src_mixed, 2)
+float Native3_mixed = ta.sma(src_mixed, 3)
+float Sum2_mixed = math.sum(src_mixed, 2)
+float Sum3_mixed = math.sum(src_mixed, 3)
+float Safe2_mixed = safe_mean(src_mixed, 2)
+float Safe3_mixed = safe_mean(src_mixed, 3)
+float src_recovery = i < 6 ? 160000000.0 * math.pow(10., 300) : float((i * 11) % 17 - 6) * 0.25
+float Input_recovery = src_recovery
+float Native1_recovery = ta.sma(src_recovery, 1)
+float Native2_recovery = ta.sma(src_recovery, 2)
+float Native3_recovery = ta.sma(src_recovery, 3)
+float Sum2_recovery = math.sum(src_recovery, 2)
+float Sum3_recovery = math.sum(src_recovery, 3)
+float Safe2_recovery = safe_mean(src_recovery, 2)
+float Safe3_recovery = safe_mean(src_recovery, 3)
+float IsNa_Native1_positive = na(Native1_positive) ? 1. : 0.
+float HalfInvariant_Native1_positive = not na(Native1_positive) and Native1_positive != 0. and Native1_positive / 2. == Native1_positive ? 1. : 0.
+float Negative_Native1_positive = not na(Native1_positive) and Native1_positive < 0. ? 1. : 0.
+float IsNa_Native2_positive = na(Native2_positive) ? 1. : 0.
+float HalfInvariant_Native2_positive = not na(Native2_positive) and Native2_positive != 0. and Native2_positive / 2. == Native2_positive ? 1. : 0.
+float Negative_Native2_positive = not na(Native2_positive) and Native2_positive < 0. ? 1. : 0.
+float IsNa_Native3_positive = na(Native3_positive) ? 1. : 0.
+float HalfInvariant_Native3_positive = not na(Native3_positive) and Native3_positive != 0. and Native3_positive / 2. == Native3_positive ? 1. : 0.
+float Negative_Native3_positive = not na(Native3_positive) and Native3_positive < 0. ? 1. : 0.
+float IsNa_Sum2_positive = na(Sum2_positive) ? 1. : 0.
+float HalfInvariant_Sum2_positive = not na(Sum2_positive) and Sum2_positive != 0. and Sum2_positive / 2. == Sum2_positive ? 1. : 0.
+float Negative_Sum2_positive = not na(Sum2_positive) and Sum2_positive < 0. ? 1. : 0.
+float IsNa_Sum3_positive = na(Sum3_positive) ? 1. : 0.
+float HalfInvariant_Sum3_positive = not na(Sum3_positive) and Sum3_positive != 0. and Sum3_positive / 2. == Sum3_positive ? 1. : 0.
+float Negative_Sum3_positive = not na(Sum3_positive) and Sum3_positive < 0. ? 1. : 0.
+float IsNa_Native1_negative = na(Native1_negative) ? 1. : 0.
+float HalfInvariant_Native1_negative = not na(Native1_negative) and Native1_negative != 0. and Native1_negative / 2. == Native1_negative ? 1. : 0.
+float Negative_Native1_negative = not na(Native1_negative) and Native1_negative < 0. ? 1. : 0.
+float IsNa_Native2_negative = na(Native2_negative) ? 1. : 0.
+float HalfInvariant_Native2_negative = not na(Native2_negative) and Native2_negative != 0. and Native2_negative / 2. == Native2_negative ? 1. : 0.
+float Negative_Native2_negative = not na(Native2_negative) and Native2_negative < 0. ? 1. : 0.
+float IsNa_Native3_negative = na(Native3_negative) ? 1. : 0.
+float HalfInvariant_Native3_negative = not na(Native3_negative) and Native3_negative != 0. and Native3_negative / 2. == Native3_negative ? 1. : 0.
+float Negative_Native3_negative = not na(Native3_negative) and Native3_negative < 0. ? 1. : 0.
+float IsNa_Sum2_negative = na(Sum2_negative) ? 1. : 0.
+float HalfInvariant_Sum2_negative = not na(Sum2_negative) and Sum2_negative != 0. and Sum2_negative / 2. == Sum2_negative ? 1. : 0.
+float Negative_Sum2_negative = not na(Sum2_negative) and Sum2_negative < 0. ? 1. : 0.
+float IsNa_Sum3_negative = na(Sum3_negative) ? 1. : 0.
+float HalfInvariant_Sum3_negative = not na(Sum3_negative) and Sum3_negative != 0. and Sum3_negative / 2. == Sum3_negative ? 1. : 0.
+float Negative_Sum3_negative = not na(Sum3_negative) and Sum3_negative < 0. ? 1. : 0.
+float IsNa_Native1_mixed = na(Native1_mixed) ? 1. : 0.
+float HalfInvariant_Native1_mixed = not na(Native1_mixed) and Native1_mixed != 0. and Native1_mixed / 2. == Native1_mixed ? 1. : 0.
+float Negative_Native1_mixed = not na(Native1_mixed) and Native1_mixed < 0. ? 1. : 0.
+float IsNa_Native2_mixed = na(Native2_mixed) ? 1. : 0.
+float HalfInvariant_Native2_mixed = not na(Native2_mixed) and Native2_mixed != 0. and Native2_mixed / 2. == Native2_mixed ? 1. : 0.
+float Negative_Native2_mixed = not na(Native2_mixed) and Native2_mixed < 0. ? 1. : 0.
+float IsNa_Native3_mixed = na(Native3_mixed) ? 1. : 0.
+float HalfInvariant_Native3_mixed = not na(Native3_mixed) and Native3_mixed != 0. and Native3_mixed / 2. == Native3_mixed ? 1. : 0.
+float Negative_Native3_mixed = not na(Native3_mixed) and Native3_mixed < 0. ? 1. : 0.
+float IsNa_Sum2_mixed = na(Sum2_mixed) ? 1. : 0.
+float HalfInvariant_Sum2_mixed = not na(Sum2_mixed) and Sum2_mixed != 0. and Sum2_mixed / 2. == Sum2_mixed ? 1. : 0.
+float Negative_Sum2_mixed = not na(Sum2_mixed) and Sum2_mixed < 0. ? 1. : 0.
+float IsNa_Sum3_mixed = na(Sum3_mixed) ? 1. : 0.
+float HalfInvariant_Sum3_mixed = not na(Sum3_mixed) and Sum3_mixed != 0. and Sum3_mixed / 2. == Sum3_mixed ? 1. : 0.
+float Negative_Sum3_mixed = not na(Sum3_mixed) and Sum3_mixed < 0. ? 1. : 0.
+float IsNa_Native1_recovery = na(Native1_recovery) ? 1. : 0.
+float HalfInvariant_Native1_recovery = not na(Native1_recovery) and Native1_recovery != 0. and Native1_recovery / 2. == Native1_recovery ? 1. : 0.
+float Negative_Native1_recovery = not na(Native1_recovery) and Native1_recovery < 0. ? 1. : 0.
+float IsNa_Native2_recovery = na(Native2_recovery) ? 1. : 0.
+float HalfInvariant_Native2_recovery = not na(Native2_recovery) and Native2_recovery != 0. and Native2_recovery / 2. == Native2_recovery ? 1. : 0.
+float Negative_Native2_recovery = not na(Native2_recovery) and Native2_recovery < 0. ? 1. : 0.
+float IsNa_Native3_recovery = na(Native3_recovery) ? 1. : 0.
+float HalfInvariant_Native3_recovery = not na(Native3_recovery) and Native3_recovery != 0. and Native3_recovery / 2. == Native3_recovery ? 1. : 0.
+float Negative_Native3_recovery = not na(Native3_recovery) and Native3_recovery < 0. ? 1. : 0.
+float IsNa_Sum2_recovery = na(Sum2_recovery) ? 1. : 0.
+float HalfInvariant_Sum2_recovery = not na(Sum2_recovery) and Sum2_recovery != 0. and Sum2_recovery / 2. == Sum2_recovery ? 1. : 0.
+float Negative_Sum2_recovery = not na(Sum2_recovery) and Sum2_recovery < 0. ? 1. : 0.
+float IsNa_Sum3_recovery = na(Sum3_recovery) ? 1. : 0.
+float HalfInvariant_Sum3_recovery = not na(Sum3_recovery) and Sum3_recovery != 0. and Sum3_recovery / 2. == Sum3_recovery ? 1. : 0.
+float Negative_Sum3_recovery = not na(Sum3_recovery) and Sum3_recovery < 0. ? 1. : 0.
+if i < 24
+    log.info("PYNE_SMA_OVERFLOW_STATE47|" + str.tostring(i) + "|" + str.tostring(Input_positive, "0.00000000000000000") + "|" + str.tostring(IsNa_Native1_positive, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Native1_positive, "0.00000000000000000") + "|" + str.tostring(Negative_Native1_positive, "0.00000000000000000") + "|" + str.tostring(IsNa_Native2_positive, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Native2_positive, "0.00000000000000000") + "|" + str.tostring(Negative_Native2_positive, "0.00000000000000000") + "|" + str.tostring(IsNa_Native3_positive, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Native3_positive, "0.00000000000000000") + "|" + str.tostring(Negative_Native3_positive, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum2_positive, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum2_positive, "0.00000000000000000") + "|" + str.tostring(Negative_Sum2_positive, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum3_positive, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum3_positive, "0.00000000000000000") + "|" + str.tostring(Negative_Sum3_positive, "0.00000000000000000") + "|" + str.tostring(Input_negative, "0.00000000000000000") + "|" + str.tostring(IsNa_Native1_negative, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Native1_negative, "0.00000000000000000") + "|" + str.tostring(Negative_Native1_negative, "0.00000000000000000") + "|" + str.tostring(IsNa_Native2_negative, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Native2_negative, "0.00000000000000000") + "|" + str.tostring(Negative_Native2_negative, "0.00000000000000000") + "|" + str.tostring(IsNa_Native3_negative, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Native3_negative, "0.00000000000000000") + "|" + str.tostring(Negative_Native3_negative, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum2_negative, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum2_negative, "0.00000000000000000") + "|" + str.tostring(Negative_Sum2_negative, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum3_negative, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum3_negative, "0.00000000000000000") + "|" + str.tostring(Negative_Sum3_negative, "0.00000000000000000") + "|" + str.tostring(Input_mixed, "0.00000000000000000") + "|" + str.tostring(IsNa_Native1_mixed, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Native1_mixed, "0.00000000000000000") + "|" + str.tostring(Negative_Native1_mixed, "0.00000000000000000") + "|" + str.tostring(IsNa_Native2_mixed, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Native2_mixed, "0.00000000000000000") + "|" + str.tostring(Negative_Native2_mixed, "0.00000000000000000") + "|" + str.tostring(IsNa_Native3_mixed, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Native3_mixed, "0.00000000000000000") + "|" + str.tostring(Negative_Native3_mixed, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum2_mixed, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum2_mixed, "0.00000000000000000") + "|" + str.tostring(Negative_Sum2_mixed, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum3_mixed, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum3_mixed, "0.00000000000000000") + "|" + str.tostring(Negative_Sum3_mixed, "0.00000000000000000") + "|" + str.tostring(Input_recovery, "0.00000000000000000") + "|" + str.tostring(IsNa_Native1_recovery, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Native1_recovery, "0.00000000000000000") + "|" + str.tostring(Negative_Native1_recovery, "0.00000000000000000") + "|" + str.tostring(IsNa_Native2_recovery, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Native2_recovery, "0.00000000000000000") + "|" + str.tostring(Negative_Native2_recovery, "0.00000000000000000") + "|" + str.tostring(IsNa_Native3_recovery, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Native3_recovery, "0.00000000000000000") + "|" + str.tostring(Negative_Native3_recovery, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum2_recovery, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum2_recovery, "0.00000000000000000") + "|" + str.tostring(Negative_Sum2_recovery, "0.00000000000000000") + "|" + str.tostring(IsNa_Sum3_recovery, "0.00000000000000000") + "|" + str.tostring(HalfInvariant_Sum3_recovery, "0.00000000000000000") + "|" + str.tostring(Negative_Sum3_recovery, "0.00000000000000000") + ";")
+plot(0., display=display.none)

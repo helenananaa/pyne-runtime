@@ -1,0 +1,1 @@
+Error on bar 0: In the 'matrix.sum()' function. Matrices 'id1' and 'id2' must have an equal number of rows and columns to be added.

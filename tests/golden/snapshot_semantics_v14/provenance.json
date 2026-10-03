@@ -1,0 +1,12 @@
+{
+  "description": "Real installed semantics-14 snapshots before public math.sum missing-observation correction; no relabeling.",
+  "packageVersion": "0.4.1rc9",
+  "semanticsVersion": 14,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round12-20261001\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "682ad46e675d5edda4fdfd4f3f3e16bd948dc2c96fb2506fe9a7d2b1200851d4",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "e461fd1788421871c0354ce7b4aa6d0ff998824db4d5c93550c65197414a89cd",
+    "state.json": "ff59bf4558777bc648fb7b99450ec51e3b59dd263e7033acc089c5b8368252be"
+  }
+}

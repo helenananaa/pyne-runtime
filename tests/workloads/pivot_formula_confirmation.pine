@@ -1,0 +1,44 @@
+//@version=6
+indicator("Pyne pivot formula confirmation 20260930",precision=10,max_bars_back=100)
+int i=bar_index
+float s=i%11==1 or i%11==6 ? na : i%11>=8 ? 3 : float((i*7)%13-4)
+f_pivot(float x,int l,int r,bool hi)=>
+    float c=x[r]
+    bool valid=bar_index>=l+r and not na(c)
+    if valid and l>0
+        for k=1 to l
+            float v=x[r+k]
+            if na(v)
+                break
+            if hi ? v>c : v<c
+                valid:=false
+                break
+    if valid and r>0
+        for k=1 to r
+            float v=x[r-k]
+            if na(v)
+                break
+            if hi ? v>=c : v<=c
+                valid:=false
+                break
+    valid ? c : na
+float n0=ta.pivothigh(s,3,2)
+float f0=f_pivot(s,3,2,true)
+float n1=ta.pivotlow(s,3,2)
+float f1=f_pivot(s,3,2,false)
+float n2=ta.pivothigh(s,0,2)
+float f2=f_pivot(s,0,2,true)
+float n3=ta.pivotlow(s,0,2)
+float f3=f_pivot(s,0,2,false)
+float n4=ta.pivothigh(s,2,0)
+float f4=f_pivot(s,2,0,true)
+float n5=ta.pivotlow(s,2,0)
+float f5=f_pivot(s,2,0,false)
+f(float x)=>str.tostring(x,"#.##########")
+var string rows=""
+if i<32
+    rows+="PYNE_PIVOT_FORMULA|"+str.tostring(i)+"|"+f(s)+"|"+f(n0)+"|"+f(f0)+"|"+f(n1)+"|"+f(f1)+"|"+f(n2)+"|"+f(f2)+"|"+f(n3)+"|"+f(f3)+"|"+f(n4)+"|"+f(f4)+"|"+f(n5)+"|"+f(f5)+";"
+    if i%8==7
+        log.info(rows)
+        rows:=""
+plot(n0,"Pivot formula oracle")

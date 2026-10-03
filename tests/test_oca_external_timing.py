@@ -92,6 +92,56 @@ def test_oca_settled_orders_match_pine(mode, count):
     _assert_settled(result, count - 1)
 
 
+def _assert_native_rows(result, count):
+    assert result.ok, result.error
+    for column, title in enumerate(CAPTURE["columns"][1:], 1):
+        expected = {bar["time"]: row["values"][column]
+                    for bar, row in zip(CAPTURE["bars"][:count], CAPTURE["rows"][:count], strict=True)}
+        line = next(line for line in result.lines if line["name"] == title)
+        assert {point["time"]: point["value"] for point in line["data"]} == expected, title
+
+
+@pytest.mark.parametrize("count", (1, 2, 3, 4))
+@pytest.mark.parametrize("mode", ("batch", "callback"))
+def test_native_full_columns_and_prefixes(count, mode):
+    source = (ROOT / ("oca_timing_batch.py" if mode == "batch" else "oca_timing.py")).read_text()
+    result = pn.run(source, CAPTURE["bars"][:count], executor_mode="inline")
+    _assert_native_rows(result, count)
+
+
+@pytest.mark.parametrize("command", ("cancel_all", "close_all"))
+def test_carried_pending_fills_precede_current_close_calculation(command):
+    source = (ROOT / "oca_timing_batch.py").read_text()
+    # Carried orders have already triggered when this bar's close calculation
+    # runs. A cancel cannot undo them; a close fills after the visible snapshot.
+    source += f"\nstrategy.{command}(when=bar_index == 1)\n"
+    result = pn.run(source, CAPTURE["bars"][:2], executor_mode="inline")
+    _assert_native_rows(result, 2)
+    lots = result.output["strategy"]["opentrades"]
+    assert sum(trade["qty"] for trade in lots) == (30 if command == "cancel_all" else 0)
+
+
+@pytest.mark.parametrize("mode", ("local", "replay", "state"))
+@pytest.mark.parametrize("cut", (1, 2))
+def test_native_callback_full_timeline_after_preview_and_restore(mode, cut):
+    source = (ROOT / "oca_timing.py").read_text()
+    settings = pn.PyneSettings(executor_mode="inline", timeframe="15")
+    session = pn.PyneIncrementalSession(script=source, settings=settings)
+    session.seed(CAPTURE["bars"][:cut])
+    committed = session.snapshot_result()
+    preview = dict(CAPTURE["bars"][cut], high=80000, close=79900)
+    session.on_bar_updated(preview)
+    assert session.snapshot_result() == committed
+    if mode == "local":
+        restored = pn.PyneIncrementalSession.from_snapshot(session.snapshot_state(), script=source, settings=settings)
+    else:
+        restored = pn.PyneIncrementalSession.from_portable_snapshot(
+            session.snapshot_portable(mode=mode), script=source, settings=settings)
+    for bar in CAPTURE["bars"][cut:]:
+        restored.on_bar_closed(bar)
+    _assert_native_rows(restored.snapshot_result(), 4)
+
+
 @pytest.mark.parametrize("mode", ("local", "replay", "state"))
 @pytest.mark.parametrize("cut", (1, 2))
 def test_oca_restore_before_and_after_pending_fills(mode, cut):

@@ -127,7 +127,7 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
         )
         for i, (t, v) in enumerate(zip(collector.times, values)):
             if _is_valid_value(v):
-                point: dict[str, Any] = {"time": t, "value": round(float(v), 8)}
+                point: dict[str, Any] = {"time": t, "value": float(v)}
                 # Per-bar coloring
                 if has_per_bar_color:
                     point_color = _color_for_index(per_bar_color_source, i, t)
@@ -149,7 +149,7 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
             for i, (t, v) in enumerate(zip(collector.times, values)):
                 if not _is_valid_value(v):
                     continue
-                point = {"time": t, "value": round(float(v), 8)}
+                point = {"time": t, "value": float(v)}
                 point_color = _color_for_index(
                     color_array if color_array is not None else color,
                     i,
@@ -236,10 +236,10 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
                 continue
             point = {
                 "time": timestamp,
-                "open": round(float(open_value), 8),
-                "high": round(float(high_value), 8),
-                "low": round(float(low_value), 8),
-                "close": round(float(close_value), 8),
+                "open": float(open_value),
+                "high": float(high_value),
+                "low": float(low_value),
+                "close": float(close_value),
             }
             body_color = _color_for_index(color, index, timestamp)
             wick_color = _color_for_index(wickcolor, index, timestamp)
@@ -292,7 +292,7 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
                 points.append(
                     {
                         "time": t,
-                        "value": round(fv, 8),
+                        "value": fv,
                         "color": color_up if fv >= 0 else color_down,
                     }
                 )
@@ -471,7 +471,7 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
                     mark["textcolor"] = textcolor
                 if position == "absolute" and not isinstance(c, (bool, np.bool_)):
                     try:
-                        mark["value"] = round(float(c), 8)
+                        mark["value"] = float(c)
                     except (TypeError, ValueError):
                         pass
                 marks.append(mark)
@@ -652,7 +652,7 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
                     "size": "normal",
                     "pane": pane,
                     "direction": "up" if is_up else "down",
-                    "value": round(number, 8),
+                    "value": number,
                     "height": height,
                 }
             )
@@ -757,7 +757,7 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
             if strength is not None:
                 point["strength"] = float(strength)
             if signal_price is not None and _is_valid_value(signal_price):
-                point["price"] = round(float(signal_price), 8)
+                point["price"] = float(signal_price)
             if payload:
                 point["payload"] = payload
             data.append(point)

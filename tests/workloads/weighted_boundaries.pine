@@ -1,0 +1,26 @@
+//@version=6
+indicator("Pyne weighted boundaries oracle 20260930", precision=10)
+int i = bar_index
+float src = float((i * 7) % 13 - 4)
+float holes = i == 1 or i == 7 or i == 8 or i == 12 or i == 23 ? na : src
+float leading = i < 4 ? na : src
+float w3 = ta.wma(holes, 3)
+float w1 = ta.wma(holes, 1)
+float wl = ta.wma(leading, 3)
+float h5 = ta.hma(src, 5)
+float h7 = ta.hma(src, 7)
+float h9 = ta.hma(src, 9)
+float hh = ta.hma(holes, 7)
+float sw = ta.swma(holes)
+float al = ta.alma(holes, 3, 0.85, 6)
+float dv = ta.dev(holes, 3)
+float nested = ta.wma(w3, 3)
+float empty = ta.wma(float(na), 3)
+f(float x) => str.tostring(x, "#.##########")
+var string rows = ""
+if i < 32
+    rows += "PYNE_WEIGHTED|" + str.tostring(i) + "|" + f(src) + "|" + f(holes) + "|" + f(leading) + "|" + f(w3) + "|" + f(w1) + "|" + f(wl) + "|" + f(h5) + "|" + f(h7) + "|" + f(h9) + "|" + f(hh) + "|" + f(sw) + "|" + f(al) + "|" + f(dv) + "|" + f(nested) + "|" + f(empty) + ";"
+    if i % 8 == 7
+        log.info(rows)
+        rows := ""
+plot(w3, "WMA holes")

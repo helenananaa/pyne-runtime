@@ -142,7 +142,7 @@ def serialize_scalar(value: Any) -> Any:
     if isinstance(value, bool | str | int):
         return value
     if isinstance(value, float):
-        return round(value, 8)
+        return value
     return value
 
 

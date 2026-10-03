@@ -33,7 +33,9 @@ def _rolling_nonmissing_sum(source: np.ndarray, period: int) -> np.ndarray:
     compact = values[present]
     if period <= 0 or len(compact) < period:
         return result
-    sums = _rolling_nansum(compact, period)
+    # A one-observation window is exactly that observation. Subtracting two
+    # cumulative totals can introduce historical/future-dependent roundoff.
+    sums = compact.copy() if period == 1 else _rolling_nansum(compact, period)
     counts = np.cumsum(present)
     ready = counts >= period
     result[ready] = sums[counts[ready] - period]
@@ -111,20 +113,27 @@ def _rolling_nansum(values: np.ndarray, period: int) -> np.ndarray:
         )
     nonfinite_sums = ~np.isfinite(sums)
     cancellation_risk = np.abs(sums) <= cancellation_bound
-    magnitudes = np.abs(finite_values[finite_values != 0.0])
-    dynamic_range_is_unsafe = bool(
-        len(magnitudes)
-        and np.min(magnitudes) <= np.max(magnitudes) * np.finfo(np.float64).eps * 4.0
+    magnitudes = np.abs(finite_values)
+    largest_seen = np.maximum.accumulate(magnitudes)
+    smallest_seen = np.minimum.accumulate(np.where(magnitudes > 0.0, magnitudes, np.inf))
+    # Admission to a numerical fallback must depend only on history available
+    # at this output. A future tiny sample must not rewrite earlier windows.
+    dynamic_range_is_unsafe = (
+        smallest_seen[period - 1:] <= largest_seen[period - 1:] * np.finfo(np.float64).eps * 4.0
     )
-    if np.any(nonfinite_sums) or dynamic_range_is_unsafe:
+    exact_mask = nonfinite_sums | dynamic_range_is_unsafe
+    if np.any(exact_mask):
         # Binary64 has a bounded exponent range, so fixed-scale integer
         # accumulation remains O(n) while recovering after finite overflow.
-        sums = _exact_window_sums(finite_values, period)
-    elif np.any(cancellation_risk):
+        exact = _exact_window_sums(finite_values, period)
+        sums[exact_mask] = exact[exact_mask]
+    block_mask = cancellation_risk & ~exact_mask
+    if np.any(block_mask):
         # Prefix subtraction can erase a small window sum after a much larger
         # historical cumulative value. Block-local prefix/suffix sums recover
         # without an O(n*period) fallback.
-        sums = _block_window_sums(finite_values, period)
+        blocked = _block_window_sums(finite_values, period)
+        sums[block_mask] = blocked[block_mask]
     positive_infinity = _window_sums((source == np.inf).astype(np.int64), period)
     negative_infinity = _window_sums((source == -np.inf).astype(np.int64), period)
 
@@ -381,6 +390,56 @@ def _interpolate_hazen(lower: float, upper: float, fraction: float) -> float:
         return float(lower + difference * fraction)
 
 
+def _rolling_missing_percentile_values(
+    values: np.ndarray, period: int, percentage: float, *, linear: bool,
+) -> np.ndarray:
+    """Retain native order-update state through missing observations.
+
+    Missing slots are not a total-order sentinel. A replacement moves from the
+    expired slot, so equal current windows may reflect different earlier history.
+    Native matrix and separately frozen-model holdout evidence cover this path.
+    List updates cost O(period) in the worst case; complete arrays use Fenwick.
+    """
+    result = np.full(len(values), np.nan)
+    ordered: list[tuple[int, float]] = []
+    pct = float(np.clip(percentage, 0.0, 100.0))
+    nearest = max(int(np.ceil(pct / 100.0 * period)), 1) - 1
+    virtual = float(np.clip(pct / 100.0 * period - 0.5, 0.0, period - 1))
+    lower = int(np.floor(virtual))
+    upper = min(lower + 1, period - 1)
+    for index, raw in enumerate(values):
+        number = float(raw)
+        expired = None
+        if index >= period:
+            outgoing = float(values[index-period])
+            if np.isnan(outgoing):
+                expired = next(j for j, (at, _) in enumerate(ordered) if at == index-period)
+            else:
+                # Equal outgoing values are interchangeable, but the rightmost
+                # slot determines the insertion anchor in a partially ordered list.
+                expired = next(j for j in range(len(ordered)-1, -1, -1) if ordered[j][1] == outgoing)
+        old = np.nan
+        if expired is not None:
+            _, old = ordered.pop(expired)
+        if np.isnan(number):
+            position = len(ordered)
+        elif expired is None or np.isnan(old):
+            position = next((j for j, (_, value) in enumerate(ordered) if number <= value), len(ordered))
+        else:
+            position = expired
+            if number <= old:
+                while position and not number > ordered[position-1][1]:
+                    position -= 1
+            else:
+                while position < len(ordered) and not number <= ordered[position][1]:
+                    position += 1
+        ordered.insert(position, (index, number))
+        if index >= period - 1:
+            result[index] = (_interpolate_hazen(ordered[lower][1], ordered[upper][1], virtual-lower)
+                             if linear else ordered[nearest][1])
+    return result
+
+
 def _rolling_percentile_values(
     source: np.ndarray,
     period: int,
@@ -388,7 +447,7 @@ def _rolling_percentile_values(
     *,
     linear: bool,
 ) -> np.ndarray:
-    """Compute exact rolling order statistics in O(n log n)."""
+    """Use native missing-order state, or O(n log n) complete-window statistics."""
     values = np.asarray(source, dtype=np.float64)
     n = len(values)
     result = np.full(n, np.nan)
@@ -398,6 +457,8 @@ def _rolling_percentile_values(
     valid = ~np.isnan(values)
     if not np.any(valid):
         return result
+    if not np.all(valid) and not np.isinf(values).any():
+        return _rolling_missing_percentile_values(values, period, percentage, linear=linear)
     coordinates = np.unique(values[valid])
     ranks = np.full(n, -1, dtype=np.intp)
     ranks[valid] = np.searchsorted(coordinates, values[valid])

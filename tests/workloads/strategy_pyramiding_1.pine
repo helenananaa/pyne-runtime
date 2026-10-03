@@ -1,0 +1,35 @@
+//@version=6
+strategy("Pyne pyramiding cap 1 20261001", overlay=true, initial_capital=1000000000, pyramiding=1, process_orders_on_close=true, calc_on_order_fills=false, margin_long=0, margin_short=0, commission_value=0, slippage=0)
+if bar_index < 4
+    strategy.entry("L"+str.tostring(bar_index), strategy.long, qty=1)
+if bar_index == 4
+    strategy.entry("R", strategy.short, qty=2)
+if bar_index >= 5 and bar_index <= 7
+    strategy.entry("S"+str.tostring(bar_index), strategy.short, qty=1)
+if bar_index == 8 or bar_index == 15 or bar_index == 20
+    strategy.close_all()
+if bar_index >= 9 and bar_index <= 12
+    strategy.entry("N"+str.tostring(bar_index), strategy.long, qty=1)
+if bar_index == 13
+    strategy.order("Order", strategy.long, qty=3)
+if bar_index == 14
+    strategy.entry("Blocked14", strategy.long, qty=1)
+if bar_index >= 16 and bar_index <= 19
+    strategy.entry("Repeated", strategy.long, qty=0.5)
+if bar_index == 18
+    strategy.close("Repeated", qty=0.5)
+held(string id) =>
+    float quantity = 0
+    if strategy.opentrades > 0
+        for j = 0 to strategy.opentrades-1
+            if strategy.opentrades.entry_id(j) == id
+                quantity += strategy.opentrades.size(j)
+    quantity
+f(float v) => str.tostring(v,"#.##########")
+var string rows = ""
+if bar_index < 32
+    rows += "PYNE_PYRAMIDING|"+str.tostring(bar_index)+"|"+f(time)+"|"+f(open)+"|"+f(high)+"|"+f(low)+"|"+f(close)+"|"+f(volume)+"|"+f(strategy.position_size)+"|"+f(strategy.opentrades)+"|"+f(strategy.closedtrades)+"|"+f(strategy.position_avg_price)+"|"+f(strategy.netprofit)+"|"+f(held("L0"))+"|"+f(held("L1"))+"|"+f(held("L2"))+"|"+f(held("L3"))+"|"+f(held("R"))+"|"+f(held("S5"))+"|"+f(held("S6"))+"|"+f(held("S7"))+"|"+f(held("N9"))+"|"+f(held("N10"))+"|"+f(held("N11"))+"|"+f(held("N12"))+"|"+f(held("Order"))+"|"+f(held("Blocked14"))+"|"+f(held("Repeated"))+";"
+    if bar_index % 8 == 7
+        log.info(rows)
+        rows := ""
+plot(strategy.position_size,"Position")

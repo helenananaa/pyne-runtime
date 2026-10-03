@@ -117,6 +117,11 @@ def build_entry(fixture_path: Path, fixture: dict[str, Any], index: int) -> dict
         "bars_file": bars_file,
         "expected_export_file": export_file,
         "time_alignment_required": False,
+        "native_context_qualification": (
+            "Implicit OHLC calls are replaced with explicit-source helpers. "
+            "DMI uses strict previous-close true range; direct built-in context "
+            "requires a separate comparison."
+        ),
         "bar_count": len(fixture.get("chart_bars", [])),
         "plot_titles": list(fixture.get("expected_series", {})),
         "capture_index_title": CAPTURE_INDEX_TITLE,
@@ -265,7 +270,8 @@ def render_pine_helpers() -> list[str]:
         "    down = -ta.change(l)",
         "    plus_dm = na(up) ? na : (up > down and up > 0 ? up : 0)",
         "    minus_dm = na(down) ? na : (down > up and down > 0 ? down : 0)",
-        "    trur = ta.rma(_pyne_tr(h, l, c), di_length)",
+        "    strict_tr = math.max(h - l, math.max(math.abs(h - c[1]), math.abs(l - c[1])))",
+        "    trur = ta.rma(strict_tr, di_length)",
         "    plus = fixnan(100 * ta.rma(plus_dm, di_length) / trur)",
         "    minus = fixnan(100 * ta.rma(minus_dm, di_length) / trur)",
         "    total = plus + minus",

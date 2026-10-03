@@ -60,6 +60,12 @@ def _rolling_variance_values(source: np.ndarray, period: int, ddof: int) -> np.n
     if period <= 0 or period > n or period - ddof <= 0:
         return result
 
+    if period == 1:
+        # A finite singleton has exact population variance zero. Rebasing and
+        # subtracting moments can introduce future-dependent floating residues.
+        result[np.isfinite(values)] = 0.0
+        return result
+
     chunk_size = max(period, _ROLLING_REBASE_CHUNK)
     first_output = period - 1
     for output_start in range(first_output, n, chunk_size):
@@ -98,7 +104,7 @@ def _rolling_nonmissing_variance_values(source: np.ndarray, period: int, ddof: i
     return result
 
 
-def _rolling_correlation_values(
+def _rolling_full_window_correlation_values(
     source_a: np.ndarray,
     source_b: np.ndarray,
     period: int,
@@ -108,7 +114,10 @@ def _rolling_correlation_values(
     b = np.asarray(source_b, dtype=np.float64)
     n = min(len(a), len(b))
     result = np.full(n, np.nan)
-    if period <= 1 or period > n:
+    if period <= 0 or period > n:
+        return result
+    if period == 1:
+        result[np.isfinite(a[:n]) & np.isfinite(b[:n])] = 0.0
         return result
 
     a = a[:n]
@@ -144,8 +153,69 @@ def _rolling_correlation_values(
             correlations = covariance / np.sqrt(a_m2 * b_m2)
         invalid = (counts != period) | (a_m2 <= 0.0) | (b_m2 <= 0.0)
         correlations[invalid] = np.nan
+        zero = ((counts == period) & np.isfinite(a_m2) & np.isfinite(b_m2)
+                & ((a_m2 == 0.0) | (b_m2 == 0.0)))
+        correlations[zero] = 0.0
         np.clip(correlations, -1.0, 1.0, out=correlations)
         result[output_start:output_stop] = correlations
+    return result
+
+
+def _rolling_correlation_values(
+    source_a: np.ndarray,
+    source_b: np.ndarray,
+    period: int,
+) -> np.ndarray:
+    """Use independent present-observation moments, with stable coherent windows.
+
+    Missing observations advance x, y and x*y windows independently. Their
+    means can therefore describe different bars and produce values outside
+    [-1, 1]. A full finite calendar window retains the centered Pearson kernel.
+    """
+    n = min(len(source_a), len(source_b))
+    a = np.asarray(source_a, dtype=np.float64)[:n]
+    b = np.asarray(source_b, dtype=np.float64)[:n]
+    result = _rolling_full_window_correlation_values(a, b, period)
+    if period <= 0 or period > n or (not np.any(np.isnan(a)) and not np.any(np.isnan(b))):
+        return result
+
+    finite_a, finite_b = a[np.isfinite(a)], b[np.isfinite(b)]
+    if not len(finite_a) or not len(finite_b):
+        return result
+    anchor_a, anchor_b = finite_a[0], finite_b[0]
+    pair_present = ~np.isnan(a) & ~np.isnan(b)
+    with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
+        centered_a, centered_b = a - anchor_a, b - anchor_b
+        pair_a = np.where(pair_present, centered_a, np.nan)
+        pair_b = np.where(pair_present, centered_b, np.nan)
+        mean_a = _rolling_nonmissing_sum(centered_a, period) / period
+        mean_b = _rolling_nonmissing_sum(centered_b, period) / period
+        pair_mean_a = _rolling_nonmissing_sum(pair_a, period) / period
+        pair_mean_b = _rolling_nonmissing_sum(pair_b, period) / period
+        pair_product = _rolling_nonmissing_sum(pair_a * pair_b, period) / period
+        # Expand E[xy] - E[x]E[y] around fixed anchors. The correction terms
+        # preserve independent observation windows without subtracting 1e24
+        # raw products to recover a small covariance.
+        numerator = (pair_product - mean_a * mean_b
+                     + anchor_a * (pair_mean_b - mean_b)
+                     + anchor_b * (pair_mean_a - mean_a))
+        if period == 1:
+            # A one-observation variance is exactly zero. Subtracting rebased
+            # floating moments can otherwise leave a tiny, history-dependent
+            # residual and turn a zero denominator into a huge coefficient.
+            variance_a = np.where(np.isfinite(_rolling_nonmissing_sum(a, 1)), 0.0, np.nan)
+            variance_b = np.where(np.isfinite(_rolling_nonmissing_sum(b, 1)), 0.0, np.nan)
+        else:
+            variance_a = _rolling_nonmissing_variance_values(a, period, ddof=0)
+            variance_b = _rolling_nonmissing_variance_values(b, period, ddof=0)
+        denominator = np.sqrt(variance_a) * np.sqrt(variance_b)
+        independent = numerator / denominator
+        independent[(denominator == 0.0) & (numerator == 0.0)] = 0.0
+        independent[(denominator == 0.0) & (numerator != 0.0)] = np.nan
+
+    coherent = np.zeros(n, dtype=bool)
+    coherent[period - 1:] = _window_sums((np.isfinite(a) & np.isfinite(b)).astype(np.int64), period) == period
+    result[~coherent] = independent[~coherent]
     return result
 
 
@@ -196,6 +266,8 @@ class TaModule:
         Pine equivalent: ``ta.wma(close, 20)``
 
         Weights: [1, 2, 3, ..., period]. Most recent bar has highest weight.
+        Warmup requires ``period`` non-missing observations. Later windows
+        carry the last input through gaps, but missing positions emit NaN.
         """
         source = to_numpy(src, dtype=np.float64)
         n = len(source)
@@ -203,15 +275,20 @@ class TaModule:
         if period <= 0 or period > n:
             return wrap_like(result, src)
 
+        present = ~np.isnan(source)
+        ready = np.cumsum(present) >= period
+        if not np.any(ready):
+            return wrap_like(result, src)
+        if not np.all(present):
+            source = _fixnan(source)
         window_values = _rolling_weighted_average_values(source, period)
-        nan_counts = _window_sums(np.isnan(source).astype(np.int64), period)
         positive_infinity = _window_sums((source == np.inf).astype(np.int64), period)
         negative_infinity = _window_sums((source == -np.inf).astype(np.int64), period)
         window_values[positive_infinity > 0] = np.inf
         window_values[negative_infinity > 0] = -np.inf
         window_values[(positive_infinity > 0) & (negative_infinity > 0)] = np.nan
-        window_values[nan_counts > 0] = np.nan
         result[period - 1 :] = window_values
+        result[~present | ~ready] = np.nan
 
         return wrap_like(result, src)
 
@@ -536,7 +613,12 @@ class TaModule:
 
         Also known as Wilder's EMA. Used internally by RSI and ATR.
         ``alpha = 1 / period``
+        Missing positions emit NaN without advancing the smoothing state.
         """
+        return self._rma(src, period, emit_missing=True)
+
+    def _rma(self, src: PyneSeries | np.ndarray, period: int, *, emit_missing: bool) -> PyneSeries | np.ndarray:
+        """Apply smoothing with the caller's missing-output policy."""
         source = to_numpy(src, dtype=np.float64)
         n = len(source)
         result = np.full(n, np.nan)
@@ -551,7 +633,7 @@ class TaModule:
         for i in range(n):
             val = source[i]
             if np.isnan(val):
-                if not np.isnan(rma_value):
+                if not emit_missing:
                     result[i] = rma_value
                 continue
             if count < period:
@@ -607,17 +689,17 @@ class TaModule:
         """
         source = to_numpy(src, dtype=np.float64)
         delta = to_numpy(utils.change(source, 1), dtype=np.float64)
-        up = np.where(delta > 0, delta, 0.0)
-        down = np.where(delta < 0, -delta, 0.0)
-        up[0] = 0.0
-        down[0] = 0.0
-        up_sum = to_numpy(utils.sum_(up, period), dtype=np.float64)
-        down_sum = to_numpy(utils.sum_(down, period), dtype=np.float64)
+        # Native Pine's >= 0 branches send an unknown delta to zero upward
+        # flow and missing downward flow. Each sum has its own observations.
+        up = np.where(delta >= 0, delta, 0.0)
+        down = np.where(delta >= 0, 0.0, -delta)
+        up_sum = _rolling_nonmissing_sum(up, period)
+        down_sum = _rolling_nonmissing_sum(down, period)
         with np.errstate(divide="ignore", invalid="ignore"):
             result = np.where(
                 (up_sum + down_sum) != 0,
                 100.0 * (up_sum - down_sum) / (up_sum + down_sum),
-                0.0,
+                np.nan,
             )
         result[:period] = np.nan
         return wrap_like(result, src)
@@ -700,17 +782,25 @@ class TaModule:
         source_arr = to_numpy(source, dtype=np.float64)
         high_arr = to_numpy(high, dtype=np.float64)
         low_arr = to_numpy(low, dtype=np.float64)
-        hh = to_numpy(utils.highest(high_arr, length), dtype=np.float64)
-        ll = to_numpy(utils.lowest(low_arr, length), dtype=np.float64)
+        # Reset missing high/low windows, retaining the initial lookback
+        # readiness shared with the extrema primitives.
+        hh = to_numpy(utils._rolling_extreme(
+            high_arr, length, highest=True, return_offset=False,
+            reset_on_missing=True,
+        ), dtype=np.float64)
+        ll = to_numpy(utils._rolling_extreme(
+            low_arr, length, highest=False, return_offset=False,
+            reset_on_missing=True,
+        ), dtype=np.float64)
 
         with np.errstate(divide="ignore", invalid="ignore"):
             result = np.where(
                 (hh - ll) != 0,
                 100.0 * (source_arr - ll) / (hh - ll),
-                50.0,
+                np.nan,
             )
 
-        return wrap_like(result, source, high, low)
+        return wrap_like(_fixnan(result), source, high, low)
 
     def cci(
         self,
@@ -803,9 +893,14 @@ class TaModule:
         source_b: PyneSeries | np.ndarray,
         period: int,
     ) -> PyneSeries | np.ndarray:
-        """Rolling Pearson correlation.
+        """Correlation from independent non-missing observation windows.
 
         Pine equivalent: ``ta.correlation(source1, source2, length)``.
+        Missing x, y and x*y observations advance their moment windows
+        independently, so missing-window results can exceed [-1, 1]. Ready
+        windows with both numerator and denominator zero return zero;
+        a nonzero numerator with zero denominator remains missing. Coherent finite windows retain
+        stable centered Pearson arithmetic.
         """
         a = to_numpy(source_a, dtype=np.float64)
         b = to_numpy(source_b, dtype=np.float64)
@@ -898,9 +993,14 @@ class TaModule:
             np.nan,
             np.where((down_move > up_move) & (down_move > 0), down_move, 0.0),
         )
-        trur = to_numpy(self.atr(period, high_arr, low_arr, close_arr), dtype=np.float64)
-        plus_smoothed = to_numpy(self.rma(plus_dm, period), dtype=np.float64)
-        minus_smoothed = to_numpy(self.rma(minus_dm, period), dtype=np.float64)
+        # DMI smooths strict true range. Without a preceding close the first
+        # observation is missing; ATR's high-low fallback would seed too early.
+        previous_close = to_numpy(utils.shift(close_arr, 1), dtype=np.float64)
+        strict_tr = np.maximum(high_arr - low_arr, np.maximum(
+            np.abs(high_arr - previous_close), np.abs(low_arr - previous_close)))
+        trur = to_numpy(self._rma(strict_tr, period, emit_missing=False), dtype=np.float64)
+        plus_smoothed = to_numpy(self._rma(plus_dm, period, emit_missing=False), dtype=np.float64)
+        minus_smoothed = to_numpy(self._rma(minus_dm, period, emit_missing=False), dtype=np.float64)
 
         with np.errstate(divide="ignore", invalid="ignore"):
             plus_di = _fixnan(100.0 * plus_smoothed / trur)
@@ -908,7 +1008,7 @@ class TaModule:
             total = plus_di + minus_di
             denominator = np.where(total == 0.0, 1.0, total)
             dx_ratio = np.abs(plus_di - minus_di) / denominator
-            adx_val = 100.0 * to_numpy(self.rma(dx_ratio, adx_period), dtype=np.float64)
+            adx_val = 100.0 * to_numpy(self._rma(dx_ratio, adx_period, emit_missing=False), dtype=np.float64)
         return plus_di, minus_di, adx_val
 
     def sar(
@@ -1128,7 +1228,7 @@ class TaModule:
         When called without high/low/close, uses the global context data.
         """
         tr_val = self.tr(high, low, close)
-        return self.rma(tr_val, period)
+        return self._rma(tr_val, period, emit_missing=False)
 
     def bb(
         self,
@@ -1231,21 +1331,63 @@ class TaModule:
         high: PyneSeries | np.ndarray | None = None,
         low: PyneSeries | np.ndarray | None = None,
         close: PyneSeries | np.ndarray | None = None,
+        *,
+        source: PyneSeries | np.ndarray | None = None,
+        use_true_range: bool = True,
+        width_smoothing: str = "ema",
     ) -> tuple[PyneSeries | np.ndarray, PyneSeries | np.ndarray, PyneSeries | np.ndarray]:
-        """Keltner Channel.
+        """Keltner Channel with native-style EMA range smoothing.
+
+        ``source`` selects the basis independently of OHLC true range. The
+        default width follows native ``ta.kc``; ``width_smoothing="atr"``
+        selects the earlier Wilder ATR formula. Both modes require a positive
+        multiplier. High-low width is available with EMA smoothing only.
 
         Returns:
             Tuple of (upper, middle, lower) arrays.
         """
+        period = utils.require_positive_period(period)
+        mult = float(mult)
+        if not mult > 0:
+            raise ValueError("ta.keltner() mult must be greater than zero")
+        if not isinstance(use_true_range, (bool, np.bool_)):
+            raise ValueError("ta.keltner() use_true_range must be a boolean")
+        if width_smoothing not in ("ema", "atr"):
+            raise ValueError("ta.keltner() width_smoothing must be 'ema' or 'atr'")
+        if width_smoothing == "atr" and not use_true_range:
+            raise ValueError("ta.keltner() ATR width requires use_true_range=True")
         if close is None:
             if self._ctx is None:
                 raise RuntimeError("ta.keltner() needs OHLC data")
             close = self._ctx.close
-
-        middle = self.ema(close, period)
-        atr_val = self.atr(period, high, low, close)
-        upper = middle + mult * atr_val
-        lower = middle - mult * atr_val
+        if high is None or low is None:
+            if self._ctx is None:
+                raise RuntimeError("ta.keltner() needs high/low data")
+            high = self._ctx.high if high is None else high
+            low = self._ctx.low if low is None else low
+        basis = close if source is None else source
+        high_values, low_values, close_values, basis_values = (
+            to_numpy(value, dtype=np.float64) for value in (high, low, close, basis))
+        inputs = (high_values, low_values, close_values, basis_values)
+        if any(value.ndim != 1 for value in inputs) or any(
+            len(value) != len(close_values) for value in inputs
+        ):
+            raise ValueError("ta.keltner() inputs must be one-dimensional and have matching lengths")
+        middle = self.ema(basis, period)
+        if width_smoothing == "atr":
+            width = self.atr(period, high, low, close)
+        else:
+            span = high_values - low_values
+            if use_true_range:
+                previous = np.full(len(close_values), np.nan)
+                previous[1:] = close_values[:-1]
+                # Native ta.kc uses ta.tr, whose first bar (or missing prior
+                # close) is missing; it does not use ta.tr(true)'s fallback.
+                span = np.maximum.reduce((span, np.abs(high_values - previous),
+                                          np.abs(low_values - previous)))
+            width = self.ema(wrap_like(span, high, low, close), period)
+        upper = middle + mult * width
+        lower = middle - mult * width
         return upper, middle, lower
 
     def donchian(
@@ -1293,15 +1435,10 @@ class TaModule:
 
         close_arr = to_numpy(close, dtype=np.float64)
         volume_arr = to_numpy(volume, dtype=np.float64)
-        n = len(close_arr)
-        result = np.zeros(n)
-        for i in range(1, n):
-            if close_arr[i] > close_arr[i - 1]:
-                result[i] = result[i - 1] + volume_arr[i]
-            elif close_arr[i] < close_arr[i - 1]:
-                result[i] = result[i - 1] - volume_arr[i]
-            else:
-                result[i] = result[i - 1]
+        # Native OBV is cum(sign(change(close)) * volume). Missing products
+        # emit no value and leave the internal accumulator available to resume.
+        products = np.sign(utils.change(close_arr)) * volume_arr
+        result = utils.cum(products)
         return wrap_like(result, close, volume)
 
     def volume_sma(

@@ -1,0 +1,51 @@
+//@version=6
+indicator("Pyne single observation dispersion 20261002",precision=12)
+int i = bar_index
+float base = float((i*11)%17-6)
+float holes = i%7==1 or i%7==2 ? na : base
+float leading = i<6 ? na : base
+float flat = 5.0
+float missing = na
+float fractional = base/10.0
+float huge = 1000000000000.0+base
+float hugeHole = i%7==1 or i%7==2 ? na : huge
+f(float x)=>str.tostring(x,"#.################")
+float s0 = ta.stdev(base,1)
+float v0 = ta.variance(base,1,true)
+float u0 = ta.variance(base,1,false)
+[m0,h0,l0] = ta.bb(base,1,2.0)
+float s1 = ta.stdev(holes,1)
+float v1 = ta.variance(holes,1,true)
+float u1 = ta.variance(holes,1,false)
+[m1,h1,l1] = ta.bb(holes,1,2.0)
+float s2 = ta.stdev(leading,1)
+float v2 = ta.variance(leading,1,true)
+float u2 = ta.variance(leading,1,false)
+[m2,h2,l2] = ta.bb(leading,1,2.0)
+float s3 = ta.stdev(flat,1)
+float v3 = ta.variance(flat,1,true)
+float u3 = ta.variance(flat,1,false)
+[m3,h3,l3] = ta.bb(flat,1,2.0)
+float s4 = ta.stdev(missing,1)
+float v4 = ta.variance(missing,1,true)
+float u4 = ta.variance(missing,1,false)
+[m4,h4,l4] = ta.bb(missing,1,2.0)
+float s5 = ta.stdev(fractional,1)
+float v5 = ta.variance(fractional,1,true)
+float u5 = ta.variance(fractional,1,false)
+[m5,h5,l5] = ta.bb(fractional,1,2.0)
+float s6 = ta.stdev(huge,1)
+float v6 = ta.variance(huge,1,true)
+float u6 = ta.variance(huge,1,false)
+[m6,h6,l6] = ta.bb(huge,1,2.0)
+float s7 = ta.stdev(hugeHole,1)
+float v7 = ta.variance(hugeHole,1,true)
+float u7 = ta.variance(hugeHole,1,false)
+[m7,h7,l7] = ta.bb(hugeHole,1,2.0)
+var string rows = ""
+if i<32
+    rows += "PYNE_SINGLE_DISPERSION|"+str.tostring(i)+"|"+f(base)+"|"+f(holes)+"|"+f(leading)+"|"+f(flat)+"|"+f(missing)+"|"+f(fractional)+"|"+f(huge)+"|"+f(hugeHole)+"|"+f(s0)+"|"+f(v0)+"|"+f(u0)+"|"+f(m0)+"|"+f(h0)+"|"+f(l0)+"|"+f(s1)+"|"+f(v1)+"|"+f(u1)+"|"+f(m1)+"|"+f(h1)+"|"+f(l1)+"|"+f(s2)+"|"+f(v2)+"|"+f(u2)+"|"+f(m2)+"|"+f(h2)+"|"+f(l2)+"|"+f(s3)+"|"+f(v3)+"|"+f(u3)+"|"+f(m3)+"|"+f(h3)+"|"+f(l3)+"|"+f(s4)+"|"+f(v4)+"|"+f(u4)+"|"+f(m4)+"|"+f(h4)+"|"+f(l4)+"|"+f(s5)+"|"+f(v5)+"|"+f(u5)+"|"+f(m5)+"|"+f(h5)+"|"+f(l5)+"|"+f(s6)+"|"+f(v6)+"|"+f(u6)+"|"+f(m6)+"|"+f(h6)+"|"+f(l6)+"|"+f(s7)+"|"+f(v7)+"|"+f(u7)+"|"+f(m7)+"|"+f(h7)+"|"+f(l7)+";"
+    if i%8==7
+        log.info(rows)
+        rows := ""
+plot(s0,"Single observation stdev")

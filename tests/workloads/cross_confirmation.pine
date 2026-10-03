@@ -1,0 +1,64 @@
+//@version=6
+indicator("Pyne cross confirmation 20260930",precision=10,max_bars_back=100)
+int i=bar_index
+float s=float((i*7)%13-4)
+float holes=i==1 or i==7 or i==8 or i==12 or i==23 ? na : s
+float leading=i<4 ? na : s
+float empty=na
+float b=float((i*3)%7-2)
+float bholes=i==2 or i==7 or i==13 or i==23 ? na : b
+float zeros=i%5==0 ? 0 : s
+f_cross(float a,float b,int kind)=>
+    var float pa=na
+    var float pb=na
+    bool result=false
+    if not na(a) and not na(b)
+        if not na(pa) and not na(pb)
+            result:=kind==0 ? (a>b and pa<pb) or (a<b and pa>pb) : kind==1 ? a>b and pa<=pb : a<b and pa>=pb
+        pa:=a
+        pb:=b
+    result ? 1.0 : 0.0
+float n0_0=ta.cross(holes,bholes) ? 1 : 0
+float f0_0=f_cross(holes,bholes,0)
+float n0_1=ta.crossover(holes,bholes) ? 1 : 0
+float f0_1=f_cross(holes,bholes,1)
+float n0_2=ta.crossunder(holes,bholes) ? 1 : 0
+float f0_2=f_cross(holes,bholes,2)
+float n1_0=ta.cross(leading,b) ? 1 : 0
+float f1_0=f_cross(leading,b,0)
+float n1_1=ta.crossover(leading,b) ? 1 : 0
+float f1_1=f_cross(leading,b,1)
+float n1_2=ta.crossunder(leading,b) ? 1 : 0
+float f1_2=f_cross(leading,b,2)
+float n2_0=ta.cross(s,b) ? 1 : 0
+float f2_0=f_cross(s,b,0)
+float n2_1=ta.crossover(s,b) ? 1 : 0
+float f2_1=f_cross(s,b,1)
+float n2_2=ta.crossunder(s,b) ? 1 : 0
+float f2_2=f_cross(s,b,2)
+float n3_0=ta.cross(holes,0.0) ? 1 : 0
+float f3_0=f_cross(holes,0.0,0)
+float n3_1=ta.crossover(holes,0.0) ? 1 : 0
+float f3_1=f_cross(holes,0.0,1)
+float n3_2=ta.crossunder(holes,0.0) ? 1 : 0
+float f3_2=f_cross(holes,0.0,2)
+float n4_0=ta.cross(empty,b) ? 1 : 0
+float f4_0=f_cross(empty,b,0)
+float n4_1=ta.crossover(empty,b) ? 1 : 0
+float f4_1=f_cross(empty,b,1)
+float n4_2=ta.crossunder(empty,b) ? 1 : 0
+float f4_2=f_cross(empty,b,2)
+float n5_0=ta.cross(zeros,1.0) ? 1 : 0
+float f5_0=f_cross(zeros,1.0,0)
+float n5_1=ta.crossover(zeros,1.0) ? 1 : 0
+float f5_1=f_cross(zeros,1.0,1)
+float n5_2=ta.crossunder(zeros,1.0) ? 1 : 0
+float f5_2=f_cross(zeros,1.0,2)
+f(float x)=>str.tostring(x,"#.##########")
+var string rows=""
+if i<32
+    rows+="PYNE_CROSS_CONFIRM|"+str.tostring(i)+"|"+f(s)+"|"+f(holes)+"|"+f(leading)+"|"+f(empty)+"|"+f(b)+"|"+f(bholes)+"|"+f(zeros)+"|"+f(n0_0)+"|"+f(f0_0)+"|"+f(n0_1)+"|"+f(f0_1)+"|"+f(n0_2)+"|"+f(f0_2)+"|"+f(n1_0)+"|"+f(f1_0)+"|"+f(n1_1)+"|"+f(f1_1)+"|"+f(n1_2)+"|"+f(f1_2)+"|"+f(n2_0)+"|"+f(f2_0)+"|"+f(n2_1)+"|"+f(f2_1)+"|"+f(n2_2)+"|"+f(f2_2)+"|"+f(n3_0)+"|"+f(f3_0)+"|"+f(n3_1)+"|"+f(f3_1)+"|"+f(n3_2)+"|"+f(f3_2)+"|"+f(n4_0)+"|"+f(f4_0)+"|"+f(n4_1)+"|"+f(f4_1)+"|"+f(n4_2)+"|"+f(f4_2)+"|"+f(n5_0)+"|"+f(f5_0)+"|"+f(n5_1)+"|"+f(f5_1)+"|"+f(n5_2)+"|"+f(f5_2)+";"
+    if i%8==7
+        log.info(rows)
+        rows:=""
+plot(n0_0,"Cross confirmation")

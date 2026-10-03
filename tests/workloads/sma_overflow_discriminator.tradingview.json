@@ -1,0 +1,344 @@
+{
+  "schema": "pyne.workload-oracle/1",
+  "source": "TradingView Pine v6 authenticated Codex in-app browser",
+  "capturedAt": "2026-10-03T01:06:27.219078+00:00",
+  "url": "https://www.tradingview.com/chart/wf5lRGkJ/",
+  "symbol": "BINANCE:BTCUSDT",
+  "timeframe": "1M",
+  "columns": [
+    "Input",
+    "Native7",
+    "Sum7",
+    "IsNaNative7",
+    "IsNaSum7"
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "values": [
+        0.0,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 1,
+      "values": [
+        -4.49423283715579e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 2,
+      "values": [
+        0.0,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 3,
+      "values": [
+        8.98846567431158e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 4,
+      "values": [
+        -6.741349255733685e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 5,
+      "values": [
+        6.741349255733685e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 6,
+      "values": [
+        0.0,
+        6.420332624508271e+306,
+        4.49423283715579e+307,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 7,
+      "values": [
+        0.0,
+        6.420332624508271e+306,
+        4.49423283715579e+307,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 8,
+      "values": [
+        0.25,
+        1.2840665249016541e+307,
+        8.98846567431158e+307,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 9,
+      "values": [
+        -4.49423283715579e+307,
+        6.420332624508271e+306,
+        4.49423283715579e+307,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 10,
+      "values": [
+        0.0,
+        -6.420332624508271e+306,
+        -4.49423283715579e+307,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 11,
+      "values": [
+        8.98846567431158e+307,
+        1.6050831561270678e+307,
+        1.1235582092889474e+308,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 12,
+      "values": [
+        4.49423283715579e+307,
+        1.2840665249016541e+307,
+        8.98846567431158e+307,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 13,
+      "values": [
+        6.741349255733685e+307,
+        2.247116418577895e+307,
+        1.5729814930045264e+308,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 14,
+      "values": [
+        -6.741349255733685e+307,
+        1.2840665249016541e+307,
+        8.98846567431158e+307,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 15,
+      "values": [
+        0.25,
+        1.2840665249016541e+307,
+        8.98846567431158e+307,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 16,
+      "values": [
+        -2.247116418577895e+307,
+        1.6050831561270678e+307,
+        1.1235582092889474e+308,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "index": 17,
+      "values": [
+        6.741349255733685e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 18,
+      "values": [
+        8.98846567431158e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 19,
+      "values": [
+        -6.741349255733685e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 20,
+      "values": [
+        -0.5,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 21,
+      "values": [
+        -4.49423283715579e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 22,
+      "values": [
+        -2.247116418577895e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 23,
+      "values": [
+        -8.98846567431158e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 24,
+      "values": [
+        0.0,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 25,
+      "values": [
+        -6.741349255733685e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 26,
+      "values": [
+        -6.741349255733685e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 27,
+      "values": [
+        -0.5,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 28,
+      "values": [
+        -6.741349255733685e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 29,
+      "values": [
+        -2.247116418577895e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 30,
+      "values": [
+        -4.49423283715579e+307,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "index": 31,
+      "values": [
+        -0.5,
+        null,
+        null,
+        1.0,
+        1.0
+      ]
+    }
+  ],
+  "scriptSha256": "ddcaf657277f8894fe25dbf53762b35629e0a3fe382d415d2f4243c2d804c99d",
+  "logSha256": "fbaac97fa91f02c1654c1a641a14e48f1338356ebd74c35b042c6452d26fb6fe",
+  "diagnosticOnly": false,
+  "sourceExpressionClass": "series_array_lookup",
+  "selection": "Deterministic candidate-only disagreement; trial 2 selected before native execution; no native outputs used as recipe inputs",
+  "qualification": "32 supplied observations; 64 native numerical output cells plus 64 same-capture missing-state flags; not a universal arithmetic or overflow model qualification.",
+  "tolerance": 1e-08
+}

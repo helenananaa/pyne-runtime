@@ -1,0 +1,8 @@
+{
+  "schema": "pyne.native-runtime-error/1",
+  "source": "TradingView Pine v6 runtime via Chrome visible error",
+  "capturedAt": "2026-10-01T03:03:20.843Z",
+  "url": "https://www.tradingview.com/chart/K1m3gqVM/",
+  "scriptSha256": "1cd8a672f38cf8bd72be95ad10352aeb03c7fb43ae08d9ff847e227778e9e1a6",
+  "error": "Error on bar 0: Invalid value of the 'mult' argument (-1) in the ''kc'' function. It must be > 0."
+}

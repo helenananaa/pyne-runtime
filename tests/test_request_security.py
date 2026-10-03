@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import pyne_runtime as pn
+import pytest
 
 
 def _bars() -> list[dict[str, float]]:
@@ -213,11 +214,8 @@ plot(average, "EMA")
     assert result.ok, result.error
     assert provider.calls == [("BTCUSDT", "60", 0, 21_600)]
     assert result.values("Previous") == [4.0, 8.0, 16.0]
-    assert result.values("EMA") == [
-        6.38888889,
-        12.7962963,
-        25.59876543,
-    ]
+    # Independent rational EMA(2) recurrence after the two-observation seed.
+    assert result.values("EMA") == pytest.approx([115/18,691/54,4147/162],abs=1e-12,rel=0)
 
 
 def test_request_security_accepts_barmerge_alignment_constants() -> None:

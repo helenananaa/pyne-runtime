@@ -3,7 +3,7 @@
     {
       "name": "pending_entry_waits_through_intraday_risk_lock_until_session_reset",
       "source": "pyne-defined deterministic strategy pending risk replay semantics",
-      "script": "strategy(\"Pending Risk Reset\", overlay=True, initial_capital=1000)\nstrategy.risk.max_intraday_loss(5, strategy.percent_of_equity)\nstrategy.entry_when(bar_index == 0, \"Long\", strategy.long, qty=10, price=close)\nstrategy.entry(\"Breakout\", strategy.long, qty=1, when=bar_index == 0, stop=120)\nstrategy.close_all(when=bar_index == 2, price=close)\nplot(strategy.position_size, \"Position\")\nplot(strategy.equity, \"Equity\")\n",
+      "script": "strategy(\"Pending Risk Reset\", overlay=True, initial_capital=1000, pyramiding=2)\nstrategy.risk.max_intraday_loss(5, strategy.percent_of_equity)\nstrategy.entry_when(bar_index == 0, \"Long\", strategy.long, qty=10, price=close)\nstrategy.entry(\"Breakout\", strategy.long, qty=1, when=bar_index == 0, stop=120)\nstrategy.close_all(when=bar_index == 2, price=close)\nplot(strategy.position_size, \"Position\")\nplot(strategy.equity, \"Equity\")\n",
       "bars": [
         {
           "time": 1,
@@ -169,7 +169,7 @@
     {
       "name": "pending_entry_stays_pending_under_global_drawdown_lock",
       "source": "pyne-defined deterministic strategy pending risk replay semantics",
-      "script": "strategy(\"Pending Global Risk\", overlay=True, initial_capital=1000)\nstrategy.risk.max_drawdown(5, strategy.percent_of_equity)\nstrategy.entry_when(bar_index == 0, \"Long\", strategy.long, qty=10, price=close)\nstrategy.entry(\"Breakout\", strategy.long, qty=1, when=bar_index == 0, stop=120)\nstrategy.close_all(when=bar_index == 2, price=close)\nplot(strategy.position_size, \"Position\")\nplot(strategy.equity, \"Equity\")\n",
+      "script": "strategy(\"Pending Global Risk\", overlay=True, initial_capital=1000, pyramiding=2)\nstrategy.risk.max_drawdown(5, strategy.percent_of_equity)\nstrategy.entry_when(bar_index == 0, \"Long\", strategy.long, qty=10, price=close)\nstrategy.entry(\"Breakout\", strategy.long, qty=1, when=bar_index == 0, stop=120)\nstrategy.close_all(when=bar_index == 2, price=close)\nplot(strategy.position_size, \"Position\")\nplot(strategy.equity, \"Equity\")\n",
       "bars": [
         {
           "time": 1,

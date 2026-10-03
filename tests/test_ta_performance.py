@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import deque as StandardDeque
+from decimal import Decimal, localcontext
 import importlib
 import math
 from typing import Any
@@ -69,7 +70,12 @@ def test_correlation_remains_stable_for_large_offsets_and_missing_windows() -> N
 
     np.testing.assert_array_equal(np.isnan(actual), np.isnan(expected))
     np.testing.assert_allclose(actual, expected, rtol=5e-7, atol=5e-7, equal_nan=True)
-    assert np.nanmax(np.abs(actual)) <= 1.0
+    # Independent observation windows describe different bars around gaps;
+    # only coherent finite windows must remain ordinary Pearson coefficients.
+    coherent = np.array([i >= period-1 and np.isfinite(source_a[i-period+1:i+1]).all()
+                         and np.isfinite(source_b[i-period+1:i+1]).all() for i in range(len(actual))])
+    assert np.nanmax(np.abs(actual[coherent])) <= 1.0
+    assert np.nanmax(np.abs(actual[~coherent])) > 1.0
 
 
 def test_rolling_moment_work_is_bounded_by_chunks(monkeypatch) -> None:
@@ -145,7 +151,7 @@ def test_rolling_nansum_recovers_after_finite_cumulative_overflow() -> None:
     assert ta_module._rolling_nansum(cancellation, 4)[0] == 1.75
 
 
-def test_extrema_preserve_warmup_nan_and_most_recent_tie_semantics() -> None:
+def test_extrema_reset_missing_and_preserve_earliest_tie_semantics() -> None:
     source = np.array([np.nan, 3.0, 3.0, 1.0, np.nan, 3.0, 3.0, 2.0])
     period = 3
 
@@ -189,7 +195,7 @@ def test_extrema_deque_operations_grow_linearly(monkeypatch) -> None:
         assert CountingDeque.operations <= 2 * len(source)
 
 
-def test_rising_and_falling_match_strict_transition_reference() -> None:
+def test_rising_and_falling_match_valid_transition_reference() -> None:
     source = np.array([1.0, 2.0, 3.0, np.nan, 5.0, 4.0, 3.0, 2.0, 2.0, 1.0])
     period = 3
 
@@ -200,6 +206,22 @@ def test_rising_and_falling_match_strict_transition_reference() -> None:
     np.testing.assert_array_equal(utils.falling(source, period), expected_falling)
 
 
+def _wma_gap_reference(source, period, weights):
+    """Independent window arithmetic for the captured native WMA gap rule."""
+    result = np.full(len(source), np.nan)
+    previous = np.nan
+    observations = 0
+    window = StandardDeque(maxlen=period)
+    for i, value in enumerate(source):
+        if not np.isnan(value):
+            previous = value
+            observations += 1
+        window.append(previous)
+        if not np.isnan(value) and observations >= period:
+            result[i] = np.dot(np.asarray(window), weights) / weights.sum()
+    return result
+
+
 def test_wma_and_linreg_match_window_references_with_missing_values() -> None:
     rng = np.random.default_rng(20260720)
     source = 1.0e12 + rng.normal(size=2_000)
@@ -208,11 +230,7 @@ def test_wma_and_linreg_match_window_references_with_missing_values() -> None:
     module = TaModule()
 
     weights = np.arange(1, period + 1, dtype=np.float64)
-    expected_wma = _rolling_reference(
-        source,
-        period,
-        lambda window: np.dot(window, weights) / weights.sum(),
-    )
+    expected_wma = _wma_gap_reference(source, period, weights)
     expected_linreg = _rolling_linreg_reference(source, period, offset=3)
 
     actual_wma = np.asarray(module.wma(source, period))
@@ -258,11 +276,7 @@ def test_wma_and_linreg_seed_does_not_call_np_dot(monkeypatch) -> None:
     period = 32
     weights = np.arange(1, period + 1, dtype=np.float64)
     with np.errstate(invalid="ignore"):
-        expected_wma = _rolling_reference(
-            source,
-            period,
-            lambda window: np.dot(window, weights) / weights.sum(),
-        )
+        expected_wma = _wma_gap_reference(source, period, weights)
         expected_linreg = _rolling_linreg_reference(source, period, offset=7)
     # Compute the independent reference before forbidding only the runtime path.
     monkeypatch.setattr(kernels.np, "dot", forbidden)
@@ -393,7 +407,7 @@ def test_mad_cci_and_percentiles_match_window_references() -> None:
     np.testing.assert_allclose(actual_cci, expected_cci, rtol=2e-7, atol=5e-5)
 
     percentile_source = rng.integers(-5, 8, size=500).astype(np.float64)
-    percentile_source[211] = np.nan
+    # NumPy qualifies finite windows; native missing-order state has external fixtures.
     for percentage in (0.0, 17.0, 50.0, 83.0, 100.0):
         expected_nearest = _rolling_reference(
             percentile_source,
@@ -580,14 +594,27 @@ def _rolling_correlation_reference(
     period: int,
 ) -> np.ndarray:
     result = np.full(min(len(source_a), len(source_b)), np.nan)
-    for index in range(period - 1, len(result)):
-        a_window = source_a[index - period + 1 : index + 1]
-        b_window = source_b[index - period + 1 : index + 1]
-        if np.any(np.isnan(a_window)) or np.any(np.isnan(b_window)):
-            continue
-        if np.std(a_window) == 0.0 or np.std(b_window) == 0.0:
-            continue
-        result[index] = np.corrcoef(a_window, b_window)[0, 1]
+    if period <= 0:
+        return result
+    a_values, b_values, products = [], [], []
+    with localcontext() as decimal_context:
+        decimal_context.prec = 65
+        for index, (a, b) in enumerate(zip(source_a, source_b)):
+            if not np.isnan(a):
+                a_values.append(Decimal.from_float(float(a)))
+            if not np.isnan(b):
+                b_values.append(Decimal.from_float(float(b)))
+            if not np.isnan(a) and not np.isnan(b):
+                products.append(Decimal.from_float(float(a))*Decimal.from_float(float(b)))
+            if min(len(a_values),len(b_values),len(products)) < period:
+                continue
+            a_window, b_window, product_window = a_values[-period:], b_values[-period:], products[-period:]
+            mean_a, mean_b = sum(a_window)/period, sum(b_window)/period
+            variance_a = sum((x-mean_a)**2 for x in a_window)/period
+            variance_b = sum((x-mean_b)**2 for x in b_window)/period
+            numerator = sum(product_window)/period-mean_a*mean_b
+            denominator = variance_a.sqrt()*variance_b.sqrt()
+            result[index] = float(numerator/denominator) if denominator else (0. if numerator==0 else np.nan)
     return result
 
 
@@ -620,12 +647,26 @@ def _pivot_reference(
     highest: bool,
 ) -> np.ndarray:
     result = np.full(len(source), np.nan)
-    for index in range(0, len(source) - right):
-        window = source[max(index - left, 0) : index + right + 1]
+    for index in range(left, len(source) - right):
         if np.isnan(source[index]):
             continue
-        target = np.nanmax(window) if highest else np.nanmin(window)
-        if source[index] == target and np.sum(window == target) == 1:
+        candidate = source[index]
+        valid = True
+        for offset in range(1, left + 1):
+            value = source[index - offset]
+            if np.isnan(value):
+                break
+            if (value > candidate) if highest else (value < candidate):
+                valid = False
+                break
+        for offset in range(1, right + 1):
+            value = source[index + offset]
+            if np.isnan(value):
+                break
+            if (value >= candidate) if highest else (value <= candidate):
+                valid = False
+                break
+        if valid:
             result[index + right] = source[index]
     return result
 
@@ -638,27 +679,31 @@ def _extreme_reference(
 ) -> tuple[np.ndarray, np.ndarray]:
     values = np.full(len(source), np.nan)
     offsets = np.full(len(source), np.nan)
+    last_missing = -1
     for index in range(len(source)):
-        start = max(0, index - period + 1)
-        window = source[start : index + 1]
-        if np.all(np.isnan(window)):
+        if np.isnan(source[index]):
+            last_missing = index
+            if index >= period - 1:
+                offsets[index] = 0.0
             continue
-        target = np.nanmax(window) if highest else np.nanmin(window)
-        matches = np.flatnonzero(window == target)
-        match = int(matches[-1])
+        if index < period - 1:
+            continue
+        start = max(0, index - period + 1, last_missing + 1)
+        window = source[start : index + 1]
+        target = np.max(window) if highest else np.min(window)
+        match = int(np.flatnonzero(window == target)[0])
         values[index] = target
-        offsets[index] = float(match - (len(window) - 1))
+        offsets[index] = float(start + match - index)
     return values, offsets
 
 
 def _direction_reference(source: np.ndarray, period: int, *, rising: bool) -> np.ndarray:
     result = np.zeros(len(source), dtype=bool)
-    for index in range(period, len(source)):
-        window = source[index - period : index + 1]
-        if np.any(np.isnan(window)):
-            continue
-        differences = np.diff(window)
-        result[index] = bool(np.all(differences > 0 if rising else differences < 0))
+    observations = []
+    for index in range(1, len(source)):
+        if not np.isnan(source[index]) and not np.isnan(source[index - 1]):
+            observations.append(source[index] > source[index - 1] if rising else source[index] < source[index - 1])
+        result[index] = len(observations) >= period and all(observations[-period:])
     return result
 
 

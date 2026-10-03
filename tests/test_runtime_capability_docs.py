@@ -28,8 +28,8 @@ INCREMENTAL_HELPER_LIST_RE = re.compile(
     re.DOTALL,
 )
 TA_CAPTURE_COUNT_RE = re.compile(
-    r"All (\d+) committed TA capture fixtures are TradingView parity-gated "
-    r"with 0 diff across (\d{1,3}(?:,\d{3})*) plots and "
+    r"All (\d+) committed TA capture fixtures retain imported TradingView records "
+    r"across (\d{1,3}(?:,\d{3})*) plots and "
     r"(\d{1,3}(?:,\d{3})*) checked points"
 )
 TA_DOC_CAPTURE_COUNT_RE = re.compile(
@@ -85,7 +85,7 @@ def _live_ta_capture_counts() -> tuple[int, int, int]:
     fixtures = sorted((ROOT / "tests" / "golden").glob("ta_*_indicators.json"))
     report = ta_capture_diff.build_report(fixtures, set(), "parity")
     counts = report["counts"]
-    assert counts["differences"] == 0
+    assert counts["unexpected_differences"] == 0
     assert counts["runtime_errors"] == 0
     return counts["captured_fixtures"], counts["plots"], counts["points"]
 

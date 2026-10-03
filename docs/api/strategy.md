@@ -103,10 +103,25 @@ declaration metadata.
 `pyramiding` controls additional same-direction entries:
 
 - `pyramiding=0` is the default and allows one open same-direction entry.
-- `pyramiding=1` allows one additional same-direction entry.
+- Positive `pyramiding` values limit admission against current live
+  same-direction trade lots; `pyramiding=1` permits one, `pyramiding=2` permits two.
 - same-direction entries update `strategy.position_size` and weighted
   `strategy.position_avg_price`
 - an opposite-direction entry reverses or replaces the current position
+
+Admission uses current open lots, including lots created by `strategy.order`.
+Closing a lot frees its slot; partially reducing a lot while it remains open
+does not. `strategy.order` itself may exceed the cap. Batch partial closures
+recompute the weighted average of remaining lots rather than carrying the
+old position average. Five native probes qualify these cases and preview/restore
+continuation; see [official alignment evidence](../development/official_alignment_goal_zh.md).
+
+Price entries check this admission limit at submission. Several admitted pending
+orders may later fill and exceed it: with pyramiding=1, three stops submitted
+while flat can all fill. A market entry submitted first reserves its live slot
+and blocks subsequent price entries. Admission does not exempt later fills from
+direction, risk, margin or maximum-position limits. Seventeen native probes
+measure these boundaries and stop-limit activation in both directions.
 
 `slippage` follows Pine's tick-based model:
 
@@ -141,11 +156,37 @@ mental model:
 
 The default is `0`, which preserves the simpler touch-to-fill behavior.
 
-`process_orders_on_close=True` follows Pine's close-processing visibility:
-orders submitted on a bar can fill at that bar's close or intrabar price, while
+`process_orders_on_close=True` follows Pine's close-processing visibility in
+batch execution and `ctx.strategy.configure(process_orders_on_close=True)`:
+new price orders use only that bar's closing price for their submission phase, while
 strategy series such as `strategy.position_size`, `strategy.netprofit`, and
 `strategy.closedtrades` expose same-bar fills on the following bar. The default
 is `False`, preserving Pyne's original same-bar fill visibility.
+
+In this mode, market `entry` commands remain unfilled until the calculation
+finishes. Reading position or open trades after submission still observes the
+calculation's original state. A later same-ID entry replaces the pending entry;
+market entries for other IDs reserve pyramiding slots without creating visible
+trades. Price entries remain independently admitted before trigger processing.
+A same-calculation market-to-price replacement uses that reserved market slot
+for admission: if pyramiding rejects the new price entry, the replaced market
+entry is canceled as well. Native controls cover pyramiding 1 and 2. These
+controls do not qualify all market `order`, close/exit, reversal or risk-policy
+combinations; default-mode callback market entries retain immediate execution.
+
+Incremental callbacks execute new price entries after the current calculation
+has submitted its commands, using the closing price. Earlier high/low prices
+cannot fill a newly submitted order. Orders waiting from an earlier calculation
+still use the trigger bar's OHLCV. Intrabar priority comparisons between batch
+and callbacks must compare carried orders with batch close-processing enabled.
+
+Pending orders carried from an earlier bar trigger before the current bar's
+calculation state is recorded. Their fills are visible on the trigger bar,
+before current-bar market, close, or cancel instructions execute. Orders newly
+submitted on the current bar retain the separate close-processing phase. Native
+OCA logs qualify the trigger-bar quantities and counts. The additional
+stop-limit probes qualify the captured activation/limit paths; they do not
+establish every intrabar path or every parameter combination.
 
 `same_bar_fill_priority` controls deterministic replay when both stop and limit
 prices are touched by the same bar:
@@ -154,10 +195,18 @@ prices are touched by the same bar:
   Pyne's earlier conservative behavior.
 - `strategy.same_bar.limit_first`: limit wins.
 
-The rule applies to pending `strategy.entry*` / `strategy.order*` stop-limit
-submissions and to `strategy.exit(...)` brackets. Pyne still does not infer the
-true intrabar path; this setting only makes the ambiguous same-bar outcome
-explicit and repeatable.
+This priority chooses between stop and limit exits in `strategy.exit(...)`
+brackets. It does not turn a stop-limit entry into two alternative orders.
+
+An entry/order with both `stop` and `limit` first activates at the stop. Its limit
+can fill only at or after activation, which persists across bars and snapshots.
+Earlier prices from the activation bar cannot fill the limit. Explicit
+`intrabar_path` values select the simulated high/low order; with the default
+policy, the extreme closer to the open is visited first (equal distances use
+low first as a deterministic Pyne choice). These are OHLC simulation rules,
+not reconstructed tick data. Native probes cover delayed limits, unactivated
+orders, gap activation and before/after activation paths in both directions;
+equal-distance path ties are not independently qualified.
 
 `intrabar_path` can make that ambiguity follow a deterministic high/low path:
 
@@ -634,3 +683,48 @@ Known limits:
   relevant prices
 - Python `if` cannot branch directly on series conditions; use
   `entry_when()` and `close_when()`
+
+
+An admitted price `entry` with the same ID as an existing pending `entry`
+supersedes that pending submission. It uses the new quantity and trigger values,
+and starts stop-limit activation afresh. The ledger retains the superseded
+submission as canceled; it cannot fill later. Rejected replacement submissions
+leave the admitted pending entry intact. The native qualification currently covers
+long stop-limit update, repeated identical submission and explicit cancel then
+resubmit; market replacement, mixed entry/order IDs, direction changes and OCA
+update priority require additional native evidence.
+
+
+Additional native probes now expose outstanding differences when replacing a
+pending price entry with a market entry, replacing a same-calculation market
+entry with a price entry, or repeating a same-ID pending `order`. Native direct
+direction changes on an existing pending entry raise RE10028; Pyne currently
+accepts them. These are reported qualification gaps, pending implementation and
+atomicity verification. Native runtime errors are assessed separately from
+numeric output comparisons.
+
+
+At computation semantics 19, changing the direction of a still-pending same-ID
+`entry` raises ValueError with `PYNE_STRATEGY_PENDING_DIRECTION_CHANGE`. Cancel
+the pending entry before submitting the opposite direction, or choose another
+ID. Filled historical lots are not pending-ID locks. Incremental validation
+precedes sequence/log/budget changes. Batch conflicting-ID submission uses an
+isolated chronological replay and commits only after successful validation.
+Caught rejection preserves existing ledger, results and resource accounting;
+native cancel/new continuation, preview isolation and restored continuation are
+verified. The native error code remains TradingView RE10028; Pyne identifies the
+same cause with its own diagnostic. Market replacement and repeated `order`
+submission gaps described above remain outstanding.
+
+
+At computation semantics 20, same-kind same-ID pending price `order` submissions
+replace the old order and restart stop-limit activation. Superseded orders stay
+in the ledger as canceled and cannot fill or take part in OCA. Moving an existing
+pending `order` from an OCA cancel group to another group withdraws the old group's
+pending orders. Same-group updates retain ordinary group cancellation on fill;
+new-ID submissions to an independent group preserve both groups. Native long
+stop-limit probes qualify repeat/update and these cancel-group controls in both
+modes, with isolated previews and snapshot continuation. Reduce-group reassignment,
+mixed entry/order IDs, group direction changes and market replacement require
+additional qualification. The previously reported repeated-price-order gap is
+resolved; market/price same-calculation timing gaps remain.

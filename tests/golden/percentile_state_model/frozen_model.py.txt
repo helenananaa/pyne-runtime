@@ -1,0 +1,134 @@
+import importlib.util
+import json
+import math
+from pathlib import Path
+import itertools
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+spec = importlib.util.spec_from_file_location('hinted',Path(__file__).with_name('percentile_hinted_model.py'))
+hinted = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(hinted)
+CAPTURES = {name: json.loads((ROOT/'tests/workloads'/f'{name}.tradingview.json').read_text())
+            for name in ('percentile_insertion_matrix','percentile_missing_sort',
+                         'percentile_confirmation','percentile_history_context')}
+
+
+def adjusted_orderings(source, period, inclusive, equal_mode, remove_mode, nan_mode, tail_anchor,
+                       right_equal_stop=False):
+    ordered = []
+    results = []
+    for i, item in enumerate(source):
+        number = math.nan if item is None else item
+        expired = None
+        if i >= period:
+            old_item = source[i-period]
+            indices = [j for j,(at,value) in enumerate(ordered)
+                       if (at == i-period if (nan_mode if old_item is None else remove_mode) == 'id'
+                           else math.isnan(value) if old_item is None else value == old_item)]
+            mode = nan_mode if old_item is None else remove_mode
+            if indices:
+                expired = indices[-1 if mode=='last' else 0]
+        old = math.nan
+        if expired is not None:
+            _, old = ordered.pop(expired)
+        if math.isnan(number):
+            pos = len(ordered)
+        elif expired is None or math.isnan(old):
+            pos = next((j for j,(_,value) in enumerate(ordered)
+                        if (number <= value if inclusive else number < value)),len(ordered))
+            if tail_anchor and pos == len(ordered):
+                finite = [j for j,(_,v) in enumerate(ordered) if not math.isnan(v)]
+                if finite:
+                    pos = finite[-1]+1
+        else:
+            pos = expired
+            if number < old or (number == old and equal_mode == 'left'):
+                while pos and not number > ordered[pos-1][1]:
+                    pos -= 1
+            elif number > old or (number == old and equal_mode == 'right'):
+                while pos < len(ordered) and not (number <= ordered[pos][1] if right_equal_stop
+                                                else number < ordered[pos][1]):
+                    pos += 1
+        ordered.insert(pos,(i,number))
+        results.append([v for _,v in ordered])
+    return results
+
+
+def compare(ordering_fn):
+    totals, failures = {}, []
+    for capture_name, data in CAPTURES.items():
+        cache = {}
+        count = mismatch = 0
+        for c, title in enumerate(data['columns']):
+            if not title.startswith(('Nearest ', 'Linear ')):
+                continue
+            parts = title.split()
+            if len(parts) == 2:
+                kind, percentage = parts
+                name, period = 'source', 4
+            elif len(parts) == 3:
+                kind, name, percentage = parts
+                period = 4
+            else:
+                kind, name, period, percentage = parts
+                period = int(period)
+            percentage = int(percentage)
+            if (name,period) not in cache:
+                source = data['columns'].index(name)
+                cache[name,period] = ordering_fn([r['values'][source] for r in data['rows']],period)
+            for i, ordered in enumerate(cache[name,period]):
+                if i < period-1:
+                    actual = None
+                elif kind == 'Nearest':
+                    actual = ordered[max(0,math.ceil(period*percentage/100)-1)]
+                else:
+                    virtual = max(0,min(period-1,period*percentage/100-.5))
+                    lower = math.floor(virtual)
+                    upper = min(lower+1,period-1)
+                    actual = ordered[lower]+(ordered[upper]-ordered[lower])*(virtual-lower)
+                actual = None if actual is None or math.isnan(actual) else actual
+                expected = data['rows'][i]['values'][c]
+                count += 1
+                if actual != expected and not (actual is not None and expected is not None and
+                                               math.isclose(actual,expected,rel_tol=0,abs_tol=1e-8)):
+                    mismatch += 1
+                    failures.append(dict(capture=capture_name,title=title,index=i,official=expected,
+                                         candidate=actual,ordering=[None if math.isnan(v) else v for v in ordered]))
+        totals[capture_name] = dict(cells=count,differences=mismatch)
+    return dict(totals=totals,differences=sum(v['differences'] for v in totals.values()),failures=failures)
+
+
+if __name__ == '__main__':
+    if '--lower-bound' in sys.argv:
+        result = compare(lambda s,p: adjusted_orderings(s,p,True,'left','last','id',False,True))
+        folder=ROOT/'.tmp/tv-alignment-round10-20261001'
+        folder.mkdir(exist_ok=True)
+        (folder/'lower-bound-state-model.json').write_text(json.dumps(result,indent=2)+'\n')
+        print(json.dumps(result['totals'],indent=2))
+        print(json.dumps(result['failures'][:8],indent=2))
+        sys.exit()
+    if '--variants' in sys.argv:
+        results = []
+        for params in itertools.product((False,True),('stay','left','right'),('id','first','last'),
+                                        ('id','first','last'),(False,True)):
+            result = compare(lambda s,p: adjusted_orderings(s,p,*params))
+            results.append(dict(parameters=params,totals=result['totals'],differences=result['differences'],
+                                examples=result['failures'][:4]))
+        results.sort(key=lambda r:r['differences'])
+        folder=ROOT/'.tmp/tv-alignment-round10-20261001'
+        folder.mkdir(exist_ok=True)
+        (folder/'adjusted-state-models.json').write_text(json.dumps(results,indent=2)+'\n')
+        print(json.dumps(results[:3],indent=2))
+        sys.exit()
+    result = compare(lambda s,p: hinted.orderings(s,p,True,True,'left','last','id',False))
+    folder=ROOT/'.tmp/tv-alignment-round10-20261001'
+    folder.mkdir(exist_ok=True)
+    (folder/'prior-best-candidate.json').write_text(json.dumps(result,indent=2)+'\n')
+    print(json.dumps(result['totals'],indent=2))
+    print(json.dumps(result['failures'][:8],indent=2))
+    matrix=CAPTURES['percentile_insertion_matrix']
+    for i in range(8,16):
+        print('ties',i,matrix['rows'][i]['values'][matrix['columns'].index('ties')],
+              [matrix['rows'][i]['values'][matrix['columns'].index(f'Nearest ties 3 {pct}')]
+               for pct in (0,50,100)])

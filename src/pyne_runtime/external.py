@@ -114,7 +114,8 @@ class _IntentStrategy:
             unsupported("nonempty string id is required")
         if direction is not None and direction not in {"long", "short"}:
             unsupported("invalid direction")
-        if qty is not None and "qty_percent" in fields: unsupported("choose qty or qty_percent")
+        if qty is not None and "qty_percent" in fields:
+            unsupported("choose qty or qty_percent")
         if self.ctx is not None:
             indices = [self.ctx.bar_index] if bool(when) else []
         else:
@@ -139,7 +140,8 @@ class _IntentStrategy:
             extra = {} if self.active_pass is None else {"pass_index": self.active_pass}
             for name, value in fields.items():
                 if name == "from_entry":
-                    if not isinstance(value, str): unsupported("from_entry must be a string")
+                    if not isinstance(value, str):
+                        unsupported("from_entry must be a string")
                     extra[name] = value
                 else:
                     extra[name] = number(value, name)
@@ -147,25 +149,29 @@ class _IntentStrategy:
                                  "qty": None if qty is None else number(qty, "qty"), **extra})
 
     def entry(self, id, direction="long", *, qty=1, when=True, **kwargs):
-        if set(kwargs) - {"limit", "stop"}: unsupported("unsupported entry argument")
+        if set(kwargs) - {"limit", "stop"}:
+            unsupported("unsupported entry argument")
         self._emit("entry", id, direction, qty, when, **kwargs)
 
     def entry_when(self, condition, id, direction="long", *, qty=1, **kwargs):
         self.entry(id, direction, qty=qty, when=condition, **kwargs)
 
     def close(self, id, *, when=True, **kwargs):
-        if set(kwargs) - {"qty", "qty_percent"}: unsupported("unsupported close argument")
+        if set(kwargs) - {"qty", "qty_percent"}:
+            unsupported("unsupported close argument")
         self._emit("close", id, when=when, **kwargs)
 
     def close_when(self, condition, id, **kwargs):
         self.close(id, when=condition, **kwargs)
 
     def close_all(self, *, when=True, **kwargs):
-        if kwargs: unsupported("V1 accepts full market close only")
+        if kwargs:
+            unsupported("V1 accepts full market close only")
         self._emit("close_all", "", when=when)
 
     def exit(self, id, from_entry="", *, when=True, **kwargs):
-        if set(kwargs) - {"qty", "qty_percent", "limit", "stop", "profit", "loss", "trail_price", "trail_points", "trail_offset"}: unsupported("unsupported exit argument")
+        if set(kwargs) - {"qty", "qty_percent", "limit", "stop", "profit", "loss", "trail_price", "trail_points", "trail_offset"}:
+            unsupported("unsupported exit argument")
         activation = {"trail_price", "trail_points"} & set(kwargs)
         if bool(activation) != ("trail_offset" in kwargs) or len(activation) > 1:
             unsupported("trailing exit requires one activation and trail_offset")

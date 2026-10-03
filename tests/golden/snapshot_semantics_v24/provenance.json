@@ -1,0 +1,12 @@
+{
+  "description": "Real installed semantics-24 snapshots before connected array slice windows and retained parent accounting; no relabeling.",
+  "packageVersion": "0.4.1rc19",
+  "semanticsVersion": 24,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round29-20261002\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "1c6f1fb8a5675907bf19df84fd0b2ff1de6a729254fc0e85b986a14b464f4877",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "b059a526e5e13423d2a140590a4879fd9c1edca7e1a82aef812dddc662184996",
+    "state.json": "22ff62be589ee10142d2287f13e1a979441994244275de39f87eace0f357c4fe"
+  }
+}

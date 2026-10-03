@@ -1,0 +1,12 @@
+{
+  "description": "Real installed semantics-25 snapshots before atomic map bulk merge admission; no relabeling.",
+  "packageVersion": "0.4.1rc20",
+  "semanticsVersion": 25,
+  "importPath": "E:\\Disk0Merged\\H\\program\\pyne-runtime\\.tmp\\tv-alignment-round30-20261002\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "b01262243727e4f1da7beb589e09e0590bde1b2602a5ffcdadd9c6b2d327b343",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "f13261819499d203e7525d3be521a26b0e5b03d76007d29f836c57e086ecda91",
+    "state.json": "e136315ad67b341dd75c46e95a6993bfb90307b572a15aab523e2e57454cd6e5"
+  }
+}

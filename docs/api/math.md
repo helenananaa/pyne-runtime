@@ -26,11 +26,17 @@ math.toradians(degrees)
 
 ## Rolling Sum
 
-`math.sum(source, length)` returns a rolling sum over the last `length` bars.
-Warmup bars where the full window is unavailable are `na`.
+For positive `length`, `math.sum(source, length)` sums the last `length`
+non-missing observations. It waits for that many observations, skips `na`
+samples, and retains the available sum on missing bars. The native oscillator
+formula capture qualifies length 3 with consecutive and isolated gaps; other
+lengths have independent Python boundary tests, not native parameter qualification.
+Non-positive lengths retain the previous Python behavior and remain outside
+this native qualification.
+Warmup bars without enough non-missing observations are `na`.
 
 ```python
-plot(math.sum(close, 20), "20-Bar Sum")
+plot(math.sum(close, 20), "20-Sample Sum")
 ```
 
 ## Missing Values

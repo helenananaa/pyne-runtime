@@ -1,0 +1,12 @@
+{
+  "description": "Real installed semantics-7 candidate snapshots before pivot correction; no version relabeling.",
+  "packageVersion": "0.4.1rc2",
+  "semanticsVersion": 7,
+  "importPath": "H:\\program\\pyne-runtime\\.tmp\\tv-alignment-round2-20260930\\installed-oracle\\venv\\Lib\\site-packages\\pyne_runtime\\__init__.py",
+  "wheelSha256": "4aac61cc5f6751c0e870e104e9792699d1a0ed67f74b546b9c30fb850d959c9f",
+  "sha256": {
+    "indicator.pyne": "fc6306b6126465c5cbf82cea289523b7829fe17361a5b3484675aa98e19c7b34",
+    "replay.json": "41b0b4b0e5ac20322dfc6d002414e288eb84a9f776283c1b085ca7cb5cd82a2f",
+    "state.json": "b2ec41a1d8c8edbc140c7449d1793cac4c2f40e6dd58fc1904a0ed04bc4bcaab"
+  }
+}
