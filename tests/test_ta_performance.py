@@ -80,14 +80,15 @@ def test_correlation_remains_stable_for_large_offsets_and_missing_windows() -> N
 
 def test_rolling_moment_work_is_bounded_by_chunks(monkeypatch) -> None:
     calls = 0
-    original = ta_module._window_sums
+    kernel_module = importlib.import_module("pyne_runtime.ta_kernels")
+    original = kernel_module._window_sums
 
     def counted(values: np.ndarray, period: int) -> np.ndarray:
         nonlocal calls
         calls += 1
         return original(values, period)
 
-    monkeypatch.setattr(ta_module, "_window_sums", counted)
+    monkeypatch.setattr(kernel_module, "_window_sums", counted)
     rng = np.random.default_rng(7)
     source_a = rng.standard_normal(20_000)
     source_b = rng.standard_normal(20_000)

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from collections.abc import Collection, Mapping
+from numbers import Integral
 from typing import Any, Protocol, TypeAlias, TypedDict
 
 from .errors import PyneProviderError, PyneRequestError, RequestProviderErrorCategory
@@ -97,6 +98,42 @@ class RequestMetadataProvider(Protocol):
 
     def get_request_metadata(self, symbol: str, timeframe: str) -> RequestMetadata:
         """Return metadata for a requested symbol/timeframe context."""
+
+
+class RequestHistoryFinalityProvider(Protocol):
+    """Optional completeness and immutability promise for incremental caching."""
+
+    def get_finalized_through(self, symbol: str, timeframe: str) -> int | None:
+        """Return an inclusive opening-time watermark in Unix seconds.
+
+        For every fetched range, all rows opening at or before this timestamp
+        must be present, complete and immutable, including the absence of rows
+        at other coordinates. Return ``None`` when no such promise is available.
+        The watermark normally advances; revocation or regression invalidates
+        the incremental cache. Mutable requested bars always refresh.
+        """
+
+
+def _request_finalized_through(
+    provider: DataProvider, symbol: str, timeframe: str,
+) -> tuple[int | None, bool]:
+    """Read optional optimization metadata without failing a valid computation."""
+    try:
+        hook = getattr(provider, "get_finalized_through", _MISSING)
+        if hook is _MISSING:
+            return None, False
+        if not callable(hook):
+            return None, True
+        value = hook(symbol, timeframe)
+        if value is None:
+            return None, False
+        if isinstance(value, bool) or not isinstance(value, Integral):
+            return None, True
+        return int(value), False
+    except Exception:
+        # Finality only enables an optimization. The normal data-provider path
+        # still reports retrieval failures using the established request errors.
+        return None, True
 
 
 def _provider_supports(provider: DataProvider, capability_names: tuple[str, ...]) -> bool:

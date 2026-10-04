@@ -1,0 +1,13 @@
+{
+  "packageVersion": "0.4.1rc35",
+  "semanticsVersion": 40,
+  "source": "Independently installed previously qualified rc35 wheel; no snapshot relabeling",
+  "wheelSha256": "6fd5bcbe3605e92e4818fba2857dd93ef6f3b2d1eb838c28610334df6b4a89f4",
+  "sha256": {
+    "bars.json": "c51ab61478fc89ebd314c68cd7c998577e6cebeabf4b012a156f5db1c787e3e1",
+    "committed-result.json": "b2fea4d3ecdac12d94b8e526583eab1fd081db59bc6126831d02b724af3121ac",
+    "indicator.pyne": "68be8593052264a092a3694c720a68cbc10d842665cf45bb10915f048e157510",
+    "replay.json": "01695f69525dbbd36f5ca2d2c9c70fabf7ec1977fefc2c9c48c0e213f6755add",
+    "state.json": "5ebb00b2041cfd3bd699fee9b40c86131f28c5583fcf42dabf95473f85cd5e64"
+  }
+}

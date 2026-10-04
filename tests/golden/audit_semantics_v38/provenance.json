@@ -1,0 +1,13 @@
+{
+  "packageVersion": "0.4.1rc33",
+  "semanticsVersion": 38,
+  "source": "Previously validated rc33 wheel installed outside the source checkout; no snapshot version relabeling",
+  "wheelSha256": "490adb9337b805f3239b6e1f84a7a10525c880e7a009660c2426d44227549004",
+  "sha256": {
+    "bars.json": "8fa978b61381bd00225251dedbd8aaeb65204b041eee063f76950dac26edc11d",
+    "committed-result.json": "3aa28939c88f80c3607bbe22586514be0de5cde9fc2da1d6e70ccfcfbac5c8ce",
+    "indicator.pyne": "26dcc575c82cdfd00e896eeb36bad5744025fdd39f9deec70eb935023554da56",
+    "replay.json": "086825276f1ed4dec3382074141f21f64edaee85c913b29c0d05f7763ac3fbc2",
+    "state.json": "5ec19c1584ccd5697c7218a4b5af90b5e640902ba9d64a69ba2e73d8e697c6f4"
+  }
+}

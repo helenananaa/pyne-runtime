@@ -33,6 +33,7 @@ from .security import (
     PyneSecurityError,
     PyneSecurityPolicy,
     PyneTimeoutError,
+    enforce_input_limits,
     enforce_output_limits,
     execution_timeout,
     validate_script_security,
@@ -104,13 +105,7 @@ class PyneRuntime:
         try:
             policy = PyneSecurityPolicy.from_settings(self.settings, security_mode)
 
-            if policy.max_bars is not None and len(ohlcv) > policy.max_bars:
-                return finish(PyneResult(
-                    ok=False,
-                    code="PYNE_RESOURCE_LIMIT_EXCEEDED",
-                    error=f"Too many data points (max {policy.max_bars})",
-                    hint="Increase max_bars or set it to None; CLI: --limit max_bars=none.",
-                ), status="error")
+            enforce_input_limits(len(ohlcv), policy)
 
             with trace.span("security.validate", category="security"):
                 validate_script_security(script, policy)
@@ -196,7 +191,8 @@ class PyneRuntime:
             message = str(exc)
             code = classify_security_error(message)
             return finish(
-                PyneResult(ok=False, code=code, error=message, hint=error_hint(code)),
+                PyneResult(ok=False, code=code, error=message,
+                           hint=getattr(exc, "hint", None) or error_hint(code)),
                 status="error",
             )
         except PyneRequestError as exc:

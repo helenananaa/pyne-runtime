@@ -1,6 +1,7 @@
 """Pyne execution result model."""
 from __future__ import annotations
 
+import copy
 import json
 from dataclasses import dataclass, field
 from typing import Any
@@ -28,6 +29,9 @@ class PyneResult:
     error_context: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        return copy.deepcopy(self._payload())
+
+    def _payload(self) -> dict[str, Any]:
         return {
             "schemaVersion": self.schema_version,
             "ok": self.ok,
@@ -45,7 +49,7 @@ class PyneResult:
         }
 
     def to_json(self, *, indent: int | None = None) -> str:
-        return json.dumps(self.to_dict(), ensure_ascii=False, indent=indent)
+        return json.dumps(self._payload(), ensure_ascii=False, indent=indent)
 
     @property
     def series_names(self) -> list[str]:
@@ -54,19 +58,22 @@ class PyneResult:
 
     def get_series(self, name: str) -> list[dict[str, Any]]:
         """Return points for a plotted series by name."""
+        return copy.deepcopy(self._series_points(name))
+
+    def _series_points(self, name: str) -> list[dict[str, Any]]:
         for line in self.lines:
             if _series_name(line) == name:
                 data = line.get("data")
-                return list(data) if isinstance(data, list) else []
+                return data if isinstance(data, list) else []
         raise KeyError(f"Unknown Pyne series: {name}")
 
     def values(self, name: str) -> list[Any]:
         """Return only the values for a plotted series."""
-        return [point.get("value") for point in self.get_series(name)]
+        return [point.get("value") for point in self._series_points(name)]
 
     def latest(self, name: str, default: Any = None) -> Any:
         """Return the latest non-empty value for a plotted series."""
-        for point in reversed(self.get_series(name)):
+        for point in reversed(self._series_points(name)):
             value = point.get("value")
             if value is not None:
                 return value
@@ -82,11 +89,17 @@ class PyneResult:
             ) from exc
 
         rows: dict[int, dict[str, Any]] = {}
-        name_counts: dict[str, int] = {}
+        used_names = {"time"}
+        next_suffixes: dict[str, int] = {}
         for line in self.lines:
             raw_name = str(line.get("name") or line.get("title") or line.get("id") or "value")
-            name_counts[raw_name] = name_counts.get(raw_name, 0) + 1
-            name = raw_name if name_counts[raw_name] == 1 else f"{raw_name}_{name_counts[raw_name]}"
+            name = raw_name
+            suffix = next_suffixes.get(raw_name, 2)
+            while name in used_names:
+                name = f"{raw_name}_{suffix}"
+                suffix += 1
+            next_suffixes[raw_name] = suffix
+            used_names.add(name)
             for point in line.get("data") or []:
                 timestamp = point.get("time")
                 if timestamp is None:
@@ -129,6 +142,11 @@ class PyneResult:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "PyneResult":
+        fields = {
+            "schemaVersion", "ok", "error", "code", "line", "column", "hint", "errorDetail",
+            "lines", "output", "param_schema", "paramSchemaVersion", "meta",
+        }
+        data = copy.deepcopy({key: value for key, value in data.items() if key in fields})
         return cls(
             ok=bool(data.get("ok")),
             error=data.get("error"),

@@ -56,6 +56,11 @@ seeded = session.seed(history_bars)
 render_snapshot(seeded)
 ```
 
+Initialization is single-use. `seed([])` also initializes the session; a later
+`seed()` raises `ValueError` before changing its state. Once a session has
+received a close or preview, create a fresh session to seed replacement history.
+Continue an initialized session with live events or restore a matching checkpoint.
+
 Each bar dict should include `time`, `open`, `high`, `low`, `close`, and
 `volume`. Optional fields such as `time_close` and session flags are preserved
 when present. The seed result is committed history: its plotted lines, markers,
@@ -333,12 +338,40 @@ from pyne_runtime.incremental import PyneIncrementalSession
 from pyne_runtime import PyneIncrementalSession
 ```
 
+### Shared-session acquisition and release
+
+Pair every manager acquisition with one release. Pass the acquired instance
+when releasing a session that might be force-closed and replaced under the same key:
+
+```python
+manager = pn.PyneIncrementalSessionManager()
+shared = manager.acquire("calculation", lambda: pn.PyneIncrementalSession(script=script))
+try:
+    manager.seed_or_snapshot(shared, history_bars)
+finally:
+    manager.release("calculation", shared=shared)
+```
+
+`release(key)` remains supported. After forced replacement it cannot identify
+which instance the caller acquired, so reference counts are conservative upper
+bounds until balanced releases resolve the outstanding acquisitions. This can
+temporarily retain a released replacement while older acquisitions remain;
+it prevents a stale caller from deleting a still-used replacement. Prefer
+`shared=shared` for precise attribution. The accounting stores tokens and counts,
+without retaining forced-closed session objects.
+
 ## Snapshot semantic compatibility
 
 Snapshots now carry a computation semantics identity independently of package
 and wire-format versions: `semantics_version` in local state and
 `payload.semanticsVersion` in portable replay-v1 and typed-state-v2 envelopes.
-The current identity is integer `5`. Identity 5 makes standalone execution
+The development identity is integer `41`; published 0.4.0 uses `5`. Identity 41
+preserves sharing in collection snapshots and committed state history, isolates
+bar payload graphs before callbacks and records their original replay inputs.
+It also enforces lower-timeframe array budgets. Real rc35 /40 checkpoints require
+rebuilding from authoritative supplied OHLCV. Identity 40
+preserves duplicate requested rows and updates incremental Pivot state. Real
+rc34 /39 checkpoints require rebuilding. Identity 5 makes standalone execution
 unrestricted by default, separates history policies and allows resource-policy
 changes on restore when existing state fits. Identity 4 separates configurable resource
 budgets from import permissions and persists them in checkpoint settings. Identity 1 covered corrected TA observation
@@ -355,6 +388,10 @@ envelope before decoding the graph or constructing/executing a session. The
 typed-state root must also carry a matching identity. Existing format names
 remain unchanged; older consumers that require exact payload fields reject new
 snapshots rather than ignoring the identity.
+
+Malformed local restore input is validated and copied before live roots are
+adopted. Rejection preserves the healthy session's committed state, functions,
+cache and preview state. Do not treat rejection as successful restoration.
 
 Rebuild from authoritative OHLCV in a fresh session after an incompatible upgrade.
 Do not edit the identity to force restoration. Replay under new semantics can

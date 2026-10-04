@@ -52,11 +52,16 @@ def _imported_names(node: ast.ImportFrom, current_module: str, *, is_package: bo
     return [f"{base_name}.{alias.name}" if base_name else alias.name for alias in node.names]
 
 
-def _resolve_internal_module(import_name: str | None, modules: dict[str, Path]) -> str | None:
+def _resolve_internal_module(
+    import_name: str | None, modules: dict[str, Path], *, relative: bool = False,
+) -> str | None:
     if not import_name:
         return None
 
     if import_name == "pyne_runtime":
+        return None
+
+    if not relative and not import_name.startswith("pyne_runtime."):
         return None
 
     if import_name.startswith("pyne_runtime."):
@@ -90,7 +95,7 @@ def _internal_import_graph() -> dict[str, set[str]]:
                     module_name,
                     is_package=path.name == "__init__.py",
                 ):
-                    dependency = _resolve_internal_module(import_name, modules)
+                    dependency = _resolve_internal_module(import_name, modules, relative=node.level > 0)
                     if dependency and dependency != module_name:
                         graph[module_name].add(dependency)
                 continue
@@ -177,6 +182,22 @@ def test_internal_import_graph_has_no_cycles() -> None:
     cycles = _find_cycles(_internal_import_graph())
 
     assert cycles == []
+
+
+def test_stdlib_and_external_absolute_imports_do_not_alias_internal_modules() -> None:
+    modules = {"collections": Path("collections.py"), "math": Path("math.py")}
+    assert _resolve_internal_module("collections", modules) is None
+    assert _resolve_internal_module("collections.abc", modules) is None
+    assert _resolve_internal_module("math", modules) is None
+    assert _resolve_internal_module("pyne_runtime.collections", modules) == "collections"
+    assert _resolve_internal_module("collections", modules, relative=True) == "collections"
+
+
+def test_relative_collection_import_resolves_to_the_package_module() -> None:
+    node = ast.parse("from ..collections import PyneArray").body[0]
+    names = _imported_names(node, "incremental.context", is_package=False)
+    assert names == ["collections"]
+    assert _resolve_internal_module(names[0], {"collections": Path("collections.py")}, relative=True) == "collections"
 
 
 def test_large_modules_emit_architecture_warning() -> None:

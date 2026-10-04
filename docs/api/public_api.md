@@ -80,6 +80,7 @@ pn.REQUEST_SECURITY_LOWER_TF_API
 pn.REQUEST_SECURITY_LOWER_TF_CAPABILITY_ALIASES
 pn.RequestCapabilities
 pn.RequestCapabilityProvider
+pn.RequestHistoryFinalityProvider
 pn.RequestMetadata
 pn.RequestMetadataProvider
 pn.RequestSessionMetadata
@@ -177,6 +178,10 @@ adapter surface.
 `REQUEST_SECURITY_LOWER_TF_CAPABILITY_ALIASES`, `RequestCapabilities`,
 `RequestMetadata`, and related provider protocols are typing helpers for host
 data adapters.
+`pn.RequestHistoryFinalityProvider` optionally promises complete, immutable
+history through an inclusive Unix-second watermark. See the
+[finality contract](request_history_finality.md) before enabling cached gaps;
+ordinary `DataProvider` implementations do not need this method.
 `PyneInvalidSymbolError` is the provider-side signal used by
 `ignore_invalid_symbol=True`.
 `PyneProviderError` and its capability, data, and metadata subclasses provide

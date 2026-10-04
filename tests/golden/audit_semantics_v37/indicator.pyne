@@ -1,0 +1,7 @@
+indicator("Audit baseline", mode="incremental")
+def on_bar(ctx, bar):
+    total = ctx.state("total", 0.0)
+    total.value += bar.close
+    ctx.plot("total", total.value)
+    volume = None if ctx.bar_index == 3 else bar.volume
+    ctx.plot("mfi", ctx.ta.mfi("mfi", 2).update(bar.close, volume))

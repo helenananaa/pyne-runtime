@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import math
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Any
 
@@ -107,11 +108,10 @@ class PyneSettings:
                 "require_hard_timeout=True cannot be delivered by executor_mode='inline'; "
                 "use executor_mode='process' for hard timeout enforcement"
             )
-        object.__setattr__(
-            self,
-            "process_grace_seconds",
-            max(float(self.process_grace_seconds), 0.0),
-        )
+        grace_seconds = float(self.process_grace_seconds)
+        if not math.isfinite(grace_seconds):
+            raise ValueError("process_grace_seconds must be finite")
+        object.__setattr__(self, "process_grace_seconds", max(grace_seconds, 0.0))
         for name in OPTIONAL_BUDGET_FIELDS:
             object.__setattr__(self, name, optional_limit(name, getattr(self, name)))
         for name in ("request_cache_max_bars", "cache_max_items"):

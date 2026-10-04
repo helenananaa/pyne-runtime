@@ -1,0 +1,7 @@
+indicator("Audit numeric baseline", mode="incremental")
+
+def on_bar(ctx, bar):
+    ctx.plot("stdev", ctx.ta.stdev("stdev", 2).update(bar.close))
+    _, upper, lower = ctx.ta.bb("bb", 2, 2.0).update(bar.close)
+    ctx.plot("upper", upper)
+    ctx.plot("lower", lower)

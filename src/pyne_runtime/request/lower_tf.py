@@ -8,6 +8,7 @@ from typing import Any, Callable
 import numpy as np
 
 from ..series import PyneSeries
+from ..security import PyneResourceLimitError
 from ..values import is_na_value
 
 RequestValues = list[Any] | tuple[list[Any], ...]
@@ -169,6 +170,7 @@ def _group_lower_timeframe_values(
     chart_end: int,
     requested_times: list[int],
     requested_values: RequestValues,
+    max_group_size: int | None = None,
 ) -> LowerTimeframeSeries | tuple[LowerTimeframeSeries, ...]:
     if isinstance(requested_values, tuple):
         return tuple(
@@ -180,6 +182,7 @@ def _group_lower_timeframe_values(
                 chart_end=chart_end,
                 requested_times=requested_times,
                 requested_values=values,
+                max_group_size=max_group_size,
             )
             for index, values in enumerate(requested_values)
         )
@@ -191,6 +194,7 @@ def _group_lower_timeframe_values(
         chart_end=chart_end,
         requested_times=requested_times,
         requested_values=requested_values,
+        max_group_size=max_group_size,
     )
 
 def _group_single_lower_timeframe_values(
@@ -202,12 +206,17 @@ def _group_single_lower_timeframe_values(
     chart_end: int,
     requested_times: list[int],
     requested_values: list[Any],
+    max_group_size: int | None = None,
 ) -> LowerTimeframeSeries:
     groups: list[tuple[Any, ...]] = []
     for index, chart_time in enumerate(chart_times):
         next_time = chart_times[index + 1] if index + 1 < len(chart_times) else chart_end
         start = bisect_left(requested_times, chart_time)
         end = bisect_left(requested_times, next_time)
+        first, last, _ = slice(start, end).indices(len(requested_values))
+        count = max(last - first, 0)
+        if max_group_size is not None and count > max_group_size:
+            raise PyneResourceLimitError(f"array size {count} exceeds limit {max_group_size}")
         groups.append(tuple(
             np.nan if is_na_value(value) else value
             for value in requested_values[start:end]

@@ -5,9 +5,14 @@ import math
 from collections import deque
 from typing import Any
 
-from ..ta_kernels import _FLOAT_EXACT_SCALE, _normalize_pivot_type, _pivot_level_values
+from ..ta_kernels import (
+    _FLOAT_EXACT_SCALE, _FLOAT_MIN_NORMAL, _exact_stdev, _exact_variance,
+    _normalize_pivot_type, _pivot_level_values, _scaled_float,
+)
 from ..utils import require_positive_period
 from ..values import is_condition_true
+from ._pivot_window import _PivotWindow
+from ._ta_capacity import window_capacity
 from .limits import IncrementalLimits, _LimitTracker
 
 
@@ -25,6 +30,8 @@ class _StepRollingMoments:
         self.sum = 0.0
         self.sumsq = 0.0
         self.exact_sum = 0
+        self.exact_sumsq: int | None = None
+        self.nonzero_centered = 0
         self.positive_infinity = 0
         self.negative_infinity = 0
         self.updates = 0
@@ -50,8 +57,12 @@ class _StepRollingMoments:
             self.negative_infinity += sign
         else:
             numerator, denominator = number.as_integer_ratio()
-            self.exact_sum += sign * (numerator << (1074 - (denominator.bit_length() - 1)))
+            scaled = numerator << (1074 - (denominator.bit_length() - 1))
+            self.exact_sum += sign * scaled
+            if self.exact_sumsq is not None:
+                self.exact_sumsq += sign * scaled * scaled
             centered = number - (self.anchor or 0.0)
+            self.nonzero_centered += sign * int(centered != 0.0)
             self.sum += sign * centered
             self.sumsq += sign * centered * centered
 
@@ -61,6 +72,7 @@ class _StepRollingMoments:
         centered = [value - (self.anchor or 0.0) for value in finite]
         self.sum = sum(centered)
         self.sumsq = sum(value * value for value in centered)
+        self.nonzero_centered = sum(value != 0.0 for value in centered)
 
     def mean_value(self) -> float | None:
         if len(self.window) < self.period:
@@ -84,14 +96,33 @@ class _StepRollingMoments:
             return None
         if self.period == 1:
             return 0.0
+        if self.exact_sumsq is not None:
+            return _exact_variance(self.exact_sum, self.exact_sumsq, self.period,
+                                   0 if biased else 1)
         centered = self.sumsq - self.sum * self.sum / self.period
         # Rebase early after an abrupt level shift or near-total cancellation.
-        if centered < 0 or (self.sumsq > 0 and centered <= 1e-10 * self.sumsq):
-            self._rebase()
-            centered = self.sumsq - self.sum * self.sum / self.period
-        if not math.isfinite(centered):
-            return None
+        if (not math.isfinite(centered) or centered < 0
+                or (self.sumsq == 0.0 and self.nonzero_centered > 0)
+                or (self.sumsq > 0 and centered <= 1e-10 * self.sumsq)):
+            # Initialize exact squares once. Subsequent add/remove updates
+            # retain O(1) work even for underflow or extreme level shifts.
+            self.exact_sumsq = sum(_scaled_float(value) ** 2 for value in self.window)
+            return _exact_variance(self.exact_sum, self.exact_sumsq, self.period,
+                                   0 if biased else 1)
         return max(centered, 0.0) / denominator
+
+
+    def stdev_value(self, *, biased: bool = True) -> float | None:
+        variance = self.variance_value(biased=biased)
+        if variance is None:
+            return None
+        if (math.isfinite(variance) and variance >= _FLOAT_MIN_NORMAL
+                or variance == 0.0 and self.exact_sumsq is None and self.nonzero_centered == 0):
+            return math.sqrt(variance)
+        if self.exact_sumsq is None:
+            self.exact_sumsq = sum(_scaled_float(value) ** 2 for value in self.window)
+        return _exact_stdev(self.exact_sum, self.exact_sumsq, self.period,
+                            0 if biased else 1)
 
 
 class _StepSMA(_StepRollingMoments):
@@ -237,8 +268,8 @@ class _StepVariance(_StepRollingMoments):
 
 class _StepStdev(_StepVariance):
     def update(self, value: Any) -> float | None:
-        variance = super().update(value)
-        return None if variance is None else math.sqrt(variance)
+        self.push(value)
+        return self.stdev_value(biased=self.biased)
 
 
 class _StepChange:
@@ -284,39 +315,11 @@ class _StepExtremeBars:
         return None if not self.window else float(self.window[0][0] - self.index)
 
 
-class _StepPivot:
-    """Causal pivot detector returning the value on its confirmation bar."""
-
-    def __init__(self, left: int, right: int, *, highest: bool) -> None:
-        self.left = max(int(left), 0)
-        self.right = max(int(right), 0)
-        self.highest = bool(highest)
-        self.window_size = self.left + self.right + 1
-        self.window: deque[float | None] = deque(maxlen=self.window_size)
-
-    @property
-    def confirmation_offset(self) -> int:
-        return -self.right
+class _StepPivot(_PivotWindow):
+    """Normalize inputs while preserving the registered incremental state type."""
 
     def update(self, value: Any) -> float | None:
-        self.window.append(_number_or_none(value))
-        if len(self.window) < self.window_size:
-            return None
-        values = list(self.window)
-        center = values[self.left]
-        if center is None:
-            return None
-        for item in reversed(values[:self.left]):
-            if item is None:
-                break
-            if (item > center) if self.highest else (item < center):
-                return None
-        for item in values[self.left + 1:]:
-            if item is None:
-                break
-            if (item >= center) if self.highest else (item <= center):
-                return None
-        return center
+        return super().update(_number_or_none(value))
 
 
 class _StepTrueRange:
@@ -410,11 +413,10 @@ class _StepBOLL(_StepRollingMoments):
 
     def update(self, value: Any) -> tuple[float | None, float | None, float | None]:
         self.push(value)
-        variance = self.variance_value()
+        std = self.stdev_value()
         mid = self.mean_value()
-        if variance is None or mid is None:
+        if std is None or mid is None:
             return None, None, None
-        std = math.sqrt(variance)
         return mid + self.multiplier * std, mid, mid - self.multiplier * std
 
 
@@ -859,21 +861,33 @@ class _StepMFI:
     def update(self, source: Any, volume: Any) -> float | None:
         price = _number_or_none(source)
         weight = _number_or_none(volume)
-        raw = 0.0 if price is None or weight is None else price * weight
+        raw = None if price is None or weight is None else _number_or_none(price * weight)
         positive = raw if self.previous_source is not None and price is not None and price > self.previous_source else 0.0
         negative = raw if self.previous_source is not None and price is not None and price < self.previous_source else 0.0
         self.previous_source = price
-        self.positive.append(positive)
-        self.negative.append(negative)
-        self.positive_sum += positive
-        self.negative_sum += negative
-        if len(self.positive) > self.period:
-            self.positive_sum -= self.positive.popleft()
-            self.negative_sum -= self.negative.popleft()
+        # Batch math.sum() has independent present-observation windows for
+        # positive and negative flows. A missing active flow does not insert a
+        # zero or evict the previous observation from that accumulator.
+        if positive is not None:
+            self.positive.append(positive)
+            self.positive_sum += positive
+            if len(self.positive) > self.period:
+                self.positive_sum -= self.positive.popleft()
+            if not math.isfinite(self.positive_sum):
+                self.positive_sum = sum(self.positive)
+        if negative is not None:
+            self.negative.append(negative)
+            self.negative_sum += negative
+            if len(self.negative) > self.period:
+                self.negative_sum -= self.negative.popleft()
+            if not math.isfinite(self.negative_sum):
+                self.negative_sum = sum(self.negative)
+        if len(self.negative) < self.period:
+            return 100.0
+        if self.negative_sum == 0.0 or math.isnan(self.negative_sum):
+            return 100.0
         if len(self.positive) < self.period:
-            return 100.0
-        if self.negative_sum == 0.0:
-            return 100.0
+            return None
         return 100.0 - 100.0 / (1.0 + self.positive_sum / self.negative_sum)
 
 
@@ -1024,12 +1038,17 @@ class IncrementalTaNamespace:
         self._helpers: dict[str, Any] = {}
         self._limits = limits or _LimitTracker(IncrementalLimits(enabled=False))
 
+    @property
+    def _capacity_types(self) -> dict[str, type]:
+        return {name: value for name, value in globals().items()
+                if name.startswith("_Step") and isinstance(value, type)}
+
     def sma(self, name: str, period: int | None = None) -> _StepSMA:
         key = f"sma:{name}"
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.sma('{name}') has not been initialized")
-            self._limits.reserve_window(period, label=key)
+            self._limits.reserve_window(window_capacity("period", period=period), label=key)
             self._helpers[key] = _StepSMA(period)
         return self._helpers[key]
 
@@ -1054,7 +1073,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.wma('{name}') has not been initialized")
-            self._limits.reserve_window(period, label=key)
+            self._limits.reserve_window(window_capacity("period", period=period), label=key)
             self._helpers[key] = _StepWMA(period)
         return self._helpers[key]
 
@@ -1063,7 +1082,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.vwma('{name}') has not been initialized")
-            self._limits.reserve_window(period, label=key)
+            self._limits.reserve_window(window_capacity("period", period=period), label=key)
             self._helpers[key] = _StepVWMA(period)
         return self._helpers[key]
 
@@ -1078,7 +1097,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.variance('{name}') has not been initialized")
-            self._limits.reserve_window(period, label=key)
+            self._limits.reserve_window(window_capacity("period", period=period), label=key)
             self._helpers[key] = _StepVariance(period, biased=biased)
         return self._helpers[key]
 
@@ -1087,7 +1106,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.stdev('{name}') has not been initialized")
-            self._limits.reserve_window(period, label=key)
+            self._limits.reserve_window(window_capacity("period", period=period), label=key)
             self._helpers[key] = _StepStdev(period)
         return self._helpers[key]
 
@@ -1097,7 +1116,7 @@ class IncrementalTaNamespace:
             if period is None:
                 raise ValueError(f"ctx.ta.change('{name}') has not been initialized")
             period = require_positive_period(period)
-            self._limits.reserve_window(int(period) + 1, label=key)
+            self._limits.reserve_window(window_capacity("change", period=period), label=key)
             self._helpers[key] = _StepChange(period)
         return self._helpers[key]
 
@@ -1119,7 +1138,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.{family}('{name}') has not been initialized")
-            self._limits.reserve_window(period, label=key)
+            self._limits.reserve_window(window_capacity("period", period=period), label=key)
             self._helpers[key] = _StepExtremeBars(period, highest=highest)
         return self._helpers[key]
 
@@ -1153,7 +1172,7 @@ class IncrementalTaNamespace:
             if left is None:
                 raise ValueError(f"ctx.ta.{family}('{name}') has not been initialized")
             selected_right = int(left) if right is None else int(right)
-            self._limits.reserve_window(int(left) + selected_right + 1, label=key)
+            self._limits.reserve_window(window_capacity("pivot", left=left, right=selected_right), label=key)
             self._helpers[key] = _StepPivot(left, selected_right, highest=highest)
         return self._helpers[key]
 
@@ -1187,7 +1206,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.alma('{name}') has not been initialized")
-            self._limits.reserve_window(period, label=key)
+            self._limits.reserve_window(window_capacity("period", period=period), label=key)
             self._helpers[key] = _StepALMA(period, offset, sigma)
         return self._helpers[key]
 
@@ -1196,7 +1215,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.dev('{name}') has not been initialized")
-            self._limits.reserve_window(period, label=key)
+            self._limits.reserve_window(window_capacity("period", period=period), label=key)
             self._helpers[key] = _StepDev(period)
         return self._helpers[key]
 
@@ -1205,7 +1224,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.boll('{name}') has not been initialized")
-            self._limits.reserve_window(period, label=key)
+            self._limits.reserve_window(window_capacity("period", period=period), label=key)
             self._helpers[key] = _StepBOLL(period, multiplier)
         return self._helpers[key]
 
@@ -1214,7 +1233,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.bb('{name}') has not been initialized")
-            self._limits.reserve_window(period, label=key)
+            self._limits.reserve_window(window_capacity("period", period=period), label=key)
             self._helpers[key] = _StepBB(period, mult)
         return self._helpers[key]
 
@@ -1253,7 +1272,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.highest('{name}') has not been initialized")
-            self._limits.reserve_window(period, label=key)
+            self._limits.reserve_window(window_capacity("period", period=period), label=key)
             self._helpers[key] = _StepMonotonic(period, highest=True)
         return self._helpers[key]
 
@@ -1262,7 +1281,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.lowest('{name}') has not been initialized")
-            self._limits.reserve_window(period, label=key)
+            self._limits.reserve_window(window_capacity("period", period=period), label=key)
             self._helpers[key] = _StepMonotonic(period, highest=False)
         return self._helpers[key]
 
@@ -1271,7 +1290,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.stoch('{name}') has not been initialized")
-            self._limits.reserve_window(period * 2, label=key)
+            self._limits.reserve_window(window_capacity("double", period=period), label=key)
             self._helpers[key] = _StepStoch(period)
         return self._helpers[key]
 
@@ -1280,7 +1299,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.cci('{name}') has not been initialized")
-            self._limits.reserve_window(period, label=key)
+            self._limits.reserve_window(window_capacity("period", period=period), label=key)
             self._helpers[key] = _StepCCI(period)
         return self._helpers[key]
 
@@ -1289,9 +1308,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.hma('{name}') has not been initialized")
-            half = max(int(period / 2), 1)
-            root = max(int(math.sqrt(period)), 1)
-            self._limits.reserve_window(half + int(period) + root, label=key)
+            self._limits.reserve_window(window_capacity("hma", period=period), label=key)
             self._helpers[key] = _StepHMA(period)
         return self._helpers[key]
 
@@ -1306,7 +1323,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if occurrence is None:
                 raise ValueError(f"ctx.ta.valuewhen('{name}') has not been initialized")
-            self._limits.reserve_window(max(int(occurrence), 0) + 1, label=key)
+            self._limits.reserve_window(window_capacity("occurrence", occurrence=occurrence), label=key)
             self._helpers[key] = _StepValueWhen(occurrence)
         return self._helpers[key]
 
@@ -1377,7 +1394,7 @@ class IncrementalTaNamespace:
         if key not in self._helpers:
             if period is None:
                 raise ValueError(f"ctx.ta.mfi('{name}') has not been initialized")
-            self._limits.reserve_window(int(period) * 2, label=key)
+            self._limits.reserve_window(window_capacity("double", period=period), label=key)
             self._helpers[key] = _StepMFI(period)
         return self._helpers[key]
 

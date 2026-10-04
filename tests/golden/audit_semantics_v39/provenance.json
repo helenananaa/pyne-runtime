@@ -1,0 +1,14 @@
+{
+  "packageVersion": "0.4.1rc34",
+  "semanticsVersion": 39,
+  "source": "Previously validated rc34 wheel installed outside the source checkout; no snapshot version relabeling",
+  "wheelSha256": "eaa9ee7043b9556a8c045a957f672bc47aad7f402ea9d402d4d8c6566abf7362",
+  "sha256": {
+    "bars.json": "27916e8950cafac6e4f20bc7a700f17ec52776635d2e11df58bdce1568866971",
+    "committed-result.json": "40e052bf2b96022667bdb0f7322c3793a5bc979ec11085c23745c94469155be6",
+    "indicator.pyne": "04b662e62e89cfe112430deb69554955035cd5e8f29ba8884d068354b7b65214",
+    "provider-rows.json": "3a8272e10548154d45430908e16fae0cef1ddaf067a404fdbea1470e89d7bc59",
+    "replay.json": "3f71f490d80c8c653859d6f117c85cc13496c150b4dbabf488c5784a18d21956",
+    "state.json": "2c720e66f632ef8898cedb600f02c080c92dd2ed0fa7e7bbd1d208455f1c1a80"
+  }
+}

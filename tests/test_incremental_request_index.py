@@ -11,13 +11,17 @@ from pyne_runtime.incremental.request import IncrementalRequestModule, _RangeCac
 from pyne_runtime.incremental.session import _preview_copy_memo
 
 
+def row(time, close, **extra):
+    return dict(time=time, open=close, high=close, low=close, close=close, volume=1, **extra)
+
+
 class Provider:
     def __init__(self):
         self.calls = []
 
     def get_ohlcv(self, symbol, timeframe, start, end):
         self.calls.append((symbol, timeframe, start, end))
-        return [{"time": t, "close": t + (100 if symbol == "B" else 0), "nested": [t]}
+        return [row(t, t + (100 if symbol == "B" else 0), nested=[t])
                 for t in range(20, -21, -2) if start <= t <= end]
 
 
@@ -52,16 +56,16 @@ def test_index_is_discarded_with_evicted_rows_and_rebuilt_on_refetch():
     assert cache.stats()["bars"] == 0
     assert cache.get_ohlcv("A", "10S", 0, 10) == expected
     assert len(provider.calls) == 2
-    assert cache.get_ohlcv("A", "10S", 4, 4) == [{"time": 4, "close": 4, "nested": [4]}]
+    assert cache.get_ohlcv("A", "10S", 4, 4) == [row(4, 4, nested=[4])]
 
 
-def test_duplicate_provider_timestamps_remain_last_value_wins():
+def test_duplicate_provider_timestamps_retain_every_row_in_provider_order():
     class Duplicates:
         def get_ohlcv(self, *args):
-            return [{"time": 2, "close": 1}, {"time": 0, "close": 0}, {"time": 2, "close": 3}]
+            return [row(2, 1), row(0, 0), row(2, 3)]
 
     cache = _RangeCachingProvider(Duplicates(), max_cached_bars=20, max_covered_ranges=20)
-    expected = [{"time": 0, "close": 0}, {"time": 2, "close": 3}]
+    expected = [row(0, 0), row(2, 1), row(2, 3)]
     assert cache.get_ohlcv("A", "10S", 0, 2) == expected
     assert cache.get_ohlcv("A", "10S", 0, 2) == expected
 
@@ -99,13 +103,14 @@ def test_malformed_fetch_does_not_leave_rows_missing_from_the_index():
         def get_ohlcv(self, *args):
             if self.invalid:
                 self.invalid = False
-                return [{"time": 0, "close": 10}, {"time": "invalid", "close": 20}]
-            return [{"time": 0, "close": 11}]
+                return [row(0, 10), row("invalid", 20)]
+            return [row(0, 11)]
 
     cache = _RangeCachingProvider(OnceInvalid(), max_cached_bars=20, max_covered_ranges=20)
-    with pytest.raises(ValueError):
+    with pytest.raises(pn.PyneRequestError) as error:
         cache.get_ohlcv("A", "10S", 0, 2)
-    expected = [{"time": 0, "close": 11}]
+    assert error.value.category == "invalidBarShape"
+    expected = [row(0, 11)]
     assert cache.get_ohlcv("A", "10S", 0, 2) == expected
     assert cache.get_ohlcv("A", "10S", 0, 2) == expected
 

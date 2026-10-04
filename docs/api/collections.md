@@ -5,7 +5,7 @@ supported namespaces are `array.*`, `map.*`, and `matrix.*`.
 
 Collections have no default capacity or nesting-depth quota. Callers may opt into
 `PyneSettings` array/map/matrix/depth limits; `None` means unlimited.
-Exceeding a configured limit returns `PYNE_SECURITY_ERROR`.
+Exceeding a configured limit returns `PYNE_RESOURCE_LIMIT_EXCEEDED`.
 
 Pyne arrays are Python objects created by `array.new_*()` or `array.from_*()`.
 They can be used with Pine-style namespace functions:
@@ -27,6 +27,11 @@ average = values.avg()
 Use `snapshot()` when a script needs a mutation boundary for nested
 collections. It recursively snapshots nested `array`, `map`, and `matrix`
 values, so later mutations to the live collection do not affect the snapshot.
+Sharing inside that graph is preserved: two references to the same nested array
+refer to the same detached array in the snapshot. Pure Pyne collection and slice
+storage graphs use iterative traversal, so a deep or shared graph does not expand
+each shared branch or consume the Python recursion stack. Ordinary Python leaf
+payloads keep their normal deepcopy behavior.
 
 Collections can store stable script values: scalars, `na`, series values,
 colors, drawing object handles, and nested `array`/`map`/`matrix` values.

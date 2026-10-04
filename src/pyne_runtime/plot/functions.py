@@ -1404,8 +1404,10 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
     def table_clear(ref: ObjectRef) -> None:
         entry = _table_entry(ref)
         if entry is not None:
+            collector.release_table_cells(len(entry.get("cells") or []))
             entry["cells"] = []
             entry["merges"] = []
+            collector._table_cell_indices.pop(ref.id, None)
 
     def table_merge_cells(
         ref: ObjectRef,
@@ -1463,16 +1465,22 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
 
     def table_delete(ref: ObjectRef) -> None:
         if isinstance(ref, ObjectRef) and ref.kind == "table":
-            collector._object_tables.pop(ref.id, None)
+            entry = collector._object_tables.pop(ref.id, None)
+            if entry is not None:
+                collector.release_table_cells(len(entry.get("cells") or []))
+            collector._table_cell_indices.pop(ref.id, None)
 
     def _upsert_table_cell(entry: dict[str, Any], cell: dict[str, Any]) -> None:
         cells = entry.setdefault("cells", [])
-        for idx, existing in enumerate(cells):
-            if existing.get("column") == cell["column"] and existing.get("row") == cell["row"]:
-                cells[idx] = cell
-                return
-        cells.append(cell)
-        cells.sort(key=lambda item: (item.get("row", 0), item.get("column", 0)))
+        indices = collector._table_cell_indices.setdefault(entry["id"], {})
+        coordinate = (cell["column"], cell["row"])
+        index = indices.get(coordinate)
+        if index is None:
+            collector.reserve_table_cell()
+            indices[coordinate] = len(cells)
+            cells.append(cell)
+        else:
+            cells[index] = cell
 
     def _require_table_coordinate(entry: dict[str, Any], column: int, row: int) -> None:
         if column < 0 or column >= int(entry["columns"]):

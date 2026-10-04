@@ -68,6 +68,7 @@ class RuntimeServices:
         self.collector = OutputCollector(
             times=self.ctx.times,
             max_drawing_objects=self.settings.max_drawing_objects,
+            max_table_cells=self.policy.max_table_cells,
         )
         self.plot_functions = create_plot_functions(self.collector)
         self.request = RequestModule(self.ctx, provider=self.settings.data_provider)

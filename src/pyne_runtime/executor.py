@@ -53,7 +53,7 @@ def execute_pyne_script(
     if session is not None:
         settings = replace(settings, session=session)
     if timeout_seconds is not None:
-        settings = replace(settings, timeout_seconds=max(float(timeout_seconds), 0.0))
+        settings = replace(settings, timeout_seconds=timeout_seconds)
     mode = normalize_executor_mode(executor_mode or settings.executor_mode)
     if settings.require_hard_timeout and mode == "inline":
         raise ValueError(
@@ -88,8 +88,10 @@ def execute_pyne_script_in_process(
 ) -> PyneResult:
     """Execute Pyne in a child process and terminate it on timeout."""
     settings = settings or PyneSettings.from_env()
+    if timeout_seconds is not None:
+        settings = replace(settings, timeout_seconds=timeout_seconds)
     policy = PyneSecurityPolicy.from_settings(settings, security_mode)
-    timeout = policy.timeout_seconds if timeout_seconds is None else max(float(timeout_seconds), 0.0)
+    timeout = policy.timeout_seconds
     grace = settings.process_grace_seconds
     serialization_error = _process_serialization_error(
         script,
@@ -101,57 +103,64 @@ def execute_pyne_script_in_process(
     if serialization_error is not None:
         return serialization_error
 
-    ctx = _multiprocessing_context()
-    result_queue = ctx.Queue(maxsize=1)
-    process = ctx.Process(
-        target=_pyne_worker,
-        args=(result_queue, script, ohlcv, params or {}, security_mode, settings),
-        daemon=True,
-    )
-    process.start()
-
-    payload = _read_process_result(result_queue, process, timeout + grace if timeout is not None and timeout > 0 else None)
-
-    if payload is None and process.is_alive():
-        process.terminate()
-        process.join(1)
-        if process.is_alive():
-            process.kill()
-            process.join(1)
-        return PyneResult(
-            ok=False,
-            code="PYNE_TIMEOUT",
-            error=f"Pyne script exceeded {timeout:g}s timeout",
-            hint=error_hint("PYNE_TIMEOUT"),
+    result_queue = process = None
+    started = received = False
+    try:
+        ctx = _multiprocessing_context()
+        result_queue = ctx.Queue(maxsize=1)
+        process = ctx.Process(
+            target=_pyne_worker,
+            args=(result_queue, script, ohlcv, params or {}, security_mode, settings),
+            daemon=True,
         )
+        process.start()
+        started = True
+        payload = _read_process_result(result_queue, process, timeout + grace if timeout is not None else None)
+        received = payload is not None
+        if payload is None:
+            if process.is_alive():
+                return PyneResult(ok=False, code="PYNE_TIMEOUT",
+                                  error=f"Pyne script exceeded {timeout:g}s timeout",
+                                  hint=error_hint("PYNE_TIMEOUT"))
+            return _process_failed(f"Pyne executor process exited with code {process.exitcode}")
+        return _decode_process_payload(payload)
+    except Exception as exc:
+        return _process_failed(f"Pyne executor process failed ({type(exc).__name__}): {exc}")
+    finally:
+        try:
+            if process is not None:
+                if started:
+                    if received:
+                        process.join(1)
+                    if process.is_alive():
+                        process.terminate()
+                        process.join(1)
+                    if process.is_alive():
+                        process.kill()
+                        process.join(1)
+                process.close()
+        finally:
+            if result_queue is not None:
+                result_queue.close()
+                result_queue.join_thread()
 
-    process.join(1)
-    if process.is_alive():
-        process.terminate()
-        process.join(1)
 
-    if payload is None:
-        return PyneResult(
-            ok=False,
-            code="PYNE_PROCESS_FAILED",
-            error=f"Pyne executor process exited with code {process.exitcode}",
-            hint=error_hint("PYNE_PROCESS_FAILED"),
-        )
+def _process_failed(message: str) -> PyneResult:
+    return PyneResult(ok=False, code="PYNE_PROCESS_FAILED", error=message,
+                      hint=error_hint("PYNE_PROCESS_FAILED"))
 
+
+def _decode_process_payload(payload: Any) -> PyneResult:
+    if isinstance(payload, bytes):
+        payload = pickle.loads(payload)
     if not isinstance(payload, dict):
-        return PyneResult(
-            ok=False,
-            code="PYNE_PROCESS_FAILED",
-            error="Pyne executor returned an invalid payload",
-        )
+        return _process_failed("Pyne executor returned an invalid payload")
     if payload.get("kind") == "result" and isinstance(payload.get("result"), dict):
         return PyneResult.from_dict(payload["result"])
-    return PyneResult(
-        ok=False,
-        code=payload.get("code") or "PYNE_PROCESS_FAILED",
-        error=payload.get("error") or "Pyne executor process failed",
-        hint=payload.get("hint") or error_hint(payload.get("code") or "PYNE_PROCESS_FAILED"),
-    )
+    code = payload.get("code") or "PYNE_PROCESS_FAILED"
+    return PyneResult(ok=False, code=code,
+                      error=payload.get("error") or "Pyne executor process failed",
+                      hint=payload.get("hint") or error_hint(code))
 
 
 def _read_process_result(result_queue, process, timeout_seconds: float | None) -> Any:
@@ -225,10 +234,22 @@ def _pyne_worker(
             params=params,
             security_mode=security_mode,
         )
-        result_queue.put({"kind": "result", "result": result.to_dict()})
+        payload = {"kind": "result", "result": result.to_dict()}
     except BaseException as exc:
-        result_queue.put({
+        payload = {
             "kind": "error",
             "code": "PYNE_PROCESS_FAILED",
             "error": f"Pyne executor process failed: {exc}",
-        })
+        }
+    # Queue's background feeder otherwise drops unpickleable results after
+    # put() has returned, leaving the parent with an unexplained clean exit.
+    # Serialize exactly once in the worker and only enqueue transport bytes.
+    try:
+        encoded = pickle.dumps(payload, protocol=pickle.HIGHEST_PROTOCOL)
+    except Exception as exc:
+        encoded = pickle.dumps({
+            "kind": "error", "code": "PYNE_PROCESS_SERIALIZATION_ERROR",
+            "error": f"Pyne process executor result must be pickle-serializable ({type(exc).__name__})",
+            "hint": error_hint("PYNE_PROCESS_SERIALIZATION_ERROR"),
+        }, protocol=pickle.HIGHEST_PROTOCOL)
+    result_queue.put(encoded)

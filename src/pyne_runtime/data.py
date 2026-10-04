@@ -8,6 +8,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .security import PyneResourceLimitError
+from .settings import optional_limit
+
 
 DEFAULT_COLUMNS = {
     "time": "time",
@@ -56,17 +59,20 @@ class PyneData:
         allow_empty: bool = False,
         allow_missing_values: bool = False,
         require_unique_times: bool = True,
+        max_bars: int | None = None,
     ) -> "PyneData":
+        max_bars = optional_limit("max_bars", max_bars)
         try:
-            bars = tuple(
-                _normalize_bar(
+            normalized = []
+            for index, item in enumerate(items):
+                _check_bar_budget(index + 1, max_bars)
+                normalized.append(_normalize_bar(
                     item,
                     time_unit=time_unit,
                     row_index=index,
                     allow_missing_values=allow_missing_values,
-                )
-                for index, item in enumerate(items)
-            )
+                ))
+            bars = tuple(normalized)
         except PyneOhlcvError:
             raise
         except TypeError as exc:
@@ -85,18 +91,20 @@ class PyneData:
         *,
         time_unit: str = "s",
         columns: dict[str, str] | None = None,
+        max_bars: int | None = None,
     ) -> "PyneData":
         column_map = {**DEFAULT_COLUMNS, **(columns or {})}
         with Path(path).open("r", encoding="utf-8-sig", newline="") as handle:
             reader = csv.DictReader(handle)
-            rows = []
-            for row in reader:
-                rows.append({
+            rows = (
+                {
                     key: row[source]
                     for key, source in column_map.items()
                     if source in row
-                })
-        return cls.from_ohlcv(rows, time_unit=time_unit)
+                }
+                for row in reader
+            )
+            return cls.from_ohlcv(rows, time_unit=time_unit, max_bars=max_bars)
 
     @classmethod
     def from_pandas(
@@ -111,8 +119,11 @@ class PyneData:
         volume: str = "volume",
         time_close: str | None = None,
         time_unit: str = "s",
+        max_bars: int | None = None,
     ) -> "PyneData":
         _require_pandas()
+        max_bars = optional_limit("max_bars", max_bars)
+        _check_bar_budget(len(df), max_bars)
         rows = []
         for item in df.to_dict(orient="records"):
             row = {
@@ -126,7 +137,7 @@ class PyneData:
             if time_close is not None:
                 row["time_close"] = item[time_close]
             rows.append(row)
-        return cls.from_ohlcv(rows, time_unit=time_unit)
+        return cls.from_ohlcv(rows, time_unit=time_unit, max_bars=max_bars)
 
     def to_ohlcv(self) -> list[dict[str, Any]]:
         return [dict(item) for item in self._ohlcv]
@@ -188,14 +199,23 @@ class PyneData:
         return f"PyneData(rows={len(self)}, start={first}, end={last})"
 
 
-def coerce_ohlcv(data: Any) -> list[dict[str, Any]]:
+def coerce_ohlcv(data: Any, *, max_bars: int | None = None) -> list[dict[str, Any]]:
+    max_bars = optional_limit("max_bars", max_bars)
     if isinstance(data, PyneData):
+        _check_bar_budget(len(data), max_bars)
         return data.to_ohlcv()
     if _is_pandas_dataframe(data):
-        return PyneData.from_pandas(data).to_ohlcv()
+        return PyneData.from_pandas(data, max_bars=max_bars).to_ohlcv()
     if isinstance(data, (str, Path)):
-        return PyneData.from_csv(data).to_ohlcv()
-    return PyneData.from_ohlcv(data).to_ohlcv()
+        return PyneData.from_csv(data, max_bars=max_bars).to_ohlcv()
+    return PyneData.from_ohlcv(data, max_bars=max_bars).to_ohlcv()
+
+
+def _check_bar_budget(count: int, max_bars: int | None) -> None:
+    if max_bars is not None and count > max_bars:
+        error = PyneResourceLimitError(f"Too many data points (max {max_bars})")
+        error.hint = "Increase max_bars or set it to None; CLI: --limit max_bars=none."
+        raise error
 
 
 def _normalize_bar(

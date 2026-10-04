@@ -154,12 +154,17 @@ class PyneCache:
                 self._items = other._items
 
     def _enforce_limit(self) -> None:
-        while len(self._items) > self._max_items:
-            oldest_key = min(
-                self._items,
-                key=lambda key: self._items[key].last_access,
-            )
-            self._items.pop(oldest_key, None)
+        excess = len(self._items) - self._max_items
+        if excess <= 0:
+            return
+        # Normal insertion evicts one entry. Restore/configuration can shrink
+        # thousands at once; select their order once instead of rescanning the
+        # decreasing dictionary for every discarded entry.
+        oldest = (min(self._items, key=lambda key: self._items[key].last_access),) if excess == 1 else (
+            sorted(self._items, key=lambda key: self._items[key].last_access)[:excess]
+        )
+        for key in oldest:
+            self._items.pop(key)
 
 
 pyne_cache = PyneCache()

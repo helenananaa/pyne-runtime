@@ -1,0 +1,12 @@
+indicator("Shared snapshots", mode="incremental")
+def init(ctx):
+    leaf = array.from_values(0)
+    ctx.state("graph", array.from_values(leaf, leaf))
+def on_bar(ctx, bar):
+    graph = ctx.state("graph").value
+    snap = array.snapshot(graph)
+    ctx.plot("SnapshotShared", array.get(snap, 0) is array.get(snap, 1))
+    if ctx.bar_index > 0:
+        previous = ctx.state("graph")[1]
+        ctx.plot("HistoryShared", array.get(previous, 0) is array.get(previous, 1))
+    array.set(array.get(graph, 0), 0, bar.close)

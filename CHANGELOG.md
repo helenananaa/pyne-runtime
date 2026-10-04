@@ -2,6 +2,51 @@
 
 ## Unreleased
 
+- Candidate rc36 uses computation semantics 41. Preserve shared and deep Pyne
+  collection graphs in snapshots and isolate input bar/replay graphs. Validate
+  restored owned resource counts and historical horizons before adoption;
+  reject recursive same-key session creation and sort bulk cache evictions once.
+  Bind lower-timeframe array budgets, preserve lazy expression floating-error
+  policy and custom metadata methods, and handle process-result serialization
+  failures with deterministic process/queue cleanup. Compose local POSIX
+  deadlines with existing caller alarms. Rebuild incompatible rc35 /40 snapshots.
+- Candidate rc35 uses computation semantics 40. Preserve duplicate-timestamp
+  requested rows and validate fetched OHLCV before publishing cache evidence.
+  Keep failed local restores atomic, reject repeated session initialization,
+  and protect replacement sessions against stale releases. Actual rc34 /39
+  state and replay artifacts require rebuilding from authoritative OHLCV.
+- Apply selected input and matrix budgets while consuming iterables. Memoize
+  shared collection graph validation per operation and use streaming Pivot
+  candidates instead of copying every window. Reduce common requested-field
+  evaluation work while retaining ordinary Python expression evaluation semantics.
+
+- Candidate rc34 uses computation semantics 39. Compute representable standard
+  deviation and Bollinger dispersion even when binary64 variance underflows or
+  overflows, keeping ordinary finite results and causal prefixes. Genuine rc33
+  /38 checkpoints require rebuilding from authoritative supplied OHLCV.
+- Add an optional, host-neutral provider finality watermark so complete, stable
+  history can cache absent coordinates. Missing or withdrawn guarantees retain
+  conservative late-arrival refreshes; malformed guarantees discard affected
+  cache evidence and fall back to fetching. Mutable tails still refresh.
+- Separate session graph isolation and TA rolling-moment kernels from their
+  public orchestration modules, preserving imports and typed snapshot identity.
+
+- Candidate rc33 uses computation semantics 38. Keep rolling variance,
+  standard deviation and correlation independent of future inputs; align MFI
+  missing-volume windows between batch and incremental execution. Refresh live
+  request intervals instead of caching not-yet-arrived bars as permanently empty.
+  Detach returned points from confirmed history and rebind context-held script
+  functions during preview and process-local recovery. Preserve distinct output
+  names and exported DataFrame columns.
+- Apply explicit table, array, historical-input and replay-recording budgets
+  before admitting the corresponding work. Reject nonfinite process timeout
+  grace values and keep failed historical restores atomic. Unlimited standalone
+  computation defaults remain unchanged. Genuine rc32 /37 snapshots require
+  rebuilding from authoritative caller-supplied OHLCV.
+- Avoid unconditional request-history copies during previews, prune retained
+  chronological history by its expired prefix, and index batch table cells so
+  updates do not scan or sort existing cells; export keeps canonical cell order.
+
 - Correct DMI initialization by smoothing strict previous-close true range,
   skipping the origin bar. Public TR and ATR keep their high-low origin fallback.
   Native initial monthly and independently selected weekly data remove 1,144

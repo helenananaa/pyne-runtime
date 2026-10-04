@@ -24,7 +24,8 @@ class PlotValueAdapter:
         if isinstance(data, PyneSeries):
             return data.to_numpy().tolist()
         if isinstance(data, np.ndarray):
-            return data.tolist()
+            return ([data.item()] * len(self._collector.times) if data.ndim == 0
+                    else data.tolist())
         if isinstance(data, list):
             return data
         if hasattr(data, "to_numpy"):
@@ -71,6 +72,8 @@ class PlotValueAdapter:
         if isinstance(value, PyneSeries):
             values = value.to_numpy().tolist()
         elif isinstance(value, np.ndarray):
+            if value.ndim == 0:
+                return serialize_scalar(value.item())
             values = value.tolist()
         elif isinstance(value, list):
             values = value

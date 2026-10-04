@@ -1,0 +1,14 @@
+{
+  "packageVersion": "0.4.1rc32",
+  "semanticsVersion": 37,
+  "gitCommit": "45eb794",
+  "wheelSha256": "0805557c50bac07ef963b2279ee45ac7dae62d0c9bb1924be3ad388c8c1c177e",
+  "source": "Unmodified HEAD archive, freshly built wheel installed outside the source checkout",
+  "sha256": {
+    "bars.json": "99d6920e62aa17752c936e042f6169fe10535b24a95fab16d5d7388b1a9b7916",
+    "committed-result.json": "4856b6b604187f03d1a1f578efebf3585fe541fbcc77ab0a2d60bc5af1201959",
+    "indicator.pyne": "aae8c7605b551841f55f036254e4cc0ed78da3089c2326791d786e1fac2d4a98",
+    "replay.json": "62b345be7fb376eca392c14ead394ac298692030d61253cdb6c7003b4ca1d40e",
+    "state.json": "cef0abb336c1eed79094904ad845469e9f45e4efc47433f559f426febf2d7b04"
+  }
+}

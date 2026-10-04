@@ -1,0 +1,8 @@
+indicator("Structural audit baseline", mode="incremental")
+history = []
+def on_bar(ctx, bar):
+    history.append(bar.close)
+    ctx.plot("Count", len(history))
+    ctx.plot("Pivot", ctx.ta.pivothigh("pivot", 1, 1).update(bar.close))
+    lower = ctx.request.security_lower_tf("TEST", "10S", "close")
+    ctx.plot("Lower count", lower.size())

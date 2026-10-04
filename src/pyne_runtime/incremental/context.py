@@ -4,8 +4,10 @@ from __future__ import annotations
 import copy
 import math
 import re
+from collections import deque
 from collections.abc import Mapping
 from dataclasses import asdict
+from types import FunctionType, ModuleType
 from typing import Any
 
 from ..barstate import PyneIncrementalBarState
@@ -17,6 +19,8 @@ from .drawing import IncrementalDrawingMixin, _filter_object_events
 from .limits import (
     IncrementalLimits,
     StateCell,
+    _StateHistory,
+    _STATE_HISTORY_TOKEN,
     Window,
     _LimitTracker,
     _state_payload_items,
@@ -52,6 +56,7 @@ class IncrementalContext(IncrementalDrawingMixin):
         self.session = self._default_session
         self.strategy = IncrementalStrategyNamespace(self)
         self._states: dict[str, StateCell] = {}
+        self._function_history_cells: set[str] = set()
         self._varip_states: dict[str, StateCell] = {}
         self._windows: dict[str, Window] = {}
         self._series: dict[str, dict[str, Any]] = {}
@@ -69,7 +74,11 @@ class IncrementalContext(IncrementalDrawingMixin):
         self._table_cell_indices: dict[str, dict[tuple[int, int], int]] = {}
         self._object_events: list[dict[str, Any]] = []
         self._current_object_events: list[dict[str, Any]] = []
-        self._request_bars: list[dict[str, Any]] = []
+        self._request_bars_storage: list[dict[str, Any]] = []
+        self._request_history_exposed = False
+        self._preview_request_source: list[dict[str, Any]] | None = None
+        self._preview_request_memo: dict[int, Any] | None = None
+        self._output_names: dict[tuple[str, str], str] = {}
         self._request_diagnostics: list[dict[str, Any]] = []
         self._request_diagnostics_dropped = 0
         self._request_namespace: Any = None
@@ -89,7 +98,69 @@ class IncrementalContext(IncrementalDrawingMixin):
             )
         return self._request_namespace
 
-    def clone_for_preview(self) -> "IncrementalContext":
+    @property
+    def _request_bars(self) -> list[dict[str, Any]]:
+        self._request_history_exposed = True
+        return self._request_bars_for_runtime()
+
+    def _request_bars_for_runtime(self) -> list[dict[str, Any]]:
+        # A preview that does not read request history never copies it. Access
+        # through this property, including user aliases, materializes an isolated
+        # graph using the same memo as its context and callback globals.
+        if self._preview_request_source is not None:
+            self._request_bars_storage = copy.deepcopy(
+                self._preview_request_source, self._preview_request_memo
+            )
+            self._preview_request_source = None
+            self._preview_request_memo = None
+        return self._request_bars_storage
+
+    @_request_bars.setter
+    def _request_bars(self, values: list[dict[str, Any]]) -> None:
+        self._request_history_exposed = True
+        self._request_bars_storage = values
+        self._preview_request_source = None
+        self._preview_request_memo = None
+
+    def _request_source_for_runtime(self) -> list[dict[str, Any]] | None:
+        # Once Python has an alias to this graph it may edit any historical
+        # row. Keep the ordinary copying/validation path for that context.
+        if self._request_history_exposed:
+            return None
+        return (self._preview_request_source if self._preview_request_source is not None
+                else self._request_bars_storage)
+
+    def preview_copy_roots(self) -> tuple[Any, ...]:
+        """Values actually copied for preview, excluding runtime-only logs."""
+        excluded = {
+            "_series", "_candles", "_markers", "_object_events",
+            "_current_series", "_current_candles", "_current_markers",
+            "_current_object_events", "_request_diagnostics", "current_bar",
+            "_request_bars_storage", "_preview_request_source", "_preview_request_memo",
+        }
+        roots = tuple(value for name, value in vars(self).items() if name not in excluded)
+        return (*roots, *self.function_history_roots())
+
+    def function_history_roots(self) -> tuple[Any, ...]:
+        return tuple(
+            object.__getattribute__(self._states[key], "_StateCell__history")._raw_slice(
+                slice(None), _STATE_HISTORY_TOKEN
+            )
+            for key in self._function_history_cells if key in self._states
+        )
+
+    def rebind_function_histories(self, memo: dict[int, Any]) -> None:
+        for key in self._function_history_cells:
+            cell = self._states.get(key)
+            if cell is None:
+                continue
+            history = object.__getattribute__(cell, "_StateCell__history")
+            values = copy.deepcopy(history._raw_slice(slice(None), _STATE_HISTORY_TOKEN), memo)
+            object.__setattr__(
+                cell, "_StateCell__history", _StateHistory(maxlen=history.maxlen, values=values)
+            )
+
+    def clone_for_preview(self, *, memo: dict[int, Any] | None = None) -> "IncrementalContext":
         discarded: dict[str, Any] = {
             "_series": {},
             "_candles": {},
@@ -105,8 +176,8 @@ class IncrementalContext(IncrementalDrawingMixin):
             ),
             "current_bar": None,
         }
-        clone = object.__new__(type(self))
-        memo = {id(self): clone}
+        memo = {} if memo is None else memo
+        clone = memo.setdefault(id(self), object.__new__(type(self)))
         state_mappings: dict[str, dict[str, StateCell]] = {}
         state_pairs: list[tuple[StateCell, StateCell]] = []
         for name in ("_states", "_varip_states"):
@@ -122,6 +193,8 @@ class IncrementalContext(IncrementalDrawingMixin):
                     state_pairs.append((cell, cell_clone))
                 cloned_mapping[copy.deepcopy(key, memo)] = cell_clone
         for name, value in vars(self).items():
+            if name in {"_request_bars_storage", "_preview_request_source", "_preview_request_memo"}:
+                continue
             if name in discarded:
                 setattr(clone, name, discarded[name])
             elif name in state_mappings:
@@ -141,6 +214,19 @@ class IncrementalContext(IncrementalDrawingMixin):
                 clone._limit_tracker,
             )
             cell_clone.value = copy.deepcopy(source.value, memo)
+        clone.rebind_function_histories(memo)
+        # Historical output/event buffers above were discarded. Their counters
+        # must describe the actual preview buffers, while registered channels,
+        # shared state history and copied strategy logs retain their budgets.
+        clone._limit_tracker.output_points = 0
+        clone._limit_tracker.object_events = 0
+        source_bars = self._request_bars_for_runtime()
+        if id(source_bars) in memo:
+            clone._request_bars = memo[id(source_bars)]
+        else:
+            clone._request_bars_storage = []
+            clone._preview_request_source = source_bars
+            clone._preview_request_memo = memo
         return clone
 
     def clear_outputs(self) -> None:
@@ -159,19 +245,11 @@ class IncrementalContext(IncrementalDrawingMixin):
         for collection in (self._series, self._candles, self._markers):
             for key in list(collection):
                 entry = collection[key]
-                entry["data"] = [
-                    point
-                    for point in entry.get("data") or []
-                    if _point_time(point) >= cutoff
-                ]
+                _prune_time_prefix(entry.get("data") or [], cutoff)
                 if not entry["data"]:
                     collection.pop(key, None)
-        self._object_events = [
-            event for event in self._object_events if _point_time(event) >= cutoff
-        ]
-        self._request_bars = [
-            item for item in self._request_bars if _point_time(item) >= cutoff
-        ]
+        _prune_time_prefix(self._object_events, cutoff)
+        _prune_time_prefix(self._request_bars_for_runtime(), cutoff)
         self.strategy.prune_history(cutoff)
         series_keys = {f"series:{key}" for key in self._series}
         series_keys.update(f"candle:{key}" for key in self._candles)
@@ -227,7 +305,7 @@ class IncrementalContext(IncrementalDrawingMixin):
 
     def request_bars(self) -> list[dict[str, Any]]:
         """Return committed chart bars plus the active preview/confirmed bar."""
-        bars = copy.deepcopy(self._request_bars)
+        bars = copy.deepcopy(self._request_bars_for_runtime())
         if self.current_bar is not None:
             current = copy.deepcopy(self.current_bar.raw)
             if not bars or int(bars[-1]["time"]) != self.current_bar.time:
@@ -240,10 +318,11 @@ class IncrementalContext(IncrementalDrawingMixin):
         if self.current_bar is None:
             return
         current = copy_bar_payload(self.current_bar.raw)
-        if self._request_bars and int(self._request_bars[-1]["time"]) == self.current_bar.time:
-            self._request_bars[-1] = current
+        bars = self._request_bars_for_runtime()
+        if bars and int(bars[-1]["time"]) == self.current_bar.time:
+            bars[-1] = current
         else:
-            self._request_bars.append(current)
+            bars.append(current)
 
     def record_request_diagnostics(self, values: list[dict[str, Any]]) -> None:
         self._request_diagnostics.extend(copy.deepcopy(values))
@@ -307,8 +386,10 @@ class IncrementalContext(IncrementalDrawingMixin):
         return sum(_state_payload_items(cell.value) for cell in self._varip_states.values())
 
     def commit_state_history(self) -> None:
-        for cell in self._states.values():
+        for key, cell in self._states.items():
             cell.commit_history()
+            if _contains_function(cell.value):
+                self._function_history_cells.add(key)
 
     def _ensure_state_key_available(self) -> None:
         if not self._limits.enabled:
@@ -325,6 +406,20 @@ class IncrementalContext(IncrementalDrawingMixin):
             self._limit_tracker.reserve_window(size, label=f"window:{key}")
             self._windows[key] = Window(size)
         return self._windows[key]
+
+    def _output_id(self, kind: str, name: str) -> str:
+        key = (kind, str(name))
+        if key in self._output_names:
+            return self._output_names[key]
+        stem = _slug(name)
+        used = {value for (channel, _), value in self._output_names.items() if channel == kind}
+        candidate = stem
+        suffix = 2
+        while candidate in used:
+            candidate = f"{stem}_{suffix}"
+            suffix += 1
+        self._output_names[key] = candidate
+        return candidate
 
     def plot(
         self,
@@ -358,7 +453,7 @@ class IncrementalContext(IncrementalDrawingMixin):
             return
 
         resolved_pane = pane or self._default_pane()
-        local_id = _slug(name)
+        local_id = self._output_id("series", name)
         normalized_type = "histogram" if _is_histogram_style(style) else type
         self._limit_tracker.reserve_output_point(series_key=f"series:{local_id}")
         entry = self._series.setdefault(local_id, {
@@ -406,7 +501,7 @@ class IncrementalContext(IncrementalDrawingMixin):
         if self.current_bar is None or not condition:
             return
         resolved_pane = pane or self._default_pane()
-        key = _slug(text or shape or "marker")
+        key = self._output_id("marker", text or shape or "marker")
         self._limit_tracker.reserve_output_point(series_key=f"marker:{key}")
         entry = self._markers.setdefault(key, {
             "id": key,
@@ -467,7 +562,7 @@ class IncrementalContext(IncrementalDrawingMixin):
         if any(value is None for value in values):
             return
         name = title or "plotcandle"
-        local_id = _slug(name)
+        local_id = self._output_id("candle", name)
         self._limit_tracker.reserve_output_point(series_key=f"candle:{local_id}")
         entry = self._candles.setdefault(
             local_id,
@@ -587,7 +682,7 @@ class IncrementalContext(IncrementalDrawingMixin):
             lines=lines,
             output=output,
             meta={
-                **self.meta,
+                **copy.deepcopy(self.meta),
                 "mode": "incremental",
                 "bar_index": self.bar_index,
                 "last_bar_index": self.last_bar_index,
@@ -635,7 +730,7 @@ def _filter_points(
     end_s: int | None,
 ) -> list[dict[str, Any]]:
     if start_s is None and end_s is None:
-        return list(points)
+        return [copy_bar_payload(point) for point in points]
     filtered = []
     for point in points:
         try:
@@ -646,8 +741,46 @@ def _filter_points(
             continue
         if end_s is not None and ts > end_s:
             continue
-        filtered.append(point)
+        filtered.append(copy_bar_payload(point))
     return filtered
+
+
+def _prune_time_prefix(points: list[dict[str, Any]], cutoff: int) -> None:
+    """Remove an expired prefix of append-ordered runtime history."""
+    if not points or _point_time(points[0]) >= cutoff:
+        return
+    low, high = 0, len(points)
+    while low < high:
+        middle = (low + high) // 2
+        if _point_time(points[middle]) < cutoff:
+            low = middle + 1
+        else:
+            high = middle
+    del points[:low]
+
+
+def _contains_function(value: Any) -> bool:
+    pending = [value]
+    seen: set[int] = set()
+    while pending:
+        current = pending.pop()
+        if isinstance(current, FunctionType):
+            return True
+        if id(current) in seen:
+            continue
+        seen.add(id(current))
+        if isinstance(current, (ModuleType, type)):
+            continue
+        if isinstance(current, Mapping):
+            pending.extend(current.keys())
+            pending.extend(current.values())
+        elif isinstance(current, (list, tuple, set, frozenset, deque)):
+            pending.extend(current)
+        elif isinstance(current, StateCell):
+            pending.append(current.value)
+        elif hasattr(current, "__dict__"):
+            pending.extend(vars(current).values())
+    return False
 
 
 def _point_time(item: Mapping[str, Any]) -> int:

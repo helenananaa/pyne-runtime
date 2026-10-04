@@ -15,6 +15,8 @@ from ._version import __version__
 from .api import read_ohlcv, run, validate
 from .inspection import inspect_path, inspect_script
 from .errors import error_detail
+from .result import PyneResult
+from .security import PyneResourceLimitError
 from .settings import OPTIONAL_BUDGET_FIELDS, PyneSettings
 
 
@@ -100,15 +102,20 @@ def main(argv: list[str] | None = None) -> int:
             params = _load_params(args.param, args.params_json)
             if args.series and args.format != "csv":
                 raise ValueError("--series requires --format csv")
-            data = read_ohlcv(args.ohlcv, time_unit=args.time_unit,
-                             columns=_load_columns(args.column))
-            result = run(
-                Path(args.script),
-                data,
-                params=params,
-                settings=settings,
-                executor_mode=args.executor_mode,
-            )
+            try:
+                data = read_ohlcv(args.ohlcv, time_unit=args.time_unit,
+                                 columns=_load_columns(args.column), max_bars=settings.max_bars)
+            except PyneResourceLimitError as exc:
+                result = PyneResult(ok=False, code="PYNE_RESOURCE_LIMIT_EXCEEDED",
+                                    error=str(exc), hint=exc.hint)
+            else:
+                result = run(
+                    Path(args.script),
+                    data,
+                    params=params,
+                    settings=settings,
+                    executor_mode=args.executor_mode,
+                )
             payload = result.to_dict()
             if not result.ok and (args.format == "csv" or args.out):
                 print(json.dumps(payload, ensure_ascii=False), file=sys.stderr)

@@ -23,11 +23,27 @@ Current schema versions:
 
 ### Computation semantics identity
 
-The computation identity is `INCREMENTAL_SEMANTICS_VERSION`, currently **5**.
+The development computation identity is `INCREMENTAL_SEMANTICS_VERSION`, currently
+**41**; published 0.4.0 uses **5**.
 Portable payloads carry `semanticsVersion`; local snapshots carry
 `semantics_version`. This identity is independent of the package and snapshot
 wire-format versions. Missing or mismatched identities are rejected with
 `PYNE_SNAPSHOT_SEMANTICS_MISMATCH`, even if other snapshot fields match.
+
+Version 41 preserves shared collection identities in snapshots and state history,
+isolates supplied bar payloads before callbacks, records replay inputs before
+callback mutation, and enforces the selected lower-timeframe collection budgets.
+Actual rc35 /40 state and replay artifacts are retained under
+`tests/golden/audit_semantics_v40` and rejected before construction. Rebuild from
+authoritative caller-supplied OHLCV; snapshot wire-format versions remain unchanged.
+
+Version 40 preserves duplicate-timestamp requested rows and replaces incremental
+Pivot state. It also rejects repeated session initialization and keeps malformed
+local restore rejection atomic. Actual rc34 /39 state and replay artifacts are
+retained under `tests/golden/audit_semantics_v39` and rejected before session
+construction. Rebuild incompatible sessions from authoritative caller-supplied
+OHLCV; never relabel an old snapshot. Operational budget changes alone still
+permit restoration when existing state fits the selected policy.
 
 Version 5 makes computation quotas nullable, changes standalone execution defaults,
 separates retained history from replay recording and validates restore budgets

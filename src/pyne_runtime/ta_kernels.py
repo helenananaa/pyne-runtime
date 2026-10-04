@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 
 from .series import to_numpy
@@ -19,6 +21,361 @@ def _fixnan(values: np.ndarray) -> np.ndarray:
 
 _ROLLING_REBASE_CHUNK = 4096
 _FLOAT_EXACT_SCALE = 1 << 1074
+_FLOAT_MIN_NORMAL = float.fromhex("0x1.0p-1022")
+
+
+def _scaled_float(value: float) -> int:
+    """Represent a finite binary64 value on its fixed exact integer scale."""
+    numerator, denominator = value.as_integer_ratio()
+    return numerator << (1074 - (denominator.bit_length() - 1))
+
+
+def _exact_variance(total: int, squares: int, period: int, ddof: int = 0) -> float:
+    numerator = period * squares - total * total
+    denominator = _FLOAT_EXACT_SCALE * _FLOAT_EXACT_SCALE * period * (period - ddof)
+    # Divide the exact integers before rounding, so intermediate squares may
+    # exceed binary64 while their population variance still fits (e.g. 1e308).
+    try:
+        return numerator / denominator
+    except OverflowError:
+        return math.inf
+
+
+def _round_exact_stdev(numerator: int, divisor: int, candidate: float) -> float:
+    """Round an extreme square root using exact neighboring midpoint squares.
+
+    The squared result is numerator / (exact_scale**2 * divisor). Comparing
+    integer midpoint squares corrects the normalized division/sqrt rounding,
+    including subnormal ties and the finite-to-infinity overflow boundary.
+    """
+    four_numerator = 4 * numerator
+    if math.isinf(candidate):
+        lower = math.nextafter(math.inf, 0.0)
+        boundary = _scaled_float(lower) + (1 << 2098)  # theoretical next value: 2**1024
+        return lower if four_numerator < divisor * boundary * boundary else math.inf
+    if candidate == 0.0:
+        return math.ulp(0.0) if four_numerator > divisor else 0.0
+    current = _scaled_float(candidate)
+    odd = (current >> max(current.bit_length() - 53, 0)) & 1
+    lower = math.nextafter(candidate, 0.0)
+    boundary = current + _scaled_float(lower)
+    comparison = four_numerator - divisor * boundary * boundary
+    if comparison < 0 or comparison == 0 and odd:
+        return lower
+    upper = math.nextafter(candidate, math.inf)
+    boundary = current + ((1 << 2098) if math.isinf(upper) else _scaled_float(upper))
+    comparison = four_numerator - divisor * boundary * boundary
+    if comparison > 0 or comparison == 0 and odd:
+        return upper
+    return candidate
+
+
+def _exact_stdev(total: int, squares: int, period: int, ddof: int = 0) -> float:
+    """Take the square root before rounding an extreme variance to binary64."""
+    variance = _exact_variance(total, squares, period, ddof)
+    if math.isfinite(variance) and variance >= _FLOAT_MIN_NORMAL:
+        # Preserve ordinary sqrt(variance) rounding and established outputs.
+        return math.sqrt(variance)
+    numerator = period * squares - total * total
+    if numerator == 0:
+        return 0.0
+    denominator = _FLOAT_EXACT_SCALE * _FLOAT_EXACT_SCALE * period * (period - ddof)
+    exponent = (numerator.bit_length() - denominator.bit_length()) // 2
+    if exponent >= 0:
+        normalized = numerator / (denominator << (2 * exponent))
+    else:
+        normalized = (numerator << (-2 * exponent)) / denominator
+    # The normalized ratio lies between 1/2 and 4. Neither its square root
+    # nor the exact integer calculation overflows or underflows prematurely.
+    try:
+        candidate = math.ldexp(math.sqrt(normalized), exponent)
+    except OverflowError:
+        candidate = math.inf
+    return _round_exact_stdev(numerator, period * (period - ddof), candidate)
+
+
+def _exact_correlation(total_a: int, total_b: int, squares_a: int,
+                       squares_b: int, products: int, period: int) -> float:
+    a_m2 = period * squares_a - total_a * total_a
+    b_m2 = period * squares_b - total_b * total_b
+    if a_m2 == 0 or b_m2 == 0:
+        return 0.0
+    covariance = period * products - total_a * total_b
+    if covariance == 0:
+        return 0.0
+    # Normalize each exact moment independently before taking the square root.
+    # Squaring the coefficient first would underflow representable small r.
+    a_exp, b_exp, cross_exp = a_m2.bit_length(), b_m2.bit_length(), abs(covariance).bit_length()
+    a_scaled, b_scaled = a_m2 / (1 << a_exp), b_m2 / (1 << b_exp)
+    cross_scaled = covariance / (1 << cross_exp)
+    denominator = math.sqrt(a_scaled * b_scaled)
+    if (a_exp + b_exp) % 2:
+        denominator *= math.sqrt(2.0)
+    coefficient = math.ldexp(cross_scaled / denominator, cross_exp - (a_exp + b_exp) // 2)
+    return min(max(coefficient, -1.0), 1.0)
+
+
+def _exact_rolling_moment_values(source: np.ndarray, period: int, *, ddof: int = 0,
+                                 source_b: np.ndarray | None = None,
+                                 standard_deviation: bool = False) -> np.ndarray:
+    """Bounded-work causal fallback for numerically unstable rolling moments.
+
+    The binary64 exponent range bounds integer sizes independently of history
+    and period. Each observation enters and leaves once; no local-window scans
+    or repeated block recalculations are needed after fallback begins.
+    """
+    result = np.full(len(source), np.nan)
+    window = [(0, 0, False)] * period
+    total_a = total_b = squares_a = squares_b = products = valid_count = 0
+    for index, value in enumerate(source):
+        number_a = float(value)
+        number_b = number_a if source_b is None else float(source_b[index])
+        valid = math.isfinite(number_a) and math.isfinite(number_b)
+        scaled_a = _scaled_float(number_a) if valid else 0
+        scaled_b = _scaled_float(number_b) if valid and source_b is not None else scaled_a
+        slot = index % period
+        old_a, old_b, old_valid = window[slot]
+        window[slot] = scaled_a, scaled_b, valid
+        total_a += scaled_a - old_a
+        squares_a += scaled_a * scaled_a - old_a * old_a
+        valid_count += int(valid) - int(old_valid)
+        if source_b is not None:
+            total_b += scaled_b - old_b
+            squares_b += scaled_b * scaled_b - old_b * old_b
+            products += scaled_a * scaled_b - old_a * old_b
+        if index < period - 1 or valid_count != period:
+            continue
+        if source_b is None:
+            moment = _exact_stdev if standard_deviation else _exact_variance
+            result[index] = moment(total_a, squares_a, period, ddof)
+        else:
+            result[index] = _exact_correlation(total_a, total_b, squares_a, squares_b, products, period)
+    return result
+
+
+def _rolling_variance_values(source: np.ndarray, period: int, ddof: int, *,
+                             standard_deviation: bool = False) -> np.ndarray:
+    """Compute rolling variance with causal, adaptively rebased centered blocks."""
+    values = np.asarray(source, dtype=np.float64)
+    n = len(values)
+    result = np.full(n, np.nan)
+    if period <= 0 or period > n or period - ddof <= 0:
+        return result
+
+    if period == 1:
+        # A finite singleton has exact population variance zero. Rebasing and
+        # subtracting moments can introduce future-dependent floating residues.
+        result[np.isfinite(values)] = 0.0
+        return result
+
+    chunk_size = max(period, _ROLLING_REBASE_CHUNK)
+    output_start = period - 1
+    while output_start < n:
+        output_stop = min(output_start + chunk_size, n)
+        segment_start = output_start - period + 1
+        segment = values[segment_start:output_stop]
+        valid = np.isfinite(segment)
+        # Only the first output window may choose this block's origin. Using
+        # the entire block makes a future level shift change historical output.
+        seed = segment[:period]
+        seed_finite = seed[np.isfinite(seed)]
+        anchor = float(seed_finite[0]) if len(seed_finite) else 0.0
+        with np.errstate(over="ignore", invalid="ignore"):
+            # Intermediate overflow is a fallback signal, not an invalid
+            # finite input or an overflowing standard-deviation result.
+            centered = np.where(valid, segment - anchor, 0.0)
+            counts = _window_sums(valid.astype(np.int64), period)
+            sums = _window_sums(centered, period)
+            squared_sums = _window_sums(centered * centered, period)
+            numerator = squared_sums - sums * sums / period
+            squared_prefix = np.cumsum(centered * centered)[period - 1:]
+        unstable = (counts == period) & (
+            (numerator < 0.0)
+            | ((squared_sums > 0.0) & (numerator <= 1e-10 * squared_sums))
+            | ((squared_prefix > 0.0) & (squared_sums <= 1e-8 * squared_prefix))
+            | ~np.isfinite(numerator)
+        )
+        if standard_deviation:
+            small = (counts == period) & (
+                (numerator > 0.0) & (numerator < _FLOAT_MIN_NORMAL * (period - ddof))
+            )
+            if np.any((counts == period) & (squared_sums == 0.0)):
+                nonzero = _window_sums((centered != 0.0).astype(np.int64), period)
+                small |= (counts == period) & (squared_sums == 0.0) & (nonzero > 0)
+            unstable |= small
+        suspect = np.flatnonzero(unstable)
+        if len(suspect):
+            stop = int(suspect[0])
+            output_stop = output_start + stop
+            numerator, counts = numerator[:stop], counts[:stop]
+        np.maximum(numerator, 0.0, out=numerator)
+        variances = numerator / (period - ddof)
+        variances[counts != period] = np.nan
+        if standard_deviation:
+            np.sqrt(variances, out=variances)
+        result[output_start:output_stop] = variances
+        if len(suspect):
+            exact = _exact_rolling_moment_values(
+                values[output_stop - period + 1:], period, ddof=ddof,
+                standard_deviation=standard_deviation)
+            result[output_stop:] = exact[period - 1:]
+            break
+        output_start = output_stop
+    return result
+
+
+def _rolling_nonmissing_variance_values(source: np.ndarray, period: int, ddof: int, *,
+                                        standard_deviation: bool = False) -> np.ndarray:
+    """Run the stable variance kernel on present observations and restore time positions."""
+    values = np.asarray(source, dtype=np.float64)
+    present = ~np.isnan(values)
+    if np.all(present):
+        return _rolling_variance_values(values, period, ddof, standard_deviation=standard_deviation)
+    compact_result = _rolling_variance_values(
+        values[present], period, ddof, standard_deviation=standard_deviation)
+    result = np.full(len(values), np.nan)
+    counts = np.cumsum(present)
+    seen = counts > 0
+    result[seen] = compact_result[counts[seen] - 1]
+    return result
+
+
+def _rolling_full_window_correlation_values(
+    source_a: np.ndarray,
+    source_b: np.ndarray,
+    period: int,
+) -> np.ndarray:
+    """Compute rolling Pearson correlation using causal centered blocks."""
+    a = np.asarray(source_a, dtype=np.float64)
+    b = np.asarray(source_b, dtype=np.float64)
+    n = min(len(a), len(b))
+    result = np.full(n, np.nan)
+    if period <= 0 or period > n:
+        return result
+    if period == 1:
+        result[np.isfinite(a[:n]) & np.isfinite(b[:n])] = 0.0
+        return result
+
+    a = a[:n]
+    b = b[:n]
+    chunk_size = max(period, _ROLLING_REBASE_CHUNK)
+    output_start = period - 1
+    while output_start < n:
+        output_stop = min(output_start + chunk_size, n)
+        segment_start = output_start - period + 1
+        a_segment = a[segment_start:output_stop]
+        b_segment = b[segment_start:output_stop]
+        valid = np.isfinite(a_segment) & np.isfinite(b_segment)
+        seed_valid = valid[:period]
+        a_seed, b_seed = a_segment[:period], b_segment[:period]
+        a_anchor = float(a_seed[seed_valid][0]) if np.any(seed_valid) else 0.0
+        b_anchor = float(b_seed[seed_valid][0]) if np.any(seed_valid) else 0.0
+        a_centered = np.where(valid, a_segment - a_anchor, 0.0)
+        b_centered = np.where(valid, b_segment - b_anchor, 0.0)
+        counts = _window_sums(valid.astype(np.int64), period)
+        a_sums = _window_sums(a_centered, period)
+        b_sums = _window_sums(b_centered, period)
+        a_squared_sums = _window_sums(a_centered * a_centered, period)
+        b_squared_sums = _window_sums(b_centered * b_centered, period)
+        product_sums = _window_sums(a_centered * b_centered, period)
+
+        a_m2 = a_squared_sums - a_sums * a_sums / period
+        b_m2 = b_squared_sums - b_sums * b_sums / period
+        covariance = product_sums - a_sums * b_sums / period
+        a_prefix = np.cumsum(a_centered * a_centered)[period - 1:]
+        b_prefix = np.cumsum(b_centered * b_centered)[period - 1:]
+        unstable = (counts == period) & (
+            (a_m2 < 0.0) | (b_m2 < 0.0)
+            | ((a_squared_sums > 0.0) & (a_m2 <= 1e-10 * a_squared_sums))
+            | ((b_squared_sums > 0.0) & (b_m2 <= 1e-10 * b_squared_sums))
+            | ((a_prefix > 0.0) & (a_squared_sums <= 1e-8 * a_prefix))
+            | ((b_prefix > 0.0) & (b_squared_sums <= 1e-8 * b_prefix))
+            | ~np.isfinite(a_m2) | ~np.isfinite(b_m2)
+        )
+        suspect = np.flatnonzero(unstable)
+        if len(suspect):
+            stop = int(suspect[0])
+            output_stop = output_start + stop
+            a_m2, b_m2, covariance, counts = (
+                values[:stop] for values in (a_m2, b_m2, covariance, counts)
+            )
+        np.maximum(a_m2, 0.0, out=a_m2)
+        np.maximum(b_m2, 0.0, out=b_m2)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            correlations = covariance / (np.sqrt(a_m2) * np.sqrt(b_m2))
+        invalid = (counts != period) | (a_m2 <= 0.0) | (b_m2 <= 0.0)
+        correlations[invalid] = np.nan
+        zero = ((counts == period) & np.isfinite(a_m2) & np.isfinite(b_m2)
+                & ((a_m2 == 0.0) | (b_m2 == 0.0)))
+        correlations[zero] = 0.0
+        np.clip(correlations, -1.0, 1.0, out=correlations)
+        result[output_start:output_stop] = correlations
+        if len(suspect):
+            exact = _exact_rolling_moment_values(
+                a[output_stop - period + 1:], period,
+                source_b=b[output_stop - period + 1:])
+            result[output_stop:] = exact[period - 1:]
+            break
+        output_start = output_stop
+    return result
+
+
+def _rolling_correlation_values(
+    source_a: np.ndarray,
+    source_b: np.ndarray,
+    period: int,
+) -> np.ndarray:
+    """Use independent present-observation moments, with stable coherent windows.
+
+    Missing observations advance x, y and x*y windows independently. Their
+    means can therefore describe different bars and produce values outside
+    [-1, 1]. A full finite calendar window retains the centered Pearson kernel.
+    """
+    n = min(len(source_a), len(source_b))
+    a = np.asarray(source_a, dtype=np.float64)[:n]
+    b = np.asarray(source_b, dtype=np.float64)[:n]
+    result = _rolling_full_window_correlation_values(a, b, period)
+    if period <= 0 or period > n or (not np.any(np.isnan(a)) and not np.any(np.isnan(b))):
+        return result
+
+    finite_a, finite_b = a[np.isfinite(a)], b[np.isfinite(b)]
+    if not len(finite_a) or not len(finite_b):
+        return result
+    anchor_a, anchor_b = finite_a[0], finite_b[0]
+    pair_present = ~np.isnan(a) & ~np.isnan(b)
+    with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
+        centered_a, centered_b = a - anchor_a, b - anchor_b
+        pair_a = np.where(pair_present, centered_a, np.nan)
+        pair_b = np.where(pair_present, centered_b, np.nan)
+        mean_a = _rolling_nonmissing_sum(centered_a, period) / period
+        mean_b = _rolling_nonmissing_sum(centered_b, period) / period
+        pair_mean_a = _rolling_nonmissing_sum(pair_a, period) / period
+        pair_mean_b = _rolling_nonmissing_sum(pair_b, period) / period
+        pair_product = _rolling_nonmissing_sum(pair_a * pair_b, period) / period
+        # Expand E[xy] - E[x]E[y] around fixed anchors. The correction terms
+        # preserve independent observation windows without subtracting 1e24
+        # raw products to recover a small covariance.
+        numerator = (pair_product - mean_a * mean_b
+                     + anchor_a * (pair_mean_b - mean_b)
+                     + anchor_b * (pair_mean_a - mean_a))
+        if period == 1:
+            # A one-observation variance is exactly zero. Subtracting rebased
+            # floating moments can otherwise leave a tiny, history-dependent
+            # residual and turn a zero denominator into a huge coefficient.
+            variance_a = np.where(np.isfinite(_rolling_nonmissing_sum(a, 1)), 0.0, np.nan)
+            variance_b = np.where(np.isfinite(_rolling_nonmissing_sum(b, 1)), 0.0, np.nan)
+        else:
+            variance_a = _rolling_nonmissing_variance_values(a, period, ddof=0)
+            variance_b = _rolling_nonmissing_variance_values(b, period, ddof=0)
+        denominator = np.sqrt(variance_a) * np.sqrt(variance_b)
+        independent = numerator / denominator
+        independent[(denominator == 0.0) & (numerator == 0.0)] = 0.0
+        independent[(denominator == 0.0) & (numerator != 0.0)] = np.nan
+
+    coherent = np.zeros(n, dtype=bool)
+    coherent[period - 1:] = _window_sums((np.isfinite(a) & np.isfinite(b)).astype(np.int64), period) == period
+    result[~coherent] = independent[~coherent]
+    return result
 
 
 def _rolling_nonmissing_sum(source: np.ndarray, period: int) -> np.ndarray:
@@ -134,6 +491,8 @@ def _rolling_nansum(values: np.ndarray, period: int) -> np.ndarray:
         # without an O(n*period) fallback.
         blocked = _block_window_sums(finite_values, period)
         sums[block_mask] = blocked[block_mask]
+    if not np.any(np.isinf(source)):
+        return sums
     positive_infinity = _window_sums((source == np.inf).astype(np.int64), period)
     negative_infinity = _window_sums((source == -np.inf).astype(np.int64), period)
 

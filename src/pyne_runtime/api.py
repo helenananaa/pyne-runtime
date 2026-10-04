@@ -13,7 +13,7 @@ from .migration_diagnostics import migration_diagnostics, syntax_migration_diagn
 from .request.provider import DataProvider
 from .result import PyneResult
 from .schema import schema as schema_bundle
-from .security import PyneSecurityPolicy, validate_script_security
+from .security import PyneResourceLimitError, PyneSecurityPolicy, validate_script_security
 from .settings import PyneSettings
 
 
@@ -32,8 +32,16 @@ def run(
 ) -> PyneResult:
     """Run a Pyne script against OHLCV data."""
     script_text = _read_script(script)
+    settings = settings or PyneSettings.from_env()
     try:
-        ohlcv = coerce_ohlcv(data)
+        ohlcv = coerce_ohlcv(data, max_bars=settings.max_bars)
+    except PyneResourceLimitError as exc:
+        return PyneResult(
+            ok=False,
+            code="PYNE_RESOURCE_LIMIT_EXCEEDED",
+            error=str(exc),
+            hint=exc.hint,
+        )
     except PyneOhlcvError as exc:
         return PyneResult(
             ok=False,
@@ -60,8 +68,9 @@ def read_ohlcv(
     *,
     time_unit: str = "s",
     columns: dict[str, str] | None = None,
+    max_bars: int | None = None,
 ) -> PyneData:
-    return PyneData.from_csv(path, time_unit=time_unit, columns=columns)
+    return PyneData.from_csv(path, time_unit=time_unit, columns=columns, max_bars=max_bars)
 
 
 def from_pandas(df: Any, **columns: Any) -> PyneData:

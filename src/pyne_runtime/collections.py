@@ -1,7 +1,7 @@
 """Pine-like mutable collection helpers."""
 from __future__ import annotations
 
-from collections.abc import MutableSequence
+from collections.abc import MutableSequence, Sized
 import math
 from types import ModuleType
 from typing import Any, Iterable
@@ -9,6 +9,8 @@ from typing import Any, Iterable
 import numpy as np
 
 from .security import PyneResourceLimitError, PyneStateContractError
+from ._collection_copy import deepcopy_collection
+from ._collection_snapshot import snapshot_collection
 from .values import is_na_value
 
 
@@ -31,7 +33,7 @@ class PyneArray:
     ) -> None:
         self._max_size = _normalize_limit(max_size)
         self._max_depth = _normalize_limit(max_depth)
-        self._values = list(values) if values is not None else []
+        self._values = _array_values(values, self._max_size)
         # Retain string construction intent even when every value is missing.
         # This is a conversion hint, not a restriction on Python payload types.
         self._string_values = any(isinstance(item, str) for item in self._values)
@@ -47,6 +49,9 @@ class PyneArray:
 
     def __repr__(self) -> str:
         return f"PyneArray({self._values!r})"
+
+    def __deepcopy__(self, memo: dict[int, Any]) -> PyneArray:
+        return _deepcopy_collection(self, memo)
 
     def to_list(self) -> list[Any]:
         return list(self._values)
@@ -188,16 +193,37 @@ class _ArraySliceStorage(MutableSequence):
         self.stop = stop
 
     def __len__(self) -> int:
-        return max(min(self.stop, len(self.parent)) - self.start, 0)
+        parent, windows = self._root_path()
+        length = len(parent._values)
+        for window in reversed(windows):
+            length = max(min(window.stop, length) - window.start, 0)
+        return length
+
+    def _root_path(self) -> tuple[PyneArray, list[_ArraySliceStorage]]:
+        windows = [self]
+        seen = {id(self)}
+        parent = self.parent
+        while isinstance(parent._values, _ArraySliceStorage):
+            window = parent._values
+            if id(window) in seen:
+                raise PyneStateContractError("recursive array slice storage is unsupported")
+            seen.add(id(window))
+            windows.append(window)
+            parent = window.parent
+        return parent, windows
 
     def __repr__(self) -> str:
         return repr(list(self))
+
+    def __deepcopy__(self, memo: dict[int, Any]) -> _ArraySliceStorage:
+        return _deepcopy_collection(self, memo)
 
     def __getitem__(self, index: Any) -> Any:
         if isinstance(index, slice):
             return [self[idx] for idx in range(*index.indices(len(self)))]
         idx = _resolve_index(index, len(self))
-        return self.parent.get(self.start + idx)
+        parent, windows = self._root_path()
+        return parent._values[idx + sum(window.start for window in windows)]
 
     def __setitem__(self, index: Any, value: Any) -> None:
         if isinstance(index, slice):
@@ -205,34 +231,43 @@ class _ArraySliceStorage(MutableSequence):
             values = list(value)
             if len(indices) != len(values):
                 raise ValueError("array slice replacement must preserve size")
-            parent = self.parent
-            while True:
-                for item in values:
-                    _validate_collection_assignment(parent, item, parent._max_depth)
-                if not isinstance(parent._values, _ArraySliceStorage):
-                    break
-                parent = parent._values.parent
-            for idx, item in zip(indices, values, strict=True):
-                self.parent.set(self.start + idx, item)
-            return
-        idx = _resolve_index(index, len(self))
-        self.parent.set(self.start + idx, value)
+        else:
+            indices, values = [_resolve_index(index, len(self))], [value]
+        parent, windows = self._root_path()
+        # Validate every affected owner before any replacement, including root
+        # budgets and hidden slice-parent references that could form a cycle.
+        for window in windows:
+            for item in values:
+                _validate_collection_assignment(window.parent, item, window.parent._max_depth)
+        offset = sum(window.start for window in windows)
+        for idx, item in zip(indices, values, strict=True):
+            parent._values[offset + idx] = item
 
     def __delitem__(self, index: Any) -> None:
         if isinstance(index, slice):
             indices = list(range(*index.indices(len(self))))
             for idx in sorted(indices, reverse=True):
-                self.parent.remove(self.start + idx)
-            self.stop -= len(indices)
+                self.__delitem__(idx)
             return
         idx = _resolve_index(index, len(self))
-        self.parent.remove(self.start + idx)
-        self.stop -= 1
+        parent, windows = self._root_path()
+        parent.remove(idx + sum(window.start for window in windows))
+        for window in windows:
+            window.stop -= 1
 
     def insert(self, index: int, value: Any) -> None:
         idx = max(0, min(int(index), len(self)))
-        self.parent.insert(self.start + idx, value)
-        self.stop += 1
+        parent, windows = self._root_path()
+        for window in windows:
+            idx += window.start
+            owner = window.parent
+            if idx < 0 or idx > len(owner):
+                raise IndexError(f"array index {idx} is out of bounds")
+            _enforce_limit("array size", len(owner) + 1, owner._max_size)
+            _validate_collection_assignment(owner, value, owner._max_depth)
+        parent._values.insert(idx, value)
+        for window in windows:
+            window.stop += 1
 
     def clear(self) -> None:
         del self[:]
@@ -268,6 +303,9 @@ class PyneMap:
 
     def __repr__(self) -> str:
         return f"PyneMap({self._values!r})"
+
+    def __deepcopy__(self, memo: dict[int, Any]) -> PyneMap:
+        return _deepcopy_collection(self, memo)
 
     def to_dict(self) -> dict[Any, Any]:
         return dict(self._values)
@@ -378,13 +416,13 @@ class PyneMatrix:
         array_max_size: int | None = None,
         max_depth: int | None = None,
     ) -> PyneMatrix:
-        values = [list(row) for row in rows]
+        normalized_limit = _normalize_limit(max_cells)
+        values = _matrix_rows(rows, normalized_limit)
         if values:
             width = len(values[0])
             if any(len(row) != width for row in values):
                 raise ValueError("matrix rows must all have the same length")
         cell_count = len(values) * (len(values[0]) if values else 0)
-        normalized_limit = _normalize_limit(max_cells)
         normalized_depth = _normalize_limit(max_depth)
         _enforce_limit("matrix cells", cell_count, normalized_limit)
         for row in values:
@@ -404,6 +442,9 @@ class PyneMatrix:
 
     def __repr__(self) -> str:
         return f"PyneMatrix({self._values!r})"
+
+    def __deepcopy__(self, memo: dict[int, Any]) -> PyneMatrix:
+        return _deepcopy_collection(self, memo)
 
     def to_list(self) -> list[list[Any]]:
         return [list(row) for row in self._values]
@@ -594,8 +635,9 @@ class ArrayNamespace:
 
     def new(self, size: int = 0, initial_value: Any = None) -> PyneArray:
         size_count = _array_size(size)
+        _enforce_limit("array size", size_count, self._max_size)
         return PyneArray(
-            [initial_value for _ in range(size_count)],
+            (initial_value for _ in range(size_count)),
             max_size=self._max_size,
             max_depth=self._max_depth,
         )
@@ -977,6 +1019,39 @@ def _array_size(value: int) -> int:
     return normalized
 
 
+def _array_values(values: Iterable[Any] | None, max_size: int | None) -> list[Any]:
+    if values is None:
+        return []
+    if max_size is None:
+        return list(values)
+    if isinstance(values, Sized):
+        _enforce_limit("array size", len(values), max_size)
+    result: list[Any] = []
+    for item in values:
+        _enforce_limit("array size", len(result) + 1, max_size)
+        result.append(item)
+    return result
+
+
+def _matrix_rows(rows: Iterable[Iterable[Any]], max_cells: int | None) -> list[list[Any]]:
+    if max_cells is None:
+        return [list(row) for row in rows]
+    values: list[list[Any]] = []
+    cells = 0
+    width: int | None = None
+    for row in rows:
+        current: list[Any] = []
+        for item in row:
+            _enforce_limit("matrix cells", cells + 1, max_cells)
+            current.append(item)
+            cells += 1
+        if width is not None and len(current) != width:
+            raise ValueError("matrix rows must all have the same length")
+        width = len(current)
+        values.append(current)
+    return values
+
+
 def _normalize_limit(limit: int | None) -> int | None:
     if limit is None:
         return None
@@ -1030,61 +1105,26 @@ def _enforce_no_recursive_collection_value(
         raise PyneStateContractError("recursive collection values are unsupported")
 
 
+def _deepcopy_collection(value: Any, memo: dict[int, Any]) -> Any:
+    return deepcopy_collection(value, memo, owned_types=(PyneArray, PyneMap, PyneMatrix, _ArraySliceStorage),
+                               matrix_type=PyneMatrix)
+
+
 def _snapshot_value(value: Any, seen: set[int]) -> Any:
-    if isinstance(value, PyneArray):
-        return _snapshot_array(value, seen)
-    if isinstance(value, PyneMap):
-        return _snapshot_map(value, seen)
-    if isinstance(value, PyneMatrix):
-        return _snapshot_matrix(value, seen)
-    return value
+    return snapshot_collection(value, seen, collection_types=(PyneArray, PyneMap, PyneMatrix),
+                               enforce_limit=_enforce_limit, validate_key=_validate_map_key,
+                               validate_value=_validate_stored_value)
 
 
 def _snapshot_array(value: PyneArray, seen: set[int]) -> PyneArray:
-    identity = id(value)
-    if identity in seen:
-        raise PyneStateContractError("recursive collection snapshots are not supported")
-    child_seen = {*seen, identity}
-    result = PyneArray(
-        (_snapshot_value(item, child_seen) for item in value.to_list()),
-        max_size=value._max_size,
-        max_depth=value._max_depth,
-    )
-    result._string_values = value._string_values
-    return result
+    return _snapshot_value(value, seen)
 
 
 def _snapshot_map(value: PyneMap, seen: set[int]) -> PyneMap:
-    identity = id(value)
-    if identity in seen:
-        raise PyneStateContractError("recursive collection snapshots are not supported")
-    child_seen = {*seen, identity}
-    result = PyneMap(
-        {key: _snapshot_value(item, child_seen) for key, item in value.to_dict().items()},
-        max_size=value._max_size,
-        array_max_size=value._array_max_size,
-        max_depth=value._max_depth,
-    )
-    result._string_values = value._string_values
-    return result
+    return _snapshot_value(value, seen)
 
 def _snapshot_matrix(value: PyneMatrix, seen: set[int]) -> PyneMatrix:
-    identity = id(value)
-    if identity in seen:
-        raise PyneStateContractError("recursive collection snapshots are not supported")
-    child_seen = {*seen, identity}
-    result = PyneMatrix.from_rows(
-        [
-            [_snapshot_value(item, child_seen) for item in row]
-            for row in value.to_list()
-        ],
-        max_cells=value._max_cells,
-        array_max_size=value._array_max_size,
-        max_depth=value._max_depth,
-    )
-    result._string_values = value._string_values
-    result._column_count = value._column_count
-    return result
+    return _snapshot_value(value, seen)
 
 def _enforce_child_depth(value: Any, limit: int | None) -> None:
     if limit is None:
@@ -1094,101 +1134,105 @@ def _enforce_child_depth(value: Any, limit: int | None) -> None:
         raise PyneResourceLimitError(f"collection nesting depth {depth} exceeds limit {limit}")
 
 
-def _collection_depth(value: Any, seen: set[int] | None = None) -> int:
-    seen = seen or set()
+def _collection_children(value: Any, *, include_slice_parent: bool = False):
     if isinstance(value, PyneArray):
-        identity = id(value)
-        if identity in seen:
-            return 1
-        seen.add(identity)
-        children = value.to_list()
-        return 1 + _max_collection_depth(children, seen)
-    if isinstance(value, PyneMap):
-        identity = id(value)
-        if identity in seen:
-            return 1
-        seen.add(identity)
-        children = value.to_dict().values()
-        return 1 + _max_collection_depth(children, seen)
-    if isinstance(value, PyneMatrix):
-        identity = id(value)
-        if identity in seen:
-            return 1
-        seen.add(identity)
-        children = (item for row in value.to_list() for item in row)
-        return 1 + _max_collection_depth(children, seen)
-    return 0
+        if include_slice_parent and isinstance(value._values, _ArraySliceStorage):
+            yield value._values.parent
+        yield from value.to_list()
+    elif isinstance(value, PyneMap):
+        yield from value.to_dict().values()
+    elif isinstance(value, PyneMatrix):
+        for row in value.to_list():
+            yield from row
+
+
+def _collection_depth(value: Any, seen: set[int] | None = None) -> int:
+    return _graph_depth(value, set(seen or ()), {})
+
+
+def _graph_depth(value: Any, active: set[int], heights: dict[int, int]) -> int:
+    if not isinstance(value, (PyneArray, PyneMap, PyneMatrix)):
+        return 0
+    identity = id(value)
+    if identity in active:
+        return 1
+    if identity in heights:
+        return heights[identity]
+    active.add(identity)
+    frames = [[identity, iter(_collection_children(value)), 0]]
+    while frames:
+        frame = frames[-1]
+        try:
+            child = next(frame[1])
+        except StopIteration:
+            height = 1 + frame[2]
+            heights[frame[0]] = height
+            active.remove(frame[0])
+            frames.pop()
+            if frames:
+                frames[-1][2] = max(frames[-1][2], height)
+            continue
+        if not isinstance(child, (PyneArray, PyneMap, PyneMatrix)):
+            continue
+        child_id = id(child)
+        if child_id in active:
+            frame[2] = max(frame[2], 1)
+        elif child_id in heights:
+            frame[2] = max(frame[2], heights[child_id])
+        else:
+            active.add(child_id)
+            frames.append([child_id, iter(_collection_children(child)), 0])
+    return heights[identity]
 
 
 def _collection_references(value: Any, target_id: int, seen: set[int] | None = None) -> bool:
-    seen = seen or set()
-    if isinstance(value, PyneArray):
-        identity = id(value)
+    visited = set(seen or ())
+    pending = [value]
+    while pending:
+        current = pending.pop()
+        if not isinstance(current, (PyneArray, PyneMap, PyneMatrix)):
+            continue
+        identity = id(current)
         if identity == target_id:
             return True
-        if identity in seen:
-            return False
-        seen.add(identity)
-        if isinstance(value._values, _ArraySliceStorage) and _collection_references(
-            value._values.parent, target_id, set(seen)
-        ):
-            return True
-        return any(_collection_references(item, target_id, set(seen)) for item in value.to_list())
-    if isinstance(value, PyneMap):
-        identity = id(value)
-        if identity == target_id:
-            return True
-        if identity in seen:
-            return False
-        seen.add(identity)
-        return any(
-            _collection_references(item, target_id, set(seen))
-            for item in value.to_dict().values()
-        )
-    if isinstance(value, PyneMatrix):
-        identity = id(value)
-        if identity == target_id:
-            return True
-        if identity in seen:
-            return False
-        seen.add(identity)
-        return any(
-            _collection_references(item, target_id, set(seen))
-            for row in value.to_list()
-            for item in row
-        )
+        if identity in visited:
+            continue
+        visited.add(identity)
+        pending.extend(_collection_children(current, include_slice_parent=True))
     return False
 
 
 def _collection_has_cycle(value: Any, path: set[int] | None = None) -> bool:
-    path = path or set()
-    if isinstance(value, PyneArray):
-        identity = id(value)
-        if identity in path:
+    if not isinstance(value, (PyneArray, PyneMap, PyneMatrix)):
+        return False
+    active, complete = set(path or ()), set()
+    identity = id(value)
+    if identity in active:
+        return True
+    active.add(identity)
+    frames = [(identity, iter(_collection_children(value)))]
+    while frames:
+        try:
+            child = next(frames[-1][1])
+        except StopIteration:
+            identity, _ = frames.pop()
+            active.remove(identity)
+            complete.add(identity)
+            continue
+        if not isinstance(child, (PyneArray, PyneMap, PyneMatrix)):
+            continue
+        identity = id(child)
+        if identity in active:
             return True
-        child_path = {*path, identity}
-        return any(_collection_has_cycle(item, child_path) for item in value.to_list())
-    if isinstance(value, PyneMap):
-        identity = id(value)
-        if identity in path:
-            return True
-        child_path = {*path, identity}
-        return any(_collection_has_cycle(item, child_path) for item in value.to_dict().values())
-    if isinstance(value, PyneMatrix):
-        identity = id(value)
-        if identity in path:
-            return True
-        child_path = {*path, identity}
-        return any(
-            _collection_has_cycle(item, child_path)
-            for row in value.to_list()
-            for item in row
-        )
+        if identity not in complete:
+            active.add(identity)
+            frames.append((identity, iter(_collection_children(child))))
     return False
 
 
 def _max_collection_depth(values: Iterable[Any], seen: set[int] | None = None) -> int:
-    return max((_collection_depth(value, set(seen or set())) for value in values), default=0)
+    active, heights = set(seen or ()), {}
+    return max((_graph_depth(value, active, heights) for value in values), default=0)
 
 
 def _numeric_values(values: Iterable[Any]) -> list[float]:

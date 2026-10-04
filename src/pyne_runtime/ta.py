@@ -30,16 +30,21 @@ from . import utils
 from .collections import PyneArray
 from .series import PyneSeries, to_numpy, wrap_like
 from .ta_kernels import (
-    _ROLLING_REBASE_CHUNK,
+    _ROLLING_REBASE_CHUNK as _ROLLING_REBASE_CHUNK,
     _FenwickTree as _FenwickTree,
     _broadcast_pivot_types,
     _broadcast_ta_input,
     _fixnan,
+    _exact_rolling_moment_values as _exact_rolling_moment_values,
     _pivot_level_values,
     _rolling_linear_regression_values,
     _rolling_mean_and_mad,
     _rolling_nansum as _rolling_nansum,
     _rolling_nonmissing_sum,
+    _rolling_variance_values as _rolling_variance_values,
+    _rolling_nonmissing_variance_values as _rolling_nonmissing_variance_values,
+    _rolling_full_window_correlation_values as _rolling_full_window_correlation_values,
+    _rolling_correlation_values as _rolling_correlation_values,
     _rolling_percentile_values,
     _rolling_weighted_average_values,
     _valid_boolean_correlation,
@@ -50,173 +55,6 @@ from .values import is_na_value
 
 if TYPE_CHECKING:
     from .context import PyneContext
-
-
-def _rolling_variance_values(source: np.ndarray, period: int, ddof: int) -> np.ndarray:
-    """Compute full-window variance in O(n) with periodically rebased centered moments."""
-    values = np.asarray(source, dtype=np.float64)
-    n = len(values)
-    result = np.full(n, np.nan)
-    if period <= 0 or period > n or period - ddof <= 0:
-        return result
-
-    if period == 1:
-        # A finite singleton has exact population variance zero. Rebasing and
-        # subtracting moments can introduce future-dependent floating residues.
-        result[np.isfinite(values)] = 0.0
-        return result
-
-    chunk_size = max(period, _ROLLING_REBASE_CHUNK)
-    first_output = period - 1
-    for output_start in range(first_output, n, chunk_size):
-        output_stop = min(output_start + chunk_size, n)
-        segment_start = output_start - period + 1
-        segment = values[segment_start:output_stop]
-        valid = np.isfinite(segment)
-        if not np.any(valid):
-            continue
-
-        # Rebasing keeps the cumulative moments small even for 1e12-scale inputs.
-        anchor = float(np.mean(segment[valid]))
-        centered = np.where(valid, segment - anchor, 0.0)
-        counts = _window_sums(valid.astype(np.int64), period)
-        sums = _window_sums(centered, period)
-        squared_sums = _window_sums(centered * centered, period)
-        numerator = squared_sums - sums * sums / period
-        np.maximum(numerator, 0.0, out=numerator)
-        variances = numerator / (period - ddof)
-        variances[counts != period] = np.nan
-        result[output_start:output_stop] = variances
-    return result
-
-
-def _rolling_nonmissing_variance_values(source: np.ndarray, period: int, ddof: int) -> np.ndarray:
-    """Run the stable variance kernel on present observations and restore time positions."""
-    values = np.asarray(source, dtype=np.float64)
-    present = ~np.isnan(values)
-    if np.all(present):
-        return _rolling_variance_values(values, period, ddof)
-    compact_result = _rolling_variance_values(values[present], period, ddof)
-    result = np.full(len(values), np.nan)
-    counts = np.cumsum(present)
-    seen = counts > 0
-    result[seen] = compact_result[counts[seen] - 1]
-    return result
-
-
-def _rolling_full_window_correlation_values(
-    source_a: np.ndarray,
-    source_b: np.ndarray,
-    period: int,
-) -> np.ndarray:
-    """Compute rolling Pearson correlation using periodically rebased moments."""
-    a = np.asarray(source_a, dtype=np.float64)
-    b = np.asarray(source_b, dtype=np.float64)
-    n = min(len(a), len(b))
-    result = np.full(n, np.nan)
-    if period <= 0 or period > n:
-        return result
-    if period == 1:
-        result[np.isfinite(a[:n]) & np.isfinite(b[:n])] = 0.0
-        return result
-
-    a = a[:n]
-    b = b[:n]
-    chunk_size = max(period, _ROLLING_REBASE_CHUNK)
-    first_output = period - 1
-    for output_start in range(first_output, n, chunk_size):
-        output_stop = min(output_start + chunk_size, n)
-        segment_start = output_start - period + 1
-        a_segment = a[segment_start:output_stop]
-        b_segment = b[segment_start:output_stop]
-        valid = np.isfinite(a_segment) & np.isfinite(b_segment)
-        if not np.any(valid):
-            continue
-
-        a_anchor = float(np.mean(a_segment[valid]))
-        b_anchor = float(np.mean(b_segment[valid]))
-        a_centered = np.where(valid, a_segment - a_anchor, 0.0)
-        b_centered = np.where(valid, b_segment - b_anchor, 0.0)
-        counts = _window_sums(valid.astype(np.int64), period)
-        a_sums = _window_sums(a_centered, period)
-        b_sums = _window_sums(b_centered, period)
-        a_squared_sums = _window_sums(a_centered * a_centered, period)
-        b_squared_sums = _window_sums(b_centered * b_centered, period)
-        product_sums = _window_sums(a_centered * b_centered, period)
-
-        a_m2 = a_squared_sums - a_sums * a_sums / period
-        b_m2 = b_squared_sums - b_sums * b_sums / period
-        covariance = product_sums - a_sums * b_sums / period
-        np.maximum(a_m2, 0.0, out=a_m2)
-        np.maximum(b_m2, 0.0, out=b_m2)
-        with np.errstate(divide="ignore", invalid="ignore"):
-            correlations = covariance / np.sqrt(a_m2 * b_m2)
-        invalid = (counts != period) | (a_m2 <= 0.0) | (b_m2 <= 0.0)
-        correlations[invalid] = np.nan
-        zero = ((counts == period) & np.isfinite(a_m2) & np.isfinite(b_m2)
-                & ((a_m2 == 0.0) | (b_m2 == 0.0)))
-        correlations[zero] = 0.0
-        np.clip(correlations, -1.0, 1.0, out=correlations)
-        result[output_start:output_stop] = correlations
-    return result
-
-
-def _rolling_correlation_values(
-    source_a: np.ndarray,
-    source_b: np.ndarray,
-    period: int,
-) -> np.ndarray:
-    """Use independent present-observation moments, with stable coherent windows.
-
-    Missing observations advance x, y and x*y windows independently. Their
-    means can therefore describe different bars and produce values outside
-    [-1, 1]. A full finite calendar window retains the centered Pearson kernel.
-    """
-    n = min(len(source_a), len(source_b))
-    a = np.asarray(source_a, dtype=np.float64)[:n]
-    b = np.asarray(source_b, dtype=np.float64)[:n]
-    result = _rolling_full_window_correlation_values(a, b, period)
-    if period <= 0 or period > n or (not np.any(np.isnan(a)) and not np.any(np.isnan(b))):
-        return result
-
-    finite_a, finite_b = a[np.isfinite(a)], b[np.isfinite(b)]
-    if not len(finite_a) or not len(finite_b):
-        return result
-    anchor_a, anchor_b = finite_a[0], finite_b[0]
-    pair_present = ~np.isnan(a) & ~np.isnan(b)
-    with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
-        centered_a, centered_b = a - anchor_a, b - anchor_b
-        pair_a = np.where(pair_present, centered_a, np.nan)
-        pair_b = np.where(pair_present, centered_b, np.nan)
-        mean_a = _rolling_nonmissing_sum(centered_a, period) / period
-        mean_b = _rolling_nonmissing_sum(centered_b, period) / period
-        pair_mean_a = _rolling_nonmissing_sum(pair_a, period) / period
-        pair_mean_b = _rolling_nonmissing_sum(pair_b, period) / period
-        pair_product = _rolling_nonmissing_sum(pair_a * pair_b, period) / period
-        # Expand E[xy] - E[x]E[y] around fixed anchors. The correction terms
-        # preserve independent observation windows without subtracting 1e24
-        # raw products to recover a small covariance.
-        numerator = (pair_product - mean_a * mean_b
-                     + anchor_a * (pair_mean_b - mean_b)
-                     + anchor_b * (pair_mean_a - mean_a))
-        if period == 1:
-            # A one-observation variance is exactly zero. Subtracting rebased
-            # floating moments can otherwise leave a tiny, history-dependent
-            # residual and turn a zero denominator into a huge coefficient.
-            variance_a = np.where(np.isfinite(_rolling_nonmissing_sum(a, 1)), 0.0, np.nan)
-            variance_b = np.where(np.isfinite(_rolling_nonmissing_sum(b, 1)), 0.0, np.nan)
-        else:
-            variance_a = _rolling_nonmissing_variance_values(a, period, ddof=0)
-            variance_b = _rolling_nonmissing_variance_values(b, period, ddof=0)
-        denominator = np.sqrt(variance_a) * np.sqrt(variance_b)
-        independent = numerator / denominator
-        independent[(denominator == 0.0) & (numerator == 0.0)] = 0.0
-        independent[(denominator == 0.0) & (numerator != 0.0)] = np.nan
-
-    coherent = np.zeros(n, dtype=bool)
-    coherent[period - 1:] = _window_sums((np.isfinite(a) & np.isfinite(b)).astype(np.int64), period) == period
-    result[~coherent] = independent[~coherent]
-    return result
 
 
 class TaModule:
@@ -1258,8 +1096,8 @@ class TaModule:
         non-missing observations. Missing inputs preserve the current window.
         """
         source = to_numpy(src, dtype=np.float64)
-        result = _rolling_nonmissing_variance_values(source, period, ddof=0)
-        np.sqrt(result, out=result)
+        result = _rolling_nonmissing_variance_values(
+            source, period, ddof=0, standard_deviation=True)
         return wrap_like(result, src)
 
     def variance(

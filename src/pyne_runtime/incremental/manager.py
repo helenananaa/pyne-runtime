@@ -26,6 +26,7 @@ class SharedPyneIncrementalSession:
     created_at: float = 0.0
     last_access_at: float = 0.0
     idle_since: float | None = None
+    _lease_token: object = field(default_factory=object, repr=False, compare=False)
 
 
 class PyneIncrementalSessionCapacityError(RuntimeError):
@@ -45,6 +46,12 @@ class PyneIncrementalSessionManager:
         self._lock = threading.RLock()
         self._sessions: dict[str, SharedPyneIncrementalSession] = {}
         self._pending_creations: dict[str, threading.Event] = {}
+        self._creation_owners: dict[str, int] = {}
+        # Tokens/counts retain no forced-closed session objects. Key-only
+        # releases after replacement cannot identify an incarnation, so keep
+        # their attribution unresolved until balanced returns settle it.
+        self._ambiguous_leases: dict[str, dict[object, int]] = {}
+        self._legacy_releases: dict[str, int] = {}
         self.max_sessions = max(int(max_sessions), 1)
         self.idle_ttl_seconds = max(float(idle_ttl_seconds), 0.0)
         self._clock = clock or time.monotonic
@@ -60,7 +67,12 @@ class PyneIncrementalSessionManager:
                 self._collect_expired_locked(now)
                 shared = self._sessions.get(key)
                 if shared is not None:
-                    shared.ref_count += 1
+                    counts = self._ambiguous_leases.get(key)
+                    if counts is None:
+                        shared.ref_count += 1
+                    else:
+                        counts[shared._lease_token] = counts.get(shared._lease_token, 0) + 1
+                        shared.ref_count = self._reference_bound_locked(key, shared)
                     shared.last_access_at = now
                     shared.idle_since = None
                     return shared
@@ -74,7 +86,10 @@ class PyneIncrementalSessionManager:
                             )
                     pending = threading.Event()
                     self._pending_creations[key] = pending
+                    self._creation_owners[key] = threading.get_ident()
                     break
+                if self._creation_owners.get(key) == threading.get_ident():
+                    raise RuntimeError(f"Reentrant acquisition of incremental session key: {key}")
             pending.wait()
 
         try:
@@ -82,6 +97,7 @@ class PyneIncrementalSessionManager:
         except BaseException:
             with self._lock:
                 self._pending_creations.pop(key, None)
+                self._creation_owners.pop(key, None)
                 pending.set()
             raise
 
@@ -98,24 +114,65 @@ class PyneIncrementalSessionManager:
                     last_access_at=now,
                 )
                 self._sessions[key] = shared
+                counts = self._ambiguous_leases.get(key)
+                if counts is not None:
+                    counts[shared._lease_token] = 1
                 return shared
             finally:
                 self._pending_creations.pop(key, None)
+                self._creation_owners.pop(key, None)
                 pending.set()
 
-    def release(self, key: str) -> None:
+    def release(self, key: str, *, shared: SharedPyneIncrementalSession | None = None) -> None:
+        """Return one acquisition, optionally identifying its exact incarnation.
+
+        Pair every acquire with one release. ``shared=lease`` identifies old
+        acquisitions even after force-close and same-key replacement. Legacy
+        key-only releases remain valid; after replacement their unresolved
+        attribution may keep a current session until older leases return.
+        """
+        if shared is not None and shared.key != key:
+            raise ValueError("shared session key does not match release key")
         with self._lock:
-            shared = self._sessions.get(key)
-            if shared is None:
-                return
-            shared.ref_count = max(shared.ref_count - 1, 0)
-            if shared.ref_count <= 0:
+            current = self._sessions.get(key)
+            counts = self._ambiguous_leases.get(key)
+            if counts is None:
+                if current is None or shared is not None and current is not shared:
+                    return
+                current.ref_count = max(current.ref_count - 1, 0)
+            else:
+                if shared is None:
+                    if sum(counts.values()) <= self._legacy_releases.get(key, 0):
+                        return
+                    self._legacy_releases[key] = self._legacy_releases.get(key, 0) + 1
+                else:
+                    remaining = counts.get(shared._lease_token, 0)
+                    if remaining <= 0:
+                        return
+                    if remaining == 1:
+                        counts.pop(shared._lease_token)
+                    else:
+                        counts[shared._lease_token] = remaining - 1
+                total = sum(counts.values()) - self._legacy_releases.get(key, 0)
+                if current is not None:
+                    current.ref_count = self._reference_bound_locked(key, current)
+                if shared is not None and shared is not current:
+                    shared.ref_count = min(counts.get(shared._lease_token, 0), max(total, 0))
+                if total <= 0:
+                    self._ambiguous_leases.pop(key, None)
+                    self._legacy_releases.pop(key, None)
+            if current is not None and current.ref_count <= 0:
                 if self.idle_ttl_seconds <= 0:
                     self._sessions.pop(key, None)
                 else:
                     now = self._clock()
-                    shared.idle_since = now
-                    shared.last_access_at = now
+                    current.idle_since = now
+                    current.last_access_at = now
+
+    def _reference_bound_locked(self, key: str, shared: SharedPyneIncrementalSession) -> int:
+        counts = self._ambiguous_leases[key]
+        total = sum(counts.values()) - self._legacy_releases.get(key, 0)
+        return min(counts.get(shared._lease_token, 0), max(total, 0))
 
     def collect_expired(self) -> list[str]:
         """Remove idle sessions whose TTL elapsed and return their keys."""
@@ -130,6 +187,9 @@ class PyneIncrementalSessionManager:
             shared = self._sessions.get(key)
             if shared is None or (shared.ref_count > 0 and not force):
                 return False
+            if shared.ref_count > 0:
+                counts = self._ambiguous_leases.setdefault(key, {})
+                counts.setdefault(shared._lease_token, shared.ref_count)
             self._sessions.pop(key, None)
             return True
 

@@ -33,7 +33,9 @@ def test_complete_native_inputs_and_download_are_independently_verified():
     assert not result["acceptanceProved"]
 
 
-@pytest.mark.parametrize("callback,differences", [(False, 1797), (True, 1946)])
+# Causal, stable moments can disagree with the captured Native raw-moment result.
+# Keep all measured discrepancies, including those introduced by the repair.
+@pytest.mark.parametrize("callback,differences", [(False, 1945), (True, 1945)])
 def test_all_48_native_outputs_are_measured_without_erasing_discrepancies(callback, differences):
     controls = set(diagnostic.INPUTS + diagnostic.DIAGNOSTICS)
     result = reporter.workload_report(ROOT, diagnostic.NAME, controls, callback)

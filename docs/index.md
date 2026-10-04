@@ -38,6 +38,8 @@ strategy, request, and host-renderer output workflows.
   provider behavior.
 - [Request API](api/request.md): implement typed host data providers for
   `request.security()` and `request.security_lower_tf()`.
+- [Request History Finality](api/request_history_finality.md): optionally certify
+  complete immutable provider history for incremental caching.
 - [External Pine Libraries](api/pine_libraries.md): use the explicit pinned
   adapter registry and its host-data requirements.
 - [Host-Backed Request Security](tutorials/host_request_security.md): provide
@@ -94,6 +96,11 @@ strategy, request, and host-renderer output workflows.
 - [Security Modes](concepts/security_modes.md): script execution boundaries.
 
 ## Compatibility And Development
+
+- [Remaining Audit Repairs](development/remaining_audit_repair_zh.md):
+  additional graph, restore, request and executor fixes with validation receipts.
+- [Structural Audit Repairs](development/structural_audit_repair_zh.md):
+  nonnumeric correctness, lifecycle and performance fixes with compatibility boundaries.
 
 - [Current Project Status](reference/current_status.md): the source of truth
   for current capability, boundaries, and evidence.

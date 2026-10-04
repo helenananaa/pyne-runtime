@@ -157,7 +157,7 @@ and the [API matrix](docs/reference/pine_like_api_matrix.md).
 
 Within **0.4.x**, patch releases preserve documented public imports, signatures,
 and existing CLI commands. Numeric corrections may require recalculation.
-The development checkout uses incremental computation semantics **33** following
+The development checkout uses incremental computation semantics **41** following
 WMA/oscillator, extrema, pivot, direction, foundation, Keltner, missing-percentile,
 strategy timing, array ordering, matrix arithmetic/reshape and connected array
 slice corrections, atomic map merge admission and array missing/default/join
@@ -166,10 +166,18 @@ and maps, preservation of empty matrix dimensions, and independent missing-windo
 correlation, and exact finite single-observation population variance/stdev and
 incremental mean, raw binary64 plot/drawing/signal output preservation, exact
 batch single-observation means, and unrounded incremental strategy calculation
-properties, and shared dataset-origin extrema/Stoch initial lookback readiness;
+properties, shared dataset-origin extrema/Stoch initial lookback readiness,
+causal rolling statistics, consistent missing-volume MFI windows, refreshed
+live request intervals, isolated callback/result graphs, and scale-safe standard
+deviation/Bollinger dispersion, preservation of duplicate requested rows, atomic
+local restore rejection, single initialization, and incremental Pivot state;
 published **0.4.0** uses **5**. Display precision is a rendering hint.
 Strategy ledger and report fields retain their existing eight-decimal format;
 this correction does not qualify arbitrary financial precision.
+Providers may opt into the generic
+[request history finality contract](docs/api/request_history_finality.md) to avoid
+repeated sparse-history fetches. Providers without that contract keep late-arrival
+refreshes; market-data acquisition remains the caller's responsibility.
 Older incompatible snapshots
 require rebuilding from authoritative OHLCV; changing operational budgets alone
 does not require recalculation when existing state fits the selected policy.

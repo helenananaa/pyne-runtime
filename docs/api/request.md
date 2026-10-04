@@ -93,6 +93,11 @@ Pass it through `pn.run(..., data_provider=provider)` or
 `PyneSettings(data_provider=provider)`. Both public entry points type the
 argument as `DataProvider | None` for IDE and static checker support.
 
+Incremental providers can optionally declare complete immutable history through
+[`RequestHistoryFinalityProvider`](request_history_finality.md), allowing cached
+historical gaps to avoid repeated full-history retrieval while the active tail
+continues to refresh.
+
 ```python
 result = pn.run(
     """
@@ -477,10 +482,28 @@ def on_bar(ctx, bar):
 
 `ctx.request.security()` returns the value aligned to the current chart bar.
 `ctx.request.security_lower_tf()` returns a `PyneArray` for the current chart
-bar's lower-timeframe group. The session reuses authoritative provider ranges
-across callbacks and fetches only uncovered ranges. Cached rows and covered
-ranges are bounded by `request_cache_max_bars` and `cache_max_items`; dropping cache coverage
-only causes a later authoritative refetch.
+bar's lower-timeframe group, preserving legitimate duplicate-time rows. The
+returned array follows `max_array_size` and `max_collection_depth`, including
+later mutations. Batch lower-timeframe grouping also checks each group's size
+before materializing it. `None` retains unlimited computation capacity. The
+session validates fetched OHLCV before publishing cache evidence. Without a
+completeness and immutability promise, later callbacks refresh the range so
+additional rows at an existing timestamp remain visible. A provider can opt into
+the [history finality contract](request_history_finality.md) to reuse ended row
+groups and absence in complete immutable history, limiting retrieval to
+uncovered ranges and mutable tails. Cached rows
+and covered ranges are bounded by `request_cache_max_bars` and `cache_max_items`;
+dropping cache coverage only causes a later authoritative refetch.
+
+Literal field and tuple requests use current-coordinate projection and indexed
+validated rows. Arbitrary Python thunks still receive a real `PyneContext` and
+execute on every call, preserving shared changes within that callback. Thunks,
+`time_close` and exposed or irregular histories can require full context
+materialization. User-defined metadata types and methods also keep the complete
+context path, including their bound timeline and Python method side effects.
+Deferred derived fields use the floating-error policy in effect when their first
+literal field read happened. Neither arbitrary Python expressions nor providers without
+finality are promised linear total work over a growing history.
 
 Successful calls publish the same typed entries under
 `result.meta["requestDiagnostics"]`. Preview diagnostics remain isolated from

@@ -9,12 +9,16 @@ import pyne_runtime as pn
 Core functions:
 
 - `pn.run(script, data, params=None, settings=None, security_mode=None, executor_mode=None, data_provider=None, syminfo=None, timeframe=None, session=None)`
-- `pn.read_ohlcv(path, time_unit="s", columns=None)`
+- `pn.read_ohlcv(path, time_unit="s", columns=None, max_bars=None)`
 - `pn.from_pandas(df, **columns)`
 - `pn.validate(script, settings=None)`
 - `pn.schema()`
 - `pn.__version__`
 - `pn.na`
+
+`pn.run()` applies the selected `settings.max_bars` while admitting iterables
+and CSV rows, before executing a script. `None` remains unlimited. Standalone
+data loaders also accept an explicit `max_bars` keyword; see [Data API](data.md).
 
 `pn.schema()["scriptNamespace"]` lists the top-level names injected into Pyne
 scripts, grouped for host editors that want autocomplete or quick API pickers.

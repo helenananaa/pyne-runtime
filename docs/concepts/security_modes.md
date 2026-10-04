@@ -64,12 +64,18 @@ Research defaults include computational standard libraries (`math`, `statistics`
 report unsupported class definitions during validation.
 
 Safe/research are not OS or multi-tenant sandboxes. Process execution uses spawn,
-requires pickle-serializable arguments/providers, and can terminate its worker
+requires pickle-serializable arguments/providers/results, and can terminate its worker
 when a configured deadline expires. Those restrictions apply only when process
 execution is selected. Inline deadlines are best-effort Unix-main-thread timers,
 not hard interrupts on Windows or other threads. A required hard timeout needs
 process execution. The full builtins mapping is copied rather than shared with
-the host interpreter's builtin dictionary.
+the host interpreter's builtin dictionary. Result serialization failure returns
+`PYNE_PROCESS_SERIALIZATION_ERROR`, and the process and queue are closed on
+success, failure, interruption and deadline expiry. Explicit timeout overrides
+are validated before multiprocessing resources are allocated. On supported POSIX
+main threads, a local deadline composes with an existing caller alarm: the earlier
+deadline stays active, and the original handler, periodic interval and elapsed
+remaining budget are restored afterward.
 
 ## Independent budgets
 

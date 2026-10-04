@@ -16,7 +16,7 @@ a shared historical/realtime callback workflow, and actionable validation and
 execution diagnostics. Computation semantics is **5**; incompatible older
 snapshots require rebuilding from authoritative OHLCV.
 
-The current Windows full gate passed 1,236 tests, performance/stability checks,
+The 0.4.0 release Windows gate passed 1,236 tests, performance/stability checks,
 58 capture fixtures with zero differences, distribution checks, and installed
 wheel acceptance with nine workflows and 55,075 comparison points. PR and main CI each passed all 19 checks; the release workflow passed all
 11 jobs, including nine installed-wheel combinations. Public wheel and source
@@ -28,6 +28,152 @@ contracts. Its supported surface is bounded by the documented API matrix;
 market data, chart rendering, and operational isolation belong to the caller.
 
 ### Unreleased development changes
+
+The current remaining-issue repair candidate is **rc36 / computation semantics 41**.
+It preserves shared/deep collection graphs in snapshots, checks real owned
+resources and historical time axes before restore, isolates incoming bar graphs
+and replay inputs, rejects recursive same-key session creation, and avoids
+quadratic bulk cache eviction. Request arrays use explicit collection budgets,
+deferred expressions preserve floating-error policy and custom metadata callbacks,
+and process execution reports transport errors and closes its resources. Nested
+local POSIX deadlines retain the caller's alarm and elapsed remaining budget.
+Real rc35 /40 checkpoints are retained in `tests/golden/audit_semantics_v40`.
+The [remaining issue repair record](../development/remaining_audit_repair_zh.md)
+tracks this candidate and its independent qualification; previous counts below
+belong to their stated candidates.
+
+The rc36 candidate covers **4,966 distinct tests**, including **191 new regressions**.
+Its initial disjoint run passed 4,965; one prior copy-failure fixture supplied a
+malformed equity entry, now rejected by earlier shape admission. The corrected
+fixture uses a valid real-number entry with an explicitly failing copy. All 131
+related tests pass on rerun, with no runtime source changes or test warnings.
+The independently installed wheel passes the 191 new regressions, the 131 related
+checks (overlapping coverage counted separately), and nine standalone workflows
+with 55,075 comparison points. All 93 package Python files match the qualified
+source byte for byte. Performance, stability, capture parity, build and distribution
+checks pass. The original failure log and current coverage accounting are retained
+under `.tmp/audit-remaining-20261004/`. This is local candidate qualification; rc36
+has not been committed, pushed or published.
+
+The preceding structural repair candidate is **rc35 / computation semantics 40**.
+It addresses requested-row loss and invalid cache admission, malformed local
+restore atomicity, repeated initialization, stale session releases, late input
+and matrix budgets, shared collection graph traversal, and incremental request
+and Pivot costs. Actual rc34 /39 state and replay fixtures are retained under
+`tests/golden/audit_semantics_v39`; incompatible sessions require rebuilding from
+authoritative supplied OHLCV. Current validation is recorded separately under
+`.tmp/audit-structural-repair-20261004/`.
+See the [structural repair record](../development/structural_audit_repair_zh.md)
+for triggers, work-count comparisons and remaining execution boundaries.
+
+The preceding rc35 candidate covers **4,775 distinct tests**, including 186 new
+regressions. Its full initial run passed 4,774; one obsolete assertion expected
+resource admission on a second `seed`. That test now checks first-seed rejection,
+unchanged typed state and successful subsequent initialization. All 76 related
+tests pass on rerun, with no runtime source changes and no duplicate coverage
+counts. There are no test warnings. The independent installed wheel passes the
+186 new regressions and nine standalone workflows with 55,075 comparison points;
+all 88 package Python files match the qualified source byte for byte. Performance,
+stability, capture parity, build and distribution checks also pass. This is local
+candidate qualification; rc35 has not been published.
+
+The preceding audit candidate was **rc34 / computation semantics 39**. Rolling
+variance, stdev and correlation preserve previously computed prefixes when
+future data is appended; batch and incremental MFI agree on missing-volume
+windows. Live request ranges are refreshed where bars may still arrive.
+Confirmed output points are detached from caller-visible results, and preview
+and local recovery rebind context-held script functions to the isolated graph.
+Explicit budgets also apply to batch table cells, array construction, fixed
+historical input and seed replay recording. Failed historical restores remain
+atomic; nonfinite process grace values are rejected. Preview and retention
+history work and batch table updates avoid the audited full-history scans.
+Standard deviation and Bollinger dispersion now remain representable when
+binary64 variance itself underflows or overflows. Ordinary finite variance
+behavior is retained. Providers can opt into the generic
+[history finality contract](../api/request_history_finality.md) to certify
+complete, immutable sparse history; unpromised or revoked history still refreshes.
+Object-graph isolation and rolling-moment kernels are separated from session
+and public TA orchestration, preserving import and typed snapshot identities.
+The standalone unlimited defaults and host ownership boundary remain unchanged.
+Real rc32 /37 and rc33 /38 state and replay checkpoints are retained under
+`tests/golden/audit_semantics_v37` and `tests/golden/audit_semantics_v38`
+and must be rejected before construction;
+rebuild from authoritative caller-supplied OHLCV. The native-alignment rounds
+below are historical evidence for their stated candidates; their difference
+counts do not qualify the audit repair candidate.
+
+The prior frozen rc33 source passed **4,505 tests** in three exhaustive,
+nonoverlapping groups (1,475 /1,705 /1,325). One architecture warning retains
+the large `incremental/session.py` and `ta.py` modules as technical debt.
+Compileall, Ruff, project status, diff checks, performance growth, incremental
+stability, distribution checks and independent installed-wheel acceptance pass;
+the installation checks cover nine workflows and 55,075 comparison points.
+Selected Strategy and Request capture checks have zero differences. The TA
+capture check retains 144 disclosed differences and zero unexpected differences.
+Receipts are under `.tmp/audit-repair-20261003/`. These are the previous
+candidate's checks; rc34 validation receipts are retained separately
+under `.tmp/audit-continuation-20261004/`.
+
+The preceding rc34 validation covers **4,589 distinct tests** across three
+nonoverlapping groups (1,503 /1,733 /1,353). The initial run passed 4,587 with
+two documentation registration failures; both missing entries were corrected
+and all 12 documentation/index/status checks passed afterward. There are no
+architecture warnings: session orchestration is 1,466 lines and public TA
+orchestration 1,401, with their independent helpers below the existing review
+threshold. The new wheel is also independently installed outside the checkout;
+all 84 newly added regressions pass there against identical packaged source.
+Compileall, Ruff, project status, diff checks, performance growth, incremental
+stability, build, Twine and independent offline installation acceptance all pass.
+The installation workflows cover nine cases and 55,075 comparison points.
+Selected Strategy and Request capture checks retain zero differences; selected
+TA checks retain 144 disclosed differences and zero unexpected differences.
+
+The independent rc33/rc34 numeric comparison covers **8,136 output cells** in
+15 fixed profiles (population batch/scalar and sample scalar dispersion),
+including minimum subnormals, near-zero variance division, maximum finite
+inputs, missing observations and changing scales. Of 4,325 changed outputs,
+all improve exact-window Fraction/Decimal reference error; 1,695 regain a lost
+nonzero result and 2,037 regain a representable finite result. All batch
+prefixes are preserved. Unchanged ordinary centered-moment roundoff remains;
+the largest observed relative error is about 7.97e-12. This fixed check does
+not establish correctly rounded ordinary statistics or native equivalence.
+The paired receipt is `paired-numeric-qualification.json` in the current
+rc34 validation directory.
+
+In the controlled sparse-provider check, 500 successive callbacks return
+125,252 rows without finality and 1,499 with it; every callback matches the
+independent authoritative slice. The largest fetch span after warmup shrinks
+from 30,000 to 180 seconds. Fetch count remains 500 because mutable tails
+refresh. This measures provider retrieval work, not the full request evaluator's
+scalability; `request-finality-controlled.json` retains both the 256- and
+500-callback comparisons.
+
+The frozen 3,072-cell variance diagnostic now has **1,945 native differences**
+in each execution mode. Paired against the actual rc32 wheel, batch changes from
+1,797 differences (212 introduced, 64 removed, 1,733 retained); incremental
+changes from 1,946 (8 introduced, 9 removed, 1,937 retained). Every introduced
+difference improves the independent exact-window mathematical error, and the
+new batch output preserves every prefix. Only 62 batch introductions directly
+witness the old future dependency; the other 150 reflect recovery from numerical
+cancellation. The batch native difference count increases by 148, so this repair
+is not a claim of improved overall native compatibility. Original captures,
+tolerances and missing-value assertions remain unchanged. The complete paired
+cell receipt is `.tmp/audit-repair-20261003/variance-native-qualification.json`.
+
+For the supplied no-request preview benchmark with 50,000 committed bars,
+Python temporary allocation peak decreases from 17.86 MiB to 0.106 MiB.
+This measures allocation during the preview, not total retained session memory.
+
+Live request caching retains completed positive rows; caching absent coordinates
+also requires an explicit finality promise. Without one, unobserved coordinates
+refresh in one coalesced fetch per query and the span can still approach the full
+retained history. With one, successful reads certify only their safely ended
+intersection with the declared watermark; mutable tails and uncertified ranges
+refresh. Invalid, regressed or withdrawn promises discard the affected context's
+cache and fall back to conservative retrieval. Cache budgets remain separate
+from computation admission. This repair does not establish correctly rounded
+ordinary statistics across all inputs or close the separately documented
+native-alignment gaps.
 
 Round59 evaluates general compensated-state replacements across all **192
 existing modes**, without modifying production code. An SMA/SUM candidate
@@ -995,7 +1141,7 @@ metadata or the package version changes, run
 <!-- BEGIN GENERATED PROJECT STATUS -->
 <!-- Generated by scripts/project_status.py; do not edit this block by hand. -->
 
-Package version from `pyproject.toml`: **0.4.1rc32**
+Package version from `pyproject.toml`: **0.4.1rc36**
 
 | Capture family | Captured | Not captured | Missing | Parity assertions | Priority captured |
 | --- | ---: | ---: | ---: | ---: | ---: |

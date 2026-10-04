@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import ast
 import builtins
-import signal
 import threading
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Any, Iterator
 
+from ._timeouts import alarm_timeout
 from .errors import classify_security_error, error_hint
 from .schema import OUTPUT_KEYS
 from .settings import PyneSettings
@@ -196,6 +196,13 @@ def build_builtins(policy: PyneSecurityPolicy) -> Any:
     return safe
 
 
+def enforce_input_limits(bar_count: int, policy: PyneSecurityPolicy) -> None:
+    if policy.max_bars is not None and bar_count > policy.max_bars:
+        error = PyneResourceLimitError(f"Too many data points (max {policy.max_bars})")
+        error.hint = "Increase max_bars or set it to None; CLI: --limit max_bars=none."
+        raise error
+
+
 def enforce_output_limits(output: dict[str, Any], policy: PyneSecurityPolicy) -> None:
     series_count = _count_output_collections(output) if policy.max_output_series is not None else 0
     if policy.max_output_series is not None and series_count > policy.max_output_series:
@@ -209,6 +216,15 @@ def enforce_output_limits(output: dict[str, Any], policy: PyneSecurityPolicy) ->
         raise PyneSecurityError(
             f"Drawing object events exceed max_object_events ({policy.max_object_events})"
         )
+
+    if policy.max_table_cells is not None:
+        objects = output.get("objects") or {}
+        tables = objects.get("tables") or []
+        cell_count = sum(len(table.get("cells") or []) for table in tables)
+        if cell_count > policy.max_table_cells:
+            raise PyneResourceLimitError(
+                f"Table cells exceed max_table_cells ({policy.max_table_cells})"
+            )
 
     point_count = _count_output_points(output) if policy.max_output_points is not None else 0
     if policy.max_output_points is not None and point_count > policy.max_output_points:
@@ -253,46 +269,8 @@ def execution_timeout(seconds: float | None) -> Iterator[None]:
     if seconds is None or seconds <= 0 or threading.current_thread() is not threading.main_thread():
         yield
         return
-    if not (
-        hasattr(signal, "SIGALRM")
-        and hasattr(signal, "ITIMER_REAL")
-        and hasattr(signal, "setitimer")
-    ):
+    with alarm_timeout(seconds, PyneTimeoutError):
         yield
-        return
-
-    try:
-        previous_handler = signal.getsignal(signal.SIGALRM)
-    except (AttributeError, ValueError, OSError):
-        yield
-        return
-
-    def _handler(signum: int, frame: Any) -> None:
-        raise PyneTimeoutError(f"Pyne script exceeded {seconds:g}s timeout")
-
-    handler_installed = False
-    armed = False
-    try:
-        signal.signal(signal.SIGALRM, _handler)
-        handler_installed = True
-        signal.setitimer(signal.ITIMER_REAL, seconds)
-        armed = True
-    except (AttributeError, ValueError, OSError):
-        try:
-            yield
-            return
-        finally:
-            if armed:
-                signal.setitimer(signal.ITIMER_REAL, 0)
-            if handler_installed:
-                signal.signal(signal.SIGALRM, previous_handler)
-    try:
-        yield
-    finally:
-        if armed:
-            signal.setitimer(signal.ITIMER_REAL, 0)
-        if handler_installed:
-            signal.signal(signal.SIGALRM, previous_handler)
 
 
 def _validate_imports(modules: list[str], policy: PyneSecurityPolicy) -> None:

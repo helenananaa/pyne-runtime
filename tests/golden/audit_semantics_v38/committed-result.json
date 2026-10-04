@@ -1,0 +1,125 @@
+{
+  "ok": true,
+  "error": null,
+  "code": null,
+  "line": null,
+  "column": null,
+  "hint": null,
+  "lines": [
+    {
+      "id": "stdev",
+      "name": "stdev",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 20,
+          "value": 0.0
+        }
+      ]
+    },
+    {
+      "id": "upper",
+      "name": "upper",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 20,
+          "value": 0.0
+        }
+      ]
+    },
+    {
+      "id": "lower",
+      "name": "lower",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 20,
+          "value": 0.0
+        }
+      ]
+    }
+  ],
+  "output": {
+    "lines": [
+      {
+        "id": "stdev",
+        "title": "stdev",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 20,
+            "value": 0.0
+          }
+        ]
+      },
+      {
+        "id": "upper",
+        "title": "upper",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 20,
+            "value": 0.0
+          }
+        ]
+      },
+      {
+        "id": "lower",
+        "title": "lower",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 20,
+            "value": 0.0
+          }
+        ]
+      }
+    ]
+  },
+  "param_schema": [],
+  "meta": {
+    "title": "Audit numeric baseline",
+    "overlay": true,
+    "mode": "incremental",
+    "bar_index": 1,
+    "last_bar_index": 1,
+    "barstate": {
+      "isfirst": false,
+      "islast": true,
+      "ishistory": true,
+      "isrealtime": false,
+      "isnew": true,
+      "isconfirmed": true,
+      "islastconfirmedhistory": true
+    },
+    "retentionBars": null,
+    "retainedBars": 2,
+    "totalCommittedBars": 2,
+    "snapshotVersion": 3
+  }
+}

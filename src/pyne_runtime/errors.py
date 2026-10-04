@@ -45,8 +45,9 @@ ERROR_HINTS: dict[str, str] = {
         "extensions, and resource usage."
     ),
     "PYNE_PROCESS_SERIALIZATION_ERROR": (
-        "Process mode can only receive pickle-serializable scripts, data, params, "
-        "settings, and host-provided objects such as data providers."
+        "Process mode requires pickle-serializable inputs and results, including "
+        "settings, providers and indicator metadata. Remove unsupported objects "
+        "or use inline execution for ordinary Python objects."
     ),
     "PYNE_RESOURCE_LIMIT_EXCEEDED": (
         "An explicitly configured resource budget was reached. Increase the corresponding PyneSettings "
@@ -136,6 +137,7 @@ def classify_security_error(message: str) -> str:
         "Incremental table cells exceed", "Incremental preview globals exceed",
         "array size ", "map size ", "matrix cells ", "collection nesting depth ",
         "Strategy pending-order operation budget",
+        "Table cells exceed",
     )
     if message.startswith(resource_prefixes):
         return "PYNE_RESOURCE_LIMIT_EXCEEDED"

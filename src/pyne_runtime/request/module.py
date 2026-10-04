@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 import math
+from bisect import bisect_left
 from typing import Any, Callable
 
 from ..context import PyneContext
 from ..series import PyneSeries
 from ..ta import TaModule
+from ._current import current_field_values, current_lower_tf_result, current_security_result
+from ._indexed import IndexedRows, LazyRequestedContext, can_defer_metadata
 from .alignment import (
     _GAPS_ALIASES,
     _LOOKAHEAD_ALIASES,
@@ -50,9 +53,14 @@ class RequestModule:
         self,
         context: PyneContext,
         provider: DataProvider | None = None,
+        *,
+        current_only: bool = False,
+        max_array_size: int | None = None,
     ) -> None:
         self._context = context
         self._provider = provider
+        self._current_only = current_only
+        self._max_array_size = max_array_size
         self._evaluating = False
         self._requested_context_cache: dict[
             tuple[str, str, int, int],
@@ -194,6 +202,8 @@ class RequestModule:
                 lookahead=normalized_lookahead,
             )
 
+        if callable(expression) and isinstance(requested_ctx, LazyRequestedContext):
+            requested_ctx = requested_ctx.materialize()
         requested_times = requested_ctx.times
         if callable(expression):
             requested_values, expression_name = self._evaluate_expression_thunk(
@@ -204,11 +214,20 @@ class RequestModule:
                 request_context=request_context,
             )
         else:
-            requested_values, expression_name = _values_from_field_expression(
-                expression,
-                requested,
-                requested_ctx,
-            )
+            field_values = (current_field_values(expression, requested, requested_ctx)
+                            if self._current_only else None)
+            requested_values, expression_name = (field_values if field_values is not None else
+                _values_from_field_expression(expression, requested, requested_ctx))
+
+        if self._current_only:
+            return current_security_result(
+                context=self._context, requested_ctx=requested_ctx,
+                symbol=symbol_text, timeframe=timeframe_text,
+                expression_name=expression_name, requested_values=requested_values,
+                requested_times=requested_times,
+                gaps=normalized_gaps, lookahead=normalized_lookahead,
+                chart_step_hint=_timeframe_seconds_from_text(self._context.timeframe.period),
+                requested_step_hint=_timeframe_seconds_from_text(timeframe_text))
 
         return _align_request_values(
             symbol=symbol_text,
@@ -364,11 +383,17 @@ class RequestModule:
                 request_context=request_context,
             )
         else:
-            requested_values, expression_name = _values_from_field_expression(
-                expression,
-                requested,
-                requested_ctx,
-            )
+            field_values = (current_field_values(expression, requested, requested_ctx)
+                            if self._current_only else None)
+            requested_values, expression_name = (field_values if field_values is not None else
+                _values_from_field_expression(expression, requested, requested_ctx))
+
+        if self._current_only:
+            return current_lower_tf_result(
+                context=self._context, requested_ctx=requested_ctx,
+                symbol=symbol_text, timeframe=timeframe_text,
+                expression_name=expression_name, requested_values=requested_values, chart_end=end,
+                max_group_size=self._max_array_size)
 
         return _group_lower_timeframe_values(
             symbol=symbol_text,
@@ -448,7 +473,10 @@ class RequestModule:
                 current_end,
             )
             try:
-                requested = self._provider.get_ohlcv(
+                fetch = (self._provider.get_ohlcv_view
+                         if self._current_only and hasattr(self._provider, "get_ohlcv_view")
+                         else self._provider.get_ohlcv)
+                requested = fetch(
                     symbol,
                     timeframe,
                     current_start,
@@ -482,14 +510,14 @@ class RequestModule:
                     request_context=request_context,
                 ) from exc
 
-            if not isinstance(requested, list):
+            if not isinstance(requested, (list, IndexedRows)):
                 raise PyneRequestError(
                     "request data provider must return a list of OHLCV bars",
                     code="PYNE_RUNTIME_ERROR",
                     category=RequestProviderErrorCategory.INVALID_RETURN_TYPE,
                     request_context=request_context,
                 )
-            for index, item in enumerate(requested):
+            for index, item in enumerate(() if isinstance(requested, IndexedRows) else requested):
                 if not isinstance(item, dict):
                     raise PyneRequestError(
                         f"request data provider returned non-mapping bar at row {index}",
@@ -504,10 +532,11 @@ class RequestModule:
                         category=RequestProviderErrorCategory.INVALID_BAR_SHAPE,
                         request_context=request_context,
                     )
-            requested = sorted(requested, key=lambda item: int(item.get("time", 0)))
-            prechart_bars = sum(
-                1 for item in requested if int(item.get("time", 0)) < chart_start
-            )
+            if isinstance(requested, IndexedRows):
+                prechart_bars = bisect_left(requested.times, chart_start)
+            else:
+                requested = sorted(requested, key=lambda item: int(item.get("time", 0)))
+                prechart_bars = sum(1 for item in requested if int(item.get("time", 0)) < chart_start)
             if (
                 ignored_invalid_symbol
                 or not requested
@@ -554,15 +583,13 @@ class RequestModule:
             except PyneRequestError as exc:
                 raise exc.with_request_context(**request_context) from exc
         try:
-            requested_ctx = PyneContext.from_ohlcv(
-                requested,
-                syminfo=request_metadata["syminfo"],
-                timeframe=request_metadata["timeframe"],
-                session=request_metadata["session"],
-                allow_empty=True,
-                allow_missing_values=True,
-                require_unique_times=False,
-            )
+            requested_ctx = (LazyRequestedContext(requested, request_metadata)
+                             if self._current_only and isinstance(requested, IndexedRows)
+                             and can_defer_metadata(request_metadata) else
+                             PyneContext.from_ohlcv(
+                                 requested, syminfo=request_metadata["syminfo"],
+                                 timeframe=request_metadata["timeframe"], session=request_metadata["session"],
+                                 allow_empty=True, allow_missing_values=True, require_unique_times=False))
         except (TypeError, ValueError) as exc:
             raise PyneRequestError(
                 f"request data provider returned invalid OHLCV: {exc}",
@@ -648,6 +675,8 @@ class RequestModule:
         requested_ctx: PyneContext,
         request_context: dict[str, Any],
     ) -> tuple[RequestValues, str]:
+        if isinstance(requested_ctx, LazyRequestedContext):
+            requested_ctx = requested_ctx.materialize()
         requested_ta = TaModule(requested_ctx)
         eval_ctx = RequestEvalContext(
             symbol=symbol,
@@ -710,6 +739,12 @@ class RequestModule:
                 [],
                 requested_ctx,
             )
+        if self._current_only:
+            return current_lower_tf_result(
+                context=self._context, requested_ctx=requested_ctx,
+                symbol=symbol, timeframe=timeframe, expression_name=expression_name,
+                requested_values=requested_values, chart_end=_chart_close_boundary(self._context),
+                max_group_size=self._max_array_size)
         return _group_lower_timeframe_values(
             symbol=symbol,
             timeframe=timeframe,
@@ -749,6 +784,12 @@ class RequestModule:
                 [],
                 requested_ctx,
             )
+        if self._current_only:
+            return current_security_result(
+                context=self._context, requested_ctx=requested_ctx,
+                symbol=symbol, timeframe=timeframe, expression_name=expression_name,
+                requested_values=requested_values, gaps=gaps, lookahead=lookahead,
+                chart_step_hint=None, requested_step_hint=None)
         return _align_request_values(
             symbol=symbol,
             timeframe=timeframe,
@@ -770,6 +811,9 @@ def _is_invalid_lower_timeframe(timeframe: str, chart_times: list[int]) -> bool:
 
 
 def _chart_seconds_from_times(chart_times: list[int]) -> int | None:
+    if hasattr(chart_times, "minimum_positive_step"):
+        interval = chart_times.minimum_positive_step
+        return interval if interval is not None and interval >= 60 else None
     if len(chart_times) < 2:
         return None
     intervals = [
@@ -821,6 +865,8 @@ def _chart_close_boundary(context: PyneContext, *, chart_step: int | None = None
 
 
 def _last_positive_chart_step(chart_times: list[int]) -> int | None:
+    if hasattr(chart_times, "last_positive_step"):
+        return chart_times.last_positive_step
     for index in range(len(chart_times) - 1, 0, -1):
         interval = int(chart_times[index]) - int(chart_times[index - 1])
         if interval > 0:

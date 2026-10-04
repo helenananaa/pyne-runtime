@@ -87,13 +87,13 @@ def test_explicit_import_and_collection_policies_still_work():
     assert result.ok, result.error
 
 
-def test_seed_admission_error_does_not_poison_existing_session():
+def test_seed_admission_error_does_not_poison_uninitialized_session():
     session = pn.PyneIncrementalSession(script=SCRIPT, settings=pn.PyneSettings(max_bars=1))
-    session.seed(bars(1))
-    before = session.snapshot_result()
+    before = session.snapshot_portable_state()
     with pytest.raises(PyneSecurityError, match="Too many data points"):
         session.seed(bars(2))
-    assert session.snapshot_result() == before
+    assert session.snapshot_portable_state() == before
+    assert session.seed(bars(1)).ok
     assert session.on_bar_closed(bars(2)[-1]).ok
 
 

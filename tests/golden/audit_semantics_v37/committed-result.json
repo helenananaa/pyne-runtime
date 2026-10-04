@@ -1,0 +1,56 @@
+{
+  "lines": [
+    {
+      "id": "total",
+      "title": "total",
+      "color": "#f59e0b",
+      "linewidth": 2,
+      "style": "solid",
+      "pane": "main",
+      "data": [
+        {
+          "time": 10,
+          "value": 1.0
+        },
+        {
+          "time": 20,
+          "value": 3.0
+        },
+        {
+          "time": 30,
+          "value": 4.0
+        },
+        {
+          "time": 40,
+          "value": 6.0
+        }
+      ]
+    },
+    {
+      "id": "mfi",
+      "title": "mfi",
+      "color": "#f59e0b",
+      "linewidth": 2,
+      "style": "solid",
+      "pane": "main",
+      "data": [
+        {
+          "time": 10,
+          "value": 100.0
+        },
+        {
+          "time": 20,
+          "value": 100.0
+        },
+        {
+          "time": 30,
+          "value": 66.66666666666666
+        },
+        {
+          "time": 40,
+          "value": 0.0
+        }
+      ]
+    }
+  ]
+}

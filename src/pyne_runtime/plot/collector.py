@@ -1,9 +1,10 @@
 """Output collection and serialization for plot APIs."""
 from __future__ import annotations
 
+import copy
 from typing import Any
 
-from ..security import PyneSecurityError
+from ..security import PyneResourceLimitError, PyneSecurityError
 
 
 class OutputCollector:
@@ -14,9 +15,16 @@ class OutputCollector:
     the JSON response.
     """
 
-    def __init__(self, times: list[int], max_drawing_objects: int | None = None) -> None:
+    def __init__(
+        self,
+        times: list[int],
+        max_drawing_objects: int | None = None,
+        *,
+        max_table_cells: int | None = None,
+    ) -> None:
         self.times = times
         self.max_drawing_objects = max_drawing_objects
+        self.max_table_cells = max_table_cells
         self.lines: list[dict[str, Any]] = []
         self.candles: list[dict[str, Any]] = []
         self.histograms: list[dict[str, Any]] = []
@@ -34,6 +42,8 @@ class OutputCollector:
         self._object_labels: dict[str, dict[str, Any]] = {}
         self._object_boxes: dict[str, dict[str, Any]] = {}
         self._object_tables: dict[str, dict[str, Any]] = {}
+        self._table_cell_indices: dict[str, dict[tuple[int, int], int]] = {}
+        self._table_cell_count = 0
         self._object_linefills: dict[str, dict[str, Any]] = {}
         self._object_polylines: dict[str, dict[str, Any]] = {}
         self._indicator_meta: dict[str, Any] = {}
@@ -70,6 +80,17 @@ class OutputCollector:
             "overlay": overlay,
             **kwargs,
         }
+
+    def reserve_table_cell(self) -> None:
+        if (self.max_table_cells is not None
+                and self._table_cell_count >= self.max_table_cells):
+            raise PyneResourceLimitError(
+                f"Table cells exceed max_table_cells ({self.max_table_cells})"
+            )
+        self._table_cell_count += 1
+
+    def release_table_cells(self, count: int) -> None:
+        self._table_cell_count -= count
 
     @property
     def indicator_meta(self) -> dict[str, Any]:
@@ -126,7 +147,13 @@ class OutputCollector:
         if self._object_boxes:
             objects["boxes"] = list(self._object_boxes.values())
         if self._object_tables:
-            objects["tables"] = list(self._object_tables.values())
+            objects["tables"] = [
+                {**table, "cells": sorted(
+                    (dict(cell) for cell in table.get("cells") or []),
+                    key=lambda cell: (cell.get("row", 0), cell.get("column", 0)),
+                )}
+                for table in self._object_tables.values()
+            ]
         if self._object_linefills:
             objects["linefills"] = list(self._object_linefills.values())
         if self._object_polylines:
@@ -134,4 +161,4 @@ class OutputCollector:
         if objects:
             result["objects"] = objects
 
-        return result
+        return copy.deepcopy(result)

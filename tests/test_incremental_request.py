@@ -55,6 +55,10 @@ class _Provider:
             rows = []
         return [row for row in rows if start <= int(row["time"]) <= end]
 
+    def get_finalized_through(self, symbol: str, timeframe: str) -> int:
+        # Only coordinate zero is promised complete and immutable.
+        return 0
+
     def get_request_metadata(self, symbol: str, timeframe: str) -> dict[str, Any]:
         return {"syminfo": {"tickerid": symbol}, "timeframe": timeframe}
 
@@ -100,7 +104,7 @@ def on_bar(ctx, bar):
     } == {"request.security", "request.security_lower_tf"}
 
 
-def test_incremental_request_range_cache_never_refetches_covered_coordinates() -> None:
+def test_incremental_request_range_cache_reuses_finalized_history_and_refreshes_tail() -> None:
     provider = _Provider()
     script = """
 indicator("Cached Requests", mode="incremental")
@@ -118,8 +122,10 @@ def on_bar(ctx, bar):
 
     assert result.ok, result.error
     intervals = [(start, end) for timeframe, start, end in provider.calls if timeframe == "20S"]
-    for index, (left, right) in enumerate(intervals):
-        assert all(right < other_left or left > other_right for other_left, other_right in intervals[:index])
+    # The first requested HTF bar becomes reusable only after its close. The
+    # mutable tail overlaps prior requests so absent/new/current bars refresh.
+    assert intervals == [(0, 20), (0, 30), (1, 40), (1, 50)]
+    assert result.values("HTF") == [95.0, 95.0, 105.0, 105.0]
 
 
 def test_incremental_request_preview_diagnostics_are_isolated_and_cache_is_reused() -> None:
@@ -146,7 +152,8 @@ def on_bar(ctx, bar):
     assert preview.meta["requestDiagnostics"]
     assert session.snapshot_result() == committed_before
     session.on_bar_closed(_bars()[2])
-    assert len(provider.calls) == calls_after_preview
+    assert len(provider.calls) == calls_after_preview + 1
+    assert provider.calls[-1] == ("20S", 1, 40)
 
 
 def test_incremental_request_range_cache_is_bounded_by_runtime_limits() -> None:
