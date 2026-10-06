@@ -97,6 +97,8 @@ strategy, request, and host-renderer output workflows.
 
 ## Compatibility And Development
 
+- [0.4.1 Release Closeout](development/release_0.4.1_zh.md):
+  the current frozen milestone, upgrade guidance and delivery acceptance.
 - [Replay And ALMA Repairs](development/replay_alma_repair_zh.md):
   explicit strategy replay phases and exact convolution across separated exponent ranges.
 - [Weighted And State Audit Repairs](development/weighted_state_audit_repair_zh.md):

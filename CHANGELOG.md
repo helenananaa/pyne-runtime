@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 0.4.1 - 2026-10-06
+
+- Stabilize the standalone Python runtime after the 0.4.1 development cycle.
+  Keep documented public imports and execution defaults; hosts explicitly
+  choose isolation and operational budgets.
+- Computation semantics advances from published 0.4.0 identity 5 to 42.
+  Rebuild incompatible sessions from authoritative OHLCV; never relabel old
+  snapshots. Authentic rc37 /42 state and replay remain compatible.
+- Correct numerical, request, collection, strategy and state-recovery behavior,
+  and reduce measured weighted-calculation and runtime bookkeeping costs.
+  ALMA convolution-core gains are workload-specific; extreme samples can use
+  more resident memory. Existing supported-surface boundaries remain explicit.
+- Freeze this release to the qualified implementation. Subsequent features
+  require concrete user workflows; historical plans do not reopen release scope.
+
+### Development qualification history
+
 - Candidate rc38 retains computation semantics 42. Split historical strategy
   replay into explicit scheduling, fill, risk, state and output phases. Keep
   exact ALMA calculations efficient across widely separated binary64 exponent

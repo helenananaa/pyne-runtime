@@ -1,7 +1,9 @@
 # Pyne Runtime Python 包长期方向
 
 > [!NOTE]
-> 本文定义长期产品方向，近期建议见第 8 节；它不作为当前能力清单。已验证能力、明确限制与质量证据以 [Current Project Status](../reference/current_status.md) 为准。
+> 本文保留长期产品方向；第 8 节属于历史建议，不自动构成当前任务。
+> 唯一近期里程碑见 [0.4.1 发布收尾](release_0.4.1_zh.md)。
+> 已验证能力、明确限制与质量证据以 [Current Project Status](../reference/current_status.md) 为准。
 
 本文档定义 Pyne Runtime 作为 Python 包的长期方向。它面向已经熟悉
 TradingView Pine 心智模型、但希望在 Python 里写指标和策略的用户，也面向

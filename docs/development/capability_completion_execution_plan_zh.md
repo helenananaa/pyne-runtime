@@ -1,7 +1,9 @@
 # Pyne Runtime 功能补全与候选发布执行计划
 
 > [!IMPORTANT]
-> **状态：当前执行计划。** 本文只面向 `pyne-runtime` 仓库内的 `0.3.x` 功能补全、
+> **状态：历史执行计划。** 本文保留 `0.3.x` 功能补全的设计和验收方法，
+> 不再作为当前任务清单；唯一近期里程碑见 [0.4.1 发布收尾](release_0.4.1_zh.md)。
+> 本文原范围只面向 `pyne-runtime` 仓库内的 `0.3.x` 功能补全、
 > 独立安装和候选发布。具体产品的 bridge、workbench、版本锁和宿主验收由各自的适配
 > 仓库负责，不是本仓库的 release gate。当前已经实现的能力、明确边界与证据，始终以
 > [Current Project Status](../reference/current_status.md) 和

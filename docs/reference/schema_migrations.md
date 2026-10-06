@@ -24,11 +24,20 @@ Current schema versions:
 ### Computation semantics identity
 
 The development computation identity is `INCREMENTAL_SEMANTICS_VERSION`, currently
-**41**; published 0.4.0 uses **5**.
+**42**; published 0.4.0 uses **5**.
 Portable payloads carry `semanticsVersion`; local snapshots carry
 `semantics_version`. This identity is independent of the package and snapshot
 wire-format versions. Missing or mismatched identities are rejected with
 `PYNE_SNAPSHOT_SEMANTICS_MISMATCH`, even if other snapshot fields match.
+
+Version 42 makes weighted windows causal, repairs incremental WMA/VWMA
+cancellation, isolates supported mutable parameter graphs, and corrects
+configured strategy equity. Real rc36 /41 state and replay fixtures are retained
+under `tests/golden/audit_semantics_v41` and rejected before adoption. Rebuild
+incompatible sessions from authoritative caller-supplied OHLCV. The rc38 replay
+refactor and ALMA exponent-band optimization preserve identity 42; genuine
+rc37 /42 fixtures continue without relabeling. Operational budget changes alone
+do not require recalculation when stored state fits the selected policy.
 
 Version 41 preserves shared collection identities in snapshots and state history,
 isolates supplied bar payloads before callbacks, records replay inputs before
