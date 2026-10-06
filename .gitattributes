@@ -1,0 +1,3 @@
+# Preserve the byte identity of externally captured evidence on every checkout.
+tests/workloads/*.tradingview.csv -text
+tests/golden/legacy_capture_context_baseline/*.json -text
