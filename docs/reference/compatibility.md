@@ -23,7 +23,7 @@ see [execution policies](../concepts/security_modes.md).
 - Within 0.4.x, patch releases preserve documented package-root imports, call
   signatures, and existing CLI commands. Numeric fixes may require recalculation
   and must be identified in the changelog.
-- Development computation semantics is 33; published 0.4.0 uses 5. This identity
+- The 0.4.1 computation semantics is 42; published 0.4.0 uses 5. This identity
   is separate from package and wire-format versions. WMA gaps (including
   HMA/composed WMA), CMO boundaries and Stochastic cached/extrema state change
   calculation results; extrema gap resets and earliest-tie offsets add a second
@@ -35,11 +35,14 @@ see [execution policies](../concepts/security_modes.md).
   Missing-percentile order updates change results after differing earlier histories.
   Strategy entry admission uses live trade slots; partial lot closure updates
   weighted average and frees capacity. Carried pending fills precede close-fill
-  batch calculation state and current-bar commands. Version-14 and older
-  committed state must be rebuilt.
+  batch calculation state and current-bar commands. Committed state with an
+  incompatible computation identity must be rebuilt.
   Public positive-length `math.sum` also uses non-missing observation windows
   rather than rejecting a bar window containing gaps.
   Older incompatible snapshots are rejected; rebuild from authoritative OHLCV.
+  Version 42 also repairs causal weighted windows, incremental cancellation,
+  mutable parameter isolation and configured strategy equity; see
+  [0.4.1 upgrade guidance](../development/release_0.4.1_zh.md).
 - Resource policy is independent of computation identity. Compatible state may
   restore under a new budget when it fits; restored objects adopt that budget.
 - Source and installed-wheel qualification, supported platforms, and workload
