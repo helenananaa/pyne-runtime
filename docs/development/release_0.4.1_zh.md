@@ -65,7 +65,9 @@ Windows checkout 的自动换行转换改变原始 CSV 和 legacy baseline 的
 Linux/macOS 的两项续算捕获比较揭示 Windows 保存的少数 ALMA 数值与
 本机数学库相差一个尾数位。原始 Windows 捕获及哈希不变；纳入真实且
 SHA 核验的 rc37 wheel，子进程在每个平台运行旧版，严格对照完整新旧
-结果；Windows 继续逐位匹配原始结果。未修改任何生产实现、数值参考
+结果；原捕获的 Windows Python 3.12 环境继续逐位匹配原始结果。
+第二次 CI 的 Windows Python 3.11 也显示相同的尾数差异，因此捕获环境
+判据收窄到原始 Python ABI，不能仅按操作系统判断。未修改任何生产实现、数值参考
 捕获或比较容差。这是发布验收参考的修正，不是计算语义变更。
 
 ## 发布后的开发方向

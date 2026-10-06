@@ -59,10 +59,10 @@ print(json.dumps(records))
         capture_output=True, text=True, check=True, timeout=60,
     )
     records = json.loads(child.stdout)
-    # Preserve exact Windows captured-result checks on the fixture's native platform.
+    # Preserve captured-result checks in the original Windows Python 3.12 ABI.
     # Other platforms compare the old and new implementations exactly, without
     # introducing a tolerance for platform-dependent exp() weight construction.
-    if sys.platform == "win32":
+    if sys.platform == "win32" and sys.version_info[:2] == (3, 12):
         for record in records.values():
             assert record["before"] == json.loads((BASELINE / "committed-result.json").read_text())
             assert record["after"] == json.loads((BASELINE / "continued-result.json").read_text())
