@@ -4,38 +4,35 @@ This document is the current source of truth for Pyne Runtime's implemented
 capabilities and product boundaries. Roadmaps describe future intent; this page
 describes what the repository can support and substantiate now.
 
-**Pyne Runtime 0.4.0 is published and its public assets are verified.**
-Tag `v0.4.0` points to `b1f55c8817a05509ca8a06ea8fbc809f86239fda`.
-The release is neither a draft nor a prerelease.
+**Pyne Runtime 0.4.1 is published and its public assets are verified.**
+Tag `v0.4.1` points to `2b7db79f26ee23472595f4e0e037d49480d45fe6`.
+The release is neither a draft nor a prerelease. Computation semantics is **42**;
+0.4.0 semantics **5** snapshots require rebuilding from authoritative OHLCV.
+Default standalone execution remains full Python with unlimited computation
+budgets; hosts explicitly select isolation and resource policy.
 
-Version 0.4.0 defaults to full Python in the caller process with no imposed
-execution deadline or computation quotas. Hosts select restricted imports,
-process isolation, and resource budgets explicitly. It includes installed
-script templates, CSV column/time-unit mapping and selected-series export,
-a shared historical/realtime callback workflow, and actionable validation and
-execution diagnostics. Computation semantics is **5**; incompatible older
-snapshots require rebuilding from authoritative OHLCV.
+The release candidate passed the complete local Windows gate with 5,475 tests;
+the two added checkout regressions and revised snapshot references passed focused
+validation separately. Tagged-source main CI passed all 19 jobs, and the release
+workflow passed all 11 jobs across Windows, Linux and macOS / Python 3.11–3.13.
+The three public assets were downloaded and their size, GitHub digest and
+SHA256SUMS verified. The public wheel passed nine isolated standalone workflows
+and 55,075 comparison points. All 105 production Python files remain unchanged
+from rc38; public-wheel source matches after checkout line-ending normalization.
+See the [0.4.1 release record](../development/release_0.4.1_zh.md).
 
-The 0.4.0 release Windows gate passed 1,236 tests, performance/stability checks,
-58 capture fixtures with zero differences, distribution checks, and installed
-wheel acceptance with nine workflows and 55,075 comparison points. PR and main CI each passed all 19 checks; the release workflow passed all
-11 jobs, including nine installed-wheel combinations. Public wheel and source
-archive hashes match SHA256SUMS. Details are tracked in the
-[0.4.0 release record](../development/release_0.4.0_zh.md).
+The release closeout milestone is complete. Development now follows real script
+and integration requirements, with focused bug fixes and bounded acceptance.
+Historical plans do not automatically initiate another repository-wide audit.
+The [0.4.0 release record](../development/release_0.4.0_zh.md) remains historical evidence.
 
 Pyne is a standalone Pine-inspired Python runtime with host-neutral extension
 contracts. Its supported surface is bounded by the documented API matrix;
 market data, chart rendering, and operational isolation belong to the caller.
 
-### Unreleased development changes
+### Historical development qualification
 
-The current milestone is **0.4.1 release closeout / computation semantics 42**.
-Functionality is frozen at the qualified rc38 implementation; only release
-metadata, migration guidance and delivery evidence change during closeout.
-See the [current release milestone](../development/release_0.4.1_zh.md) for
-acceptance and stopping conditions. Historical plans do not extend its scope.
-
-The current continuation candidate is **rc38 / computation semantics 42**.
+The final development candidate was **rc38 / computation semantics 42**.
 Historical strategy replay now has explicit scheduling, fill, risk, state and
 output phases. Its coordinator is 33 lines; scheduling, fills and risk work
 through explicit bindings instead of the strategy owner's private fields.
@@ -59,7 +56,8 @@ worker peak working set increases about 10–12 MiB; ordinary samples remain
 near baseline. This is local Windows candidate qualification; it does not
 establish general TradingView compatibility or live-trading qualification.
 The rc38 qualification receipts predate local delivery; Git history records
-subsequent commits. This candidate has not been pushed or published.
+subsequent commits. At qualification time this candidate had not been pushed or published; its
+production implementation has since shipped in 0.4.1 as recorded above.
 
 The preceding weighted/state audit repair candidate is **rc37 / computation semantics 42**.
 It makes WMA, linreg and ALMA causal under appended future inputs, removes

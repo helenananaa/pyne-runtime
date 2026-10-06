@@ -1,0 +1,63 @@
+{
+  "passed": true,
+  "version": "0.4.1",
+  "semantics": 42,
+  "tag": "v0.4.1",
+  "tagCommit": "2b7db79f26ee23472595f4e0e037d49480d45fe6",
+  "publishedAt": "2026-10-06T13:04:50Z",
+  "url": "https://github.com/helenananaa/pyne-runtime/releases/tag/v0.4.1",
+  "assets": {
+    "pyne_runtime-0.4.1-py3-none-any.whl": "b080536dc9e371eaf161f01e5a3103c7c8c58f3d418ca87a933ac3364bce636a",
+    "pyne_runtime-0.4.1.tar.gz": "a151a761f6e134184b542c9cfcbbb33ce9a6ad4e44ee08ad43bbe1a09ffe2014",
+    "SHA256SUMS": "12d17af96b523ca972b475179069bdc3f5263adf888e4716c18d07d153b196f4"
+  },
+  "mainCI": "https://github.com/helenananaa/pyne-runtime/actions/runs/37465033026",
+  "mainChecks": 19,
+  "releaseCI": "https://github.com/helenananaa/pyne-runtime/actions/runs/37467790652",
+  "releaseChecks": 11,
+  "publication": "verified",
+  "localFullGate": {
+    "fullGateExitCode": 0,
+    "fullTests": 5475,
+    "focusedValidationChecks": 28,
+    "newCheckoutRegressions": 2,
+    "collectionPredatesValidationInfrastructureFix": true,
+    "productionFiles": 105,
+    "frozenProductionUnchanged": true,
+    "logSha256": "15ae993b2d8c815700d9a61ae0623cb1edd10087855d308be328fd9cc382233e",
+    "log": "build/release-0.4.1/windows-gate.log"
+  },
+  "publicWheel": {
+    "passed": true,
+    "sourceFiles": 105,
+    "frozenSourceUnchanged": true,
+    "exactBytes": false,
+    "wheelSha256": "b080536dc9e371eaf161f01e5a3103c7c8c58f3d418ca87a933ac3364bce636a",
+    "normalizedCheckoutLineEndingsMatch": true
+  },
+  "installedAcceptance": {
+    "ok": true,
+    "cases": 9,
+    "pointsChecked": 55075,
+    "packageVersion": "0.4.1",
+    "semanticsIdentity": 42,
+    "log": "build/release-0.4.1/published-smoke.log",
+    "logSha256": "f3917df1214f789103b045084828209abea2bee3574b3816e625f87b5107967e"
+  },
+  "earlierMainFailures": [
+    {
+      "run": 37460790292,
+      "reason": "Checkout changed captured evidence bytes; cross-environment ALMA reference differed by one ULP"
+    },
+    {
+      "run": 37463334661,
+      "reason": "Windows Python 3.11 did not match the original Python 3.12 capture ABI"
+    }
+  ],
+  "upgrade": {
+    "previousVersion": "0.4.0",
+    "previousSemantics": 5,
+    "semantics": 42,
+    "incompatibleSnapshots": "rebuild from authoritative OHLCV"
+  }
+}

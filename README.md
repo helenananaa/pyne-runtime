@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="https://github.com/helenananaa/pyne-runtime/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/helenananaa/pyne-runtime/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="https://github.com/helenananaa/pyne-runtime/releases/tag/v0.4.0"><img alt="Stable release: 0.4.0" src="https://img.shields.io/badge/release-0.4.0-0d9488"></a>
+  <a href="https://github.com/helenananaa/pyne-runtime/releases/tag/v0.4.1"><img alt="Stable release: 0.4.1" src="https://img.shields.io/badge/release-0.4.1-0d9488"></a>
   <img alt="Python 3.11, 3.12, and 3.13" src="https://img.shields.io/badge/python-3.11%20%E2%80%93%203.13-3776ab">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-64748b"></a>
 </p>
@@ -24,8 +24,8 @@
 
 Write Python scripts with Pine-inspired APIs such as `ta.sma`, `input`, and
 `plot`. Supply OHLCV data from Python or CSV and receive named series, drawings,
-signals, and strategy reports. The package runs independently with NumPy as its
-only core dependency; applications can supply additional data and rendering.
+signals, and strategy reports. The package runs independently with NumPy and timezone data as its
+core dependencies; applications can supply additional data and rendering.
 
 **Pyne Runtime 0.4** makes standalone execution ordinary Python: run in
 the caller process with full imports and no default deadline or computation
@@ -37,10 +37,10 @@ TradingView `.pine` source requires translation.
 
 ## Quickstart
 
-Install **0.4.0** on Python 3.11–3.13:
+Install **0.4.1** on Python 3.11–3.13:
 
 ```bash
-python -m pip install "https://github.com/helenananaa/pyne-runtime/releases/download/v0.4.0/pyne_runtime-0.4.0-py3-none-any.whl"
+python -m pip install "https://github.com/helenananaa/pyne-runtime/releases/download/v0.4.1/pyne_runtime-0.4.1-py3-none-any.whl"
 ```
 
 Copy this into a Python file or notebook and run it. All input data is included:
@@ -142,11 +142,11 @@ independently of both companion projects.
 
 ## Reliability and compatibility
 
-The **0.4.0 release** passed the full Windows quality gate and the hosted source
+The **0.4.1 release** passed the full Windows quality gate and the hosted source
 and installed-wheel matrix on Windows, Linux, and macOS across Python 3.11,
 3.12, and 3.13. The release workflow independently checks the same wheel on all
 nine combinations before publication. See the
-[0.4.0 release record](docs/development/release_0.4.0_zh.md) for evidence.
+[0.4.1 release record](docs/development/release_0.4.1_zh.md) for evidence.
 
 Validation includes representative full-script workflows, preview isolation,
 snapshot continuation, and bounded performance checks. The capture gates cover
@@ -157,7 +157,7 @@ and the [API matrix](docs/reference/pine_like_api_matrix.md).
 
 Within **0.4.x**, patch releases preserve documented public imports, signatures,
 and existing CLI commands. Numeric corrections may require recalculation.
-The development checkout uses incremental computation semantics **42** following
+The published package uses incremental computation semantics **42** following
 WMA/oscillator, extrema, pivot, direction, foundation, Keltner, missing-percentile,
 strategy timing, array ordering, matrix arithmetic/reshape and connected array
 slice corrections, atomic map merge admission and array missing/default/join
@@ -173,7 +173,7 @@ deviation/Bollinger dispersion, preservation of duplicate requested rows, atomic
 local restore rejection, single initialization, incremental Pivot state, causal
 weighted windows, cancellation-safe incremental WMA/VWMA, isolated scalar-subclass
 parameters, and consistent configured strategy equity;
-published **0.4.0** uses **5**. Display precision is a rendering hint.
+the preceding **0.4.0** release uses **5**. Display precision is a rendering hint.
 Strategy ledger and report fields retain their existing eight-decimal format;
 this correction does not qualify arbitrary financial precision.
 Providers may opt into the generic
