@@ -347,7 +347,7 @@ def test_ema_large_period_seeds_without_a_complete_contiguous_window() -> None:
     assert np.isfinite(result[9999:14997]).all()
 
 
-def test_alma_fft_path_matches_weighted_window_reference(monkeypatch) -> None:
+def test_alma_exact_convolution_matches_weighted_window_reference(monkeypatch) -> None:
     rng = np.random.default_rng(19)
     source = rng.normal(size=3_000)
     period = 400
@@ -363,19 +363,15 @@ def test_alma_fft_path_matches_weighted_window_reference(monkeypatch) -> None:
         period,
         lambda window: np.dot(window, weights),
     )
-    fft_calls = 0
-    original = ta_module.np.fft.rfft
+    def forbidden(*args: Any, **kwargs: Any) -> np.ndarray:
+        raise AssertionError("ALMA must use causal integer convolution, not a floating FFT or window scan")
 
-    def counted(*args: Any, **kwargs: Any) -> np.ndarray:
-        nonlocal fft_calls
-        fft_calls += 1
-        return original(*args, **kwargs)
-
-    monkeypatch.setattr(ta_module.np.fft, "rfft", counted)
+    monkeypatch.setattr(ta_module.np.fft, "rfft", forbidden)
+    monkeypatch.setattr(ta_module.np, "correlate", forbidden)
+    monkeypatch.setattr(ta_module.np, "dot", forbidden)
 
     actual = np.asarray(TaModule().alma(source, period, offset, sigma))
 
-    assert fft_calls >= 2
     np.testing.assert_allclose(actual, expected, rtol=1e-11, atol=1e-11, equal_nan=True)
 
 

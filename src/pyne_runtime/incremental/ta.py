@@ -11,6 +11,7 @@ from ..ta_kernels import (
 )
 from ..utils import require_positive_period
 from ..values import is_condition_true
+from .._weighted_numeric import rounded_ratio
 from ._pivot_window import _PivotWindow
 from ._ta_capacity import window_capacity
 from .limits import IncrementalLimits, _LimitTracker
@@ -186,12 +187,14 @@ class _StepWMA:
     def __init__(self, period: int) -> None:
         self.period = max(int(period), 1)
         self.window: deque[float | None] = deque()
-        self.simple_sum = 0.0
-        self.weighted_sum = 0.0
+        self.simple_sum = 0
+        self.weighted_sum = 0
+        self.positive_infinity = 0
+        self.negative_infinity = 0
         self.valid_count = 0
         self.observations = 0
         self.last_input: float | None = None
-        self.denominator = self.period * (self.period + 1) / 2.0
+        self.denominator = self.period * (self.period + 1) // 2
 
     def update(self, value: Any) -> float | None:
         number = _number_or_none(value)
@@ -205,22 +208,27 @@ class _StepWMA:
             self.observations = min(self.observations + 1, self.period)
         if number is None:
             return None
-        numeric = number or 0.0
-        next_weight = len(self.window) + 1
+        numeric = _scaled_float(number) if math.isfinite(number) else 0
+        next_weight = min(len(self.window) + 1, self.period)
+        if len(self.window) == self.period:
+            self.weighted_sum -= self.simple_sum
+            removed = self.window.popleft()
+            self.simple_sum -= _scaled_float(removed) if math.isfinite(removed) else 0
+            self.positive_infinity -= int(removed == math.inf)
+            self.negative_infinity -= int(removed == -math.inf)
         self.window.append(number)
         self.simple_sum += numeric
         self.weighted_sum += next_weight * numeric
-        if number is not None:
-            self.valid_count += 1
-        if len(self.window) > self.period:
-            removed = self.window.popleft()
-            self.weighted_sum -= self.simple_sum
-            self.simple_sum -= removed or 0.0
-            if removed is not None:
-                self.valid_count -= 1
+        self.positive_infinity += int(number == math.inf)
+        self.negative_infinity += int(number == -math.inf)
+        self.valid_count = len(self.window)
         if missing or self.observations < self.period:
             return None
-        return self.weighted_sum / self.denominator
+        if self.positive_infinity or self.negative_infinity:
+            if self.positive_infinity and self.negative_infinity:
+                return None
+            return math.inf if self.positive_infinity else -math.inf
+        return rounded_ratio(self.weighted_sum, _FLOAT_EXACT_SCALE * self.denominator)
 
 
 class _StepVWMA:
@@ -228,8 +236,10 @@ class _StepVWMA:
         self.period = max(int(period), 1)
         self.products: deque[float] = deque()
         self.weights: deque[float] = deque()
-        self.numerator = 0.0
-        self.denominator = 0.0
+        self.numerator = 0
+        self.denominator = 0
+        self.product_positive_infinity = self.product_negative_infinity = 0
+        self.weight_positive_infinity = self.weight_negative_infinity = 0
 
     def update(self, value: Any, volume: Any) -> float | None:
         number = _number_or_none(value)
@@ -238,22 +248,39 @@ class _StepVWMA:
             product = number * weight
             if not math.isnan(product):
                 self.products.append(product)
-                self.numerator += product
+                self.numerator += _scaled_float(product) if math.isfinite(product) else 0
+                self.product_positive_infinity += int(product == math.inf)
+                self.product_negative_infinity += int(product == -math.inf)
                 if len(self.products) > self.period:
-                    self.numerator -= self.products.popleft()
-                if not math.isfinite(self.numerator):
-                    self.numerator = sum(self.products)
+                    removed = self.products.popleft()
+                    self.numerator -= _scaled_float(removed) if math.isfinite(removed) else 0
+                    self.product_positive_infinity -= int(removed == math.inf)
+                    self.product_negative_infinity -= int(removed == -math.inf)
         if weight is not None:
             self.weights.append(weight)
-            self.denominator += weight
+            self.denominator += _scaled_float(weight) if math.isfinite(weight) else 0
+            self.weight_positive_infinity += int(weight == math.inf)
+            self.weight_negative_infinity += int(weight == -math.inf)
             if len(self.weights) > self.period:
-                self.denominator -= self.weights.popleft()
-            if not math.isfinite(self.denominator):
-                self.denominator = sum(self.weights)
-        if (len(self.products) < self.period or len(self.weights) < self.period
-                or self.denominator <= 0.0):
+                removed = self.weights.popleft()
+                self.denominator -= _scaled_float(removed) if math.isfinite(removed) else 0
+                self.weight_positive_infinity -= int(removed == math.inf)
+                self.weight_negative_infinity -= int(removed == -math.inf)
+        if len(self.products) < self.period or len(self.weights) < self.period:
             return None
-        return self.numerator / self.denominator
+        denominator = (math.nan if self.weight_positive_infinity and self.weight_negative_infinity
+                       else math.inf if self.weight_positive_infinity
+                       else -math.inf if self.weight_negative_infinity
+                       else rounded_ratio(self.denominator, _FLOAT_EXACT_SCALE))
+        if not denominator > 0.0:
+            return None
+        # Match batch's independent windows and its once-rounded rolling sums;
+        # exact retained state permits recovery even when a previous sum overflowed.
+        numerator = (math.nan if self.product_positive_infinity and self.product_negative_infinity
+                     else math.inf if self.product_positive_infinity
+                     else -math.inf if self.product_negative_infinity
+                     else rounded_ratio(self.numerator, _FLOAT_EXACT_SCALE))
+        return numerator / denominator
 
 
 class _StepVariance(_StepRollingMoments):

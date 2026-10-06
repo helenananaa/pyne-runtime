@@ -1,0 +1,357 @@
+{
+  "ok": true,
+  "error": null,
+  "code": null,
+  "line": null,
+  "column": null,
+  "hint": null,
+  "lines": [
+    {
+      "id": "position",
+      "name": "Position",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 60,
+          "value": 0.0
+        },
+        {
+          "time": 120,
+          "value": 0.0
+        },
+        {
+          "time": 180,
+          "value": 0.0
+        },
+        {
+          "time": 240,
+          "value": 0.0
+        },
+        {
+          "time": 300,
+          "value": 0.0
+        }
+      ]
+    },
+    {
+      "id": "equity",
+      "name": "Equity",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 60,
+          "value": 1000.0
+        },
+        {
+          "time": 120,
+          "value": 1000.0
+        },
+        {
+          "time": 180,
+          "value": 1000.0
+        },
+        {
+          "time": 240,
+          "value": 1000.0
+        },
+        {
+          "time": 300,
+          "value": 1000.0
+        }
+      ]
+    },
+    {
+      "id": "wma",
+      "name": "WMA",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 180,
+          "value": 9.833333333333334
+        },
+        {
+          "time": 240,
+          "value": 10.833333333333334
+        },
+        {
+          "time": 300,
+          "value": 10.5
+        }
+      ]
+    },
+    {
+      "id": "vwma",
+      "name": "VWMA",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 180,
+          "value": 9.833333333333334
+        },
+        {
+          "time": 240,
+          "value": 10.777777777777779
+        },
+        {
+          "time": 300,
+          "value": 10.416666666666666
+        }
+      ]
+    },
+    {
+      "id": "alma",
+      "name": "ALMA",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 240,
+          "value": 10.601722509778945
+        },
+        {
+          "time": 300,
+          "value": 10.861149694892882
+        }
+      ]
+    }
+  ],
+  "output": {
+    "lines": [
+      {
+        "id": "position",
+        "title": "Position",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 60,
+            "value": 0.0
+          },
+          {
+            "time": 120,
+            "value": 0.0
+          },
+          {
+            "time": 180,
+            "value": 0.0
+          },
+          {
+            "time": 240,
+            "value": 0.0
+          },
+          {
+            "time": 300,
+            "value": 0.0
+          }
+        ]
+      },
+      {
+        "id": "equity",
+        "title": "Equity",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 60,
+            "value": 1000.0
+          },
+          {
+            "time": 120,
+            "value": 1000.0
+          },
+          {
+            "time": 180,
+            "value": 1000.0
+          },
+          {
+            "time": 240,
+            "value": 1000.0
+          },
+          {
+            "time": 300,
+            "value": 1000.0
+          }
+        ]
+      },
+      {
+        "id": "wma",
+        "title": "WMA",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 180,
+            "value": 9.833333333333334
+          },
+          {
+            "time": 240,
+            "value": 10.833333333333334
+          },
+          {
+            "time": 300,
+            "value": 10.5
+          }
+        ]
+      },
+      {
+        "id": "vwma",
+        "title": "VWMA",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 180,
+            "value": 9.833333333333334
+          },
+          {
+            "time": 240,
+            "value": 10.777777777777779
+          },
+          {
+            "time": 300,
+            "value": 10.416666666666666
+          }
+        ]
+      },
+      {
+        "id": "alma",
+        "title": "ALMA",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 240,
+            "value": 10.601722509778945
+          },
+          {
+            "time": 300,
+            "value": 10.861149694892882
+          }
+        ]
+      }
+    ],
+    "strategy": {
+      "orders": [],
+      "position": {
+        "size": 0.0,
+        "side": "flat",
+        "avg_price": null
+      },
+      "summary": {
+        "initial_capital": 1000.0,
+        "currency": "",
+        "equity": 1000.0,
+        "netprofit": 0.0,
+        "openprofit": 0.0,
+        "grossprofit": 0.0,
+        "grossloss": 0.0,
+        "commission": 0.0,
+        "backtest_fill_limits_assumption": 0,
+        "same_bar_fill_priority": "stop_first",
+        "intrabar_path": "same_bar_priority",
+        "margin_long": 0.0,
+        "margin_short": 0.0
+      },
+      "risk": {
+        "locked": false,
+        "max_drawdown": null,
+        "max_drawdown_type": "percent_of_equity",
+        "max_intraday_loss": null,
+        "max_intraday_loss_type": "percent_of_equity",
+        "max_position_size": 4.0,
+        "max_intraday_filled_orders": null
+      },
+      "closedtrades": [],
+      "opentrades": [],
+      "lifecycle": [
+        {
+          "id": "Breakout",
+          "type": "entry",
+          "status": "pending",
+          "phase": "pending",
+          "submitted_time": 60,
+          "filled_time": null,
+          "canceled_time": null,
+          "rejected_time": null,
+          "side": "long",
+          "qty": 3.0,
+          "price": 10.0,
+          "position_after": 0.0,
+          "comment": "",
+          "stop": 13.0
+        },
+        {
+          "id": "Fade",
+          "type": "order",
+          "status": "pending",
+          "phase": "pending",
+          "submitted_time": 60,
+          "filled_time": null,
+          "canceled_time": null,
+          "rejected_time": null,
+          "side": "short",
+          "qty": 2.0,
+          "price": 10.0,
+          "position_after": 0.0,
+          "comment": "",
+          "limit": 15.0
+        }
+      ]
+    }
+  },
+  "param_schema": [],
+  "meta": {
+    "title": "Replay and ALMA continuation",
+    "overlay": true,
+    "mode": "incremental",
+    "bar_index": 4,
+    "last_bar_index": 4,
+    "barstate": {
+      "isfirst": false,
+      "islast": true,
+      "ishistory": true,
+      "isrealtime": false,
+      "isnew": true,
+      "isconfirmed": true,
+      "islastconfirmedhistory": true
+    },
+    "retentionBars": null,
+    "retainedBars": 5,
+    "totalCommittedBars": 5,
+    "snapshotVersion": 3
+  }
+}

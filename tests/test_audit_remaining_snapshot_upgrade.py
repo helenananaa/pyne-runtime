@@ -24,7 +24,7 @@ def test_actual_rc35_shared_state_rejects_before_construction(mode, monkeypatch)
         assert hashlib.sha256((BASELINE / name).read_bytes().replace(b"\r\n", b"\n")).hexdigest() == digest
     original = json.loads((BASELINE / "committed-result.json").read_text())
     assert all(point["value"] == 0 for line in original["lines"] for point in line["data"])
-    assert INCREMENTAL_SEMANTICS_VERSION == 41
+    assert INCREMENTAL_SEMANTICS_VERSION == 42
     def forbidden(*args, **kwargs):
         pytest.fail("Incompatible semantics must reject before session construction")
     monkeypatch.setattr(pn.PyneIncrementalSession, "__init__", forbidden)

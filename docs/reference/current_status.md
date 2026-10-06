@@ -29,7 +29,63 @@ market data, chart rendering, and operational isolation belong to the caller.
 
 ### Unreleased development changes
 
-The current remaining-issue repair candidate is **rc36 / computation semantics 41**.
+The current continuation candidate is **rc38 / computation semantics 42**.
+Historical strategy replay now has explicit scheduling, fill, risk, state and
+output phases. Its coordinator is 33 lines; scheduling, fills and risk work
+through explicit bindings instead of the strategy owner's private fields.
+Exact ALMA convolution uses narrow exponent
+bands when their combined guarded width and per-pair work estimate is smaller than one dense product,
+retaining one final rounding and causal prefixes. Authentic rc37 /42 state and
+replay artifacts continue without relabeling. The
+[replay and ALMA repair record](../development/replay_alma_repair_zh.md) tracks
+this continuation's performance and qualification receipts under
+`.tmp/audit-replay-alma-20261004/`; previous counts below belong to rc37.
+
+The rc38 candidate passes **5,475 distinct tests**, including **108 additions**
+over rc37, in three disjoint 1,825-test shards with unchanged source hashes.
+Its independently installed wheel passes **538 checks**; all 105 package Python
+files match the qualified source byte for byte. Nine offline workflows and
+55,075 comparison points, 14 performance checks at nine repeats, and stability
+with 16 sessions of 256 bars pass. Independent review matches 346 strategy
+records and 64 bidirectional state/replay restore-preview-continuation checks
+against rc37. Extreme 40k-bar ALMA convolution-core samples improve 9.54–23.37 times, while their
+worker peak working set increases about 10–12 MiB; ordinary samples remain
+near baseline. This is local Windows candidate qualification; it does not
+establish general TradingView compatibility or live-trading qualification.
+The rc38 qualification receipts predate local delivery; Git history records
+subsequent commits. This candidate has not been pushed or published.
+
+The preceding weighted/state audit repair candidate is **rc37 / computation semantics 42**.
+It makes WMA, linreg and ALMA causal under appended future inputs, removes
+incremental WMA/VWMA cancellation drift, isolates mutable scalar subclass
+parameters, and restores supported custom parameter graphs without invoking
+user equality. Empty-result queries retain the selected tracing context.
+Configured no-trade strategy equity reflects the initial capital; strategy
+numeric admission and configuration updates are validated before mutation.
+Input floats require finite values. Local POSIX deadlines survive caught caller
+alarm exceptions. Unlimited varip creation and linefill dependency deletion
+avoid quadratic full-state scans, while missing percentile inputs affect only
+their actual suffix. Plot line operations and shared strategy configuration
+contracts have focused modules; the strategy replay function still carries
+structural debt. Genuine rc36 /41 state and replay artifacts are retained in
+`tests/golden/audit_semantics_v41`; rebuild incompatible state from supplied OHLCV.
+The [weighted and state repair record](../development/weighted_state_audit_repair_zh.md)
+records validation and the cost of exact ALMA for extreme dynamic ranges.
+
+The rc37 candidate passes **5,367 distinct tests**, including **401 new
+regressions**, in three disjoint 1,789-test shards. Source hashes remain unchanged
+throughout the complete run. Its independently installed wheel passes 407 checks
+(the 401 additions plus six existing timeout checks), nine standalone workflows
+and 55,075 comparison points. All 99 package Python files match the qualified
+source byte for byte. Fourteen performance checks at nine repeats, stability,
+capture checks, real POSIX alarm composition, build and distribution validation
+pass. The same frozen rc36 baseline and current native matrix retain identical
+difference records; this does not establish general TradingView compatibility.
+Receipts are under `.tmp/audit-fix-20261004/`. This is local Windows candidate
+qualification, with the timer helper additionally checked under WSL; rc37 had
+not been committed, pushed or published at qualification time.
+
+The preceding remaining-issue repair candidate is **rc36 / computation semantics 41**.
 It preserves shared/deep collection graphs in snapshots, checks real owned
 resources and historical time axes before restore, isolates incoming bar graphs
 and replay inputs, rejects recursive same-key session creation, and avoids
@@ -52,8 +108,9 @@ checks (overlapping coverage counted separately), and nine standalone workflows
 with 55,075 comparison points. All 93 package Python files match the qualified
 source byte for byte. Performance, stability, capture parity, build and distribution
 checks pass. The original failure log and current coverage accounting are retained
-under `.tmp/audit-remaining-20261004/`. This is local candidate qualification; rc36
-has not been committed, pushed or published.
+under `.tmp/audit-remaining-20261004/`. This records local qualification of the
+preceding candidate; the rc37 qualification above uses rc36's clean commit as its
+baseline.
 
 The preceding structural repair candidate is **rc35 / computation semantics 40**.
 It addresses requested-row loss and invalid cache admission, malformed local
@@ -1141,7 +1198,7 @@ metadata or the package version changes, run
 <!-- BEGIN GENERATED PROJECT STATUS -->
 <!-- Generated by scripts/project_status.py; do not edit this block by hand. -->
 
-Package version from `pyproject.toml`: **0.4.1rc36**
+Package version from `pyproject.toml`: **0.4.1rc38**
 
 | Capture family | Captured | Not captured | Missing | Parity assertions | Priority captured |
 | --- | ---: | ---: | ---: | ---: | ---: |

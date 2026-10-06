@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from enum import Enum
+import math
 from typing import Any, TYPE_CHECKING
 
 import numpy as np
@@ -61,24 +62,22 @@ class InputModule:
         """Collected parameter schemas (for frontend UI generation)."""
         return self._schema
 
-    def _resolve(self, key: str, default: Any, schema_entry: dict) -> Any:
-        """Core resolution logic shared by all input.* methods."""
-        schema_entry.setdefault("id", key)
-        # Avoid duplicate schema entries if param() called multiple times
-        if key not in self._seen_keys:
-            self._seen_keys.add(key)
-            self._schema_entries[key] = schema_entry
-            self._schema.append(schema_entry)
-
-        # Return user-provided value if available
+    def _resolve(self, key: str, default: Any) -> Any:
+        """Read a candidate without publishing a declaration that may fail."""
         if key in self._params:
             return self._params[key]
         return default
 
-    def _set_current(self, key: str, value: Any) -> None:
-        entry = self._schema_entries.get(key)
-        if entry is not None:
-            entry["current"] = value
+    def _set_current(self, key: str, value: Any, schema_entry: dict) -> None:
+        """Publish only after all admission checks have succeeded."""
+        schema_entry.setdefault("id", key)
+        if key not in self._seen_keys:
+            schema_entry["current"] = value
+            self._seen_keys.add(key)
+            self._schema_entries[key] = schema_entry
+            self._schema.append(schema_entry)
+        else:
+            self._schema_entries[key]["current"] = value
 
     def _next_key(self, title: str, prefix: str) -> str:
         base = title or f"{prefix}_{len(self._schema)}"
@@ -114,13 +113,14 @@ class InputModule:
     def _coerce_float(self, key: str, value: Any) -> float:
         if isinstance(value, bool):
             raise self._invalid(key, "expected a number, got bool")
-        if isinstance(value, int | float):
-            return float(value)
-        if isinstance(value, str):
+        if isinstance(value, int | float | str):
             try:
-                return float(value.strip())
-            except ValueError:
-                pass
+                result = float(value.strip() if isinstance(value, str) else value)
+            except (ValueError, OverflowError):
+                raise self._invalid(key, "expected a finite number") from None
+            if not math.isfinite(result):
+                raise self._invalid(key, "expected a finite number")
+            return result
         raise self._invalid(key, f"expected a number, got {type(value).__name__}")
 
     def _coerce_bool(self, key: str, value: Any) -> bool:
@@ -317,10 +317,10 @@ class InputModule:
             schema["maxval"] = maxval
         self._add_modern_ui_metadata(schema, display=display, active=active)
 
-        val = self._resolve(key, defval, schema)
+        val = self._resolve(key, defval)
         val = self._coerce_int(key, val)
         self._validate_bounds(key, val, minval=minval, maxval=maxval)
-        self._set_current(key, val)
+        self._set_current(key, val, schema)
         return val
 
     def float(
@@ -342,6 +342,10 @@ class InputModule:
         Pine equivalent: ``input.float(2.0, "Multiplier", step=0.1)``
         """
         key = self._next_key(title, "float")
+        defval = self._coerce_float(key, defval)
+        minval = None if minval is None else self._coerce_float(key, minval)
+        maxval = None if maxval is None else self._coerce_float(key, maxval)
+        step = self._coerce_float(key, step)
         schema = {
             "key": key,
             "type": "float",
@@ -363,10 +367,10 @@ class InputModule:
         schema["step"] = step
         self._add_modern_ui_metadata(schema, display=display, active=active)
 
-        val = self._resolve(key, defval, schema)
+        val = self._resolve(key, defval)
         val = self._coerce_float(key, val)
         self._validate_bounds(key, val, minval=minval, maxval=maxval)
-        self._set_current(key, val)
+        self._set_current(key, val, schema)
         return val
 
     def bool(
@@ -398,9 +402,9 @@ class InputModule:
         if confirm:
             schema["confirm"] = confirm
         self._add_modern_ui_metadata(schema, display=display, active=active)
-        val = self._resolve(key, defval, schema)
+        val = self._resolve(key, defval)
         result = self._coerce_bool(key, val)
-        self._set_current(key, result)
+        self._set_current(key, result, schema)
         return result
 
     def string(
@@ -436,10 +440,10 @@ class InputModule:
             schema["options"] = options
         self._add_modern_ui_metadata(schema, display=display, active=active)
 
-        val = self._resolve(key, defval, schema)
+        val = self._resolve(key, defval)
         result = self._coerce_str(key, val)
         self._validate_options(key, result, options)
-        self._set_current(key, result)
+        self._set_current(key, result, schema)
         return result
 
     def enum(
@@ -483,7 +487,7 @@ class InputModule:
             schema["confirm"] = confirm
         self._add_modern_ui_metadata(schema, display=display, active=active)
 
-        selected = self._resolve(key, default_token, schema)
+        selected = self._resolve(key, default_token)
         selected_token = _enum_token(selected)
         try:
             index = tokens.index(selected_token)
@@ -493,7 +497,7 @@ class InputModule:
                 key,
                 f"expected one of {choices_text}, got {selected_token!r}",
             ) from None
-        self._set_current(key, tokens[index])
+        self._set_current(key, tokens[index], schema)
         return choices[index]
 
     def color(
@@ -525,9 +529,9 @@ class InputModule:
         if confirm:
             schema["confirm"] = confirm
         self._add_modern_ui_metadata(schema, display=display, active=active)
-        val = self._resolve(key, defval, schema)
+        val = self._resolve(key, defval)
         result = self._coerce_str(key, val)
-        self._set_current(key, result)
+        self._set_current(key, result, schema)
         return result
 
     def source(
@@ -584,19 +588,19 @@ class InputModule:
             schema["confirm"] = confirm
         self._add_modern_ui_metadata(schema, display=display, active=active)
 
-        selected = self._resolve(key, default_name, schema)
+        selected = self._resolve(key, default_name)
 
         # If user passed a string name, resolve it
         if isinstance(selected, str):
             self._validate_options(key, selected, options)
-            self._set_current(key, selected)
+            self._set_current(key, selected, schema)
             return self._ctx.resolve_source(selected)
         # If it's already a source object (from default), use it
         if isinstance(selected, (np.ndarray, PyneSeries)):
-            self._set_current(key, default_name)
+            self._set_current(key, default_name, schema)
             return selected
         # Fallback
-        self._set_current(key, "close")
+        self._set_current(key, "close", schema)
         return self._ctx.close
 
     def timeframe(
@@ -632,10 +636,10 @@ class InputModule:
             schema["options"] = options
         self._add_modern_ui_metadata(schema, display=display, active=active)
 
-        val = self._resolve(key, defval, schema)
+        val = self._resolve(key, defval)
         result = self._coerce_str(key, val)
         self._validate_options(key, result, options)
-        self._set_current(key, result)
+        self._set_current(key, result, schema)
         return result
 
     integer = int
@@ -674,10 +678,10 @@ class InputModule:
             schema["options"] = options
         self._add_modern_ui_metadata(schema, display=display, active=active)
 
-        val = self._resolve(key, defval, schema)
+        val = self._resolve(key, defval)
         result = self._coerce_str(key, val)
         self._validate_options(key, result, options)
-        self._set_current(key, result)
+        self._set_current(key, result, schema)
         return result
 
     def session(
@@ -713,10 +717,10 @@ class InputModule:
             schema["options"] = options
         self._add_modern_ui_metadata(schema, display=display, active=active)
 
-        val = self._resolve(key, defval, schema)
+        val = self._resolve(key, defval)
         result = self._coerce_str(key, val)
         self._validate_options(key, result, options)
-        self._set_current(key, result)
+        self._set_current(key, result, schema)
         return result
 
     def time(
@@ -749,9 +753,9 @@ class InputModule:
             schema["confirm"] = confirm
         self._add_modern_ui_metadata(schema, display=display, active=active)
 
-        val = self._resolve(key, int(defval), schema)
+        val = self._resolve(key, int(defval))
         result = self._coerce_time(key, val)
-        self._set_current(key, result)
+        self._set_current(key, result, schema)
         return result
 
     def text_area(
@@ -780,9 +784,9 @@ class InputModule:
         if confirm:
             schema["confirm"] = confirm
         self._add_modern_ui_metadata(schema, display=display, active=active)
-        val = self._resolve(key, defval, schema)
+        val = self._resolve(key, defval)
         result = self._coerce_str(key, val)
-        self._set_current(key, result)
+        self._set_current(key, result, schema)
         return result
 
     def price(
@@ -798,6 +802,7 @@ class InputModule:
     ) -> float:
         """Interactive price parameter represented through the host input schema."""
         key = self._next_key(title, "price")
+        defval = self._coerce_float(key, defval)
         schema: dict[str, Any] = {
             "key": key,
             "type": "price",
@@ -811,9 +816,9 @@ class InputModule:
         if confirm:
             schema["confirm"] = confirm
         self._add_modern_ui_metadata(schema, display=display, active=active)
-        val = self._resolve(key, defval, schema)
+        val = self._resolve(key, defval)
         result = self._coerce_float(key, val)
-        self._set_current(key, result)
+        self._set_current(key, result, schema)
         return result
 
     def _identify_source(self, arr: PyneSeries | np.ndarray) -> str:

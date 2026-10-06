@@ -4,6 +4,8 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING, Any, Callable
 
+from ..strategy.admission import finite_number, optional_number
+from ..strategy.configuration import StrategySettingsUpdate, normalize_strategy_configuration
 from ..strategy.constants import (
     StrategyCommission,
     StrategyDirection,
@@ -16,7 +18,6 @@ from ..strategy.costs import (
     _commission_amount,
     _is_exposure_reduction,
     _margin_required,
-    _normalize_commission_type,
 )
 from ..strategy.ledger import (
     _closed_trade,
@@ -30,9 +31,8 @@ from ..strategy.ledger import (
 from ..strategy.orders import (
     _exit_trigger,
     _incremental_strategy_lifecycle_events,
-    _normalize_intrabar_path,
+    _normalize_intrabar_path as _normalize_intrabar_path,
     _normalize_oca_type,
-    _normalize_same_bar_fill_priority,
     _pending_market_admission_state,
     _pending_trigger,
     _validate_pending_entry_direction,
@@ -42,8 +42,7 @@ from ..strategy.risk import (
     _entry_rejection_reason,
     _intraday_filled_orders_hit,
     _max_drawdown_hit,
-    _normalize_allowed_entry_direction,
-    _normalize_risk_mode,
+    StrategyRiskNamespace,
 )
 
 if TYPE_CHECKING:
@@ -55,42 +54,8 @@ IncrementalStrategyCommission = StrategyCommission
 IncrementalStrategyRiskMode = StrategyRiskMode
 
 
-class IncrementalStrategyRiskNamespace:
-    all = IncrementalStrategyDirection.all
-    both = IncrementalStrategyDirection.both
-    long = IncrementalStrategyDirection.long
-    short = IncrementalStrategyDirection.short
-    none = IncrementalStrategyDirection.none
-    percent_of_equity = IncrementalStrategyRiskMode.percent_of_equity
-    cash = IncrementalStrategyRiskMode.cash
-
-    def __init__(self, strategy: "IncrementalStrategyNamespace") -> None:
-        self._strategy = strategy
-
-    def allow_entry_in(self, direction: str = IncrementalStrategyDirection.all) -> None:
-        self._strategy._allow_entry_in = _normalize_allowed_entry_direction(direction)
-
-    def max_drawdown(
-        self,
-        value: float,
-        type: str = IncrementalStrategyRiskMode.percent_of_equity,
-    ) -> None:
-        self._strategy._max_drawdown_value = max(float(value), 0.0)
-        self._strategy._max_drawdown_type = _normalize_risk_mode(type)
-
-    def max_intraday_loss(
-        self,
-        value: float,
-        type: str = IncrementalStrategyRiskMode.percent_of_equity,
-    ) -> None:
-        self._strategy._max_intraday_loss_value = max(float(value), 0.0)
-        self._strategy._max_intraday_loss_type = _normalize_risk_mode(type)
-
-    def max_position_size(self, contracts: float) -> None:
-        self._strategy._max_position_size = max(float(contracts), 0.0)
-
-    def max_intraday_filled_orders(self, count: int) -> None:
-        self._strategy._max_intraday_filled_orders = max(int(count), 0)
+class IncrementalStrategyRiskNamespace(StrategyRiskNamespace):
+    """Keep the scalar namespace identity while sharing validated risk updates."""
 
 
 class IncrementalStrategyTradesNamespace:
@@ -262,39 +227,13 @@ class IncrementalStrategyNamespace:
         )
 
     def configure(self, **kwargs: Any) -> None:
-        if "process_orders_on_close" in kwargs:
-            self._process_orders_on_close = bool(kwargs["process_orders_on_close"])
-        if "pyramiding" in kwargs:
-            self._pyramiding = max(int(kwargs["pyramiding"]), 0)
-        if "initial_capital" in kwargs:
-            self._initial_capital = float(kwargs["initial_capital"])
+        self._update_strategy_settings(normalize_strategy_configuration(kwargs))
+
+    def _update_strategy_settings(self, updates: StrategySettingsUpdate) -> None:
+        self.__dict__.update(updates)
+        if "_initial_capital" in updates:
             self._peak_equity = self._initial_capital
             self._intraday_peak_equity = self._initial_capital
-        if "currency" in kwargs:
-            self._currency = str(kwargs["currency"] or "")
-        if "slippage" in kwargs:
-            self._slippage_ticks = max(int(kwargs["slippage"]), 0)
-        if "commission_type" in kwargs:
-            self._commission_type = _normalize_commission_type(str(kwargs["commission_type"]))
-        if "commission_value" in kwargs:
-            self._commission_value = max(float(kwargs["commission_value"]), 0.0)
-        if "mintick" in kwargs or "min_tick" in kwargs:
-            self._mintick = max(float(kwargs.get("mintick", kwargs.get("min_tick", 0.0))), 0.0)
-        if "backtest_fill_limits_assumption" in kwargs:
-            self._backtest_fill_limits_assumption = max(
-                int(kwargs["backtest_fill_limits_assumption"]),
-                0,
-            )
-        if "same_bar_fill_priority" in kwargs:
-            self._same_bar_fill_priority = _normalize_same_bar_fill_priority(
-                str(kwargs["same_bar_fill_priority"])
-            )
-        if "intrabar_path" in kwargs:
-            self._intrabar_path = _normalize_intrabar_path(str(kwargs["intrabar_path"]))
-        if "margin_long" in kwargs:
-            self._margin_long = max(float(kwargs["margin_long"]), 0.0)
-        if "margin_short" in kwargs:
-            self._margin_short = max(float(kwargs["margin_short"]), 0.0)
 
     @property
     def touched(self) -> bool:
@@ -472,13 +411,18 @@ class IncrementalStrategyNamespace:
     ) -> None:
         if not when:
             return
-        qty_abs = abs(float(qty))
+        qty_abs = abs(finite_number("qty", qty))
         if qty_abs <= 0:
+            return
+        base_price = self._price_or_current(price)
+        limit = optional_number("limit", limit)
+        stop = optional_number("stop", stop)
+        normalized_oca = _normalize_oca_type(oca_type)
+        if math.isnan(base_price):
             return
         side = self._normalize_direction(direction)
         if order_type == "entry":
             _validate_pending_entry_direction(self._pending_orders, order_id=str(id), side=side)
-        base_price = self._price_or_current(price)
         order = {
             "time": self._current_time(),
             "id": str(id),
@@ -490,13 +434,13 @@ class IncrementalStrategyNamespace:
             "comment": comment,
             "_seq": self._next_seq(),
             "_base_price": float(base_price),
-            "_limit": _optional_float(limit),
-            "_stop": _optional_float(stop),
+            "_limit": limit,
+            "_stop": stop,
             "_market_submission": order_type == "entry" and self._process_orders_on_close and limit is None and stop is None,
             "_submit_time": self._current_time(),
             "_requested_fill_qty": qty_abs,
             "_oca_name": str(oca_name or ""),
-            "_oca_type": _normalize_oca_type(oca_type),
+            "_oca_type": normalized_oca,
         }
         self._append_order(order)
         self._touched = True
@@ -768,6 +712,10 @@ class IncrementalStrategyNamespace:
         if not when or not self._open_trades:
             return
         base_price = self._price_or_current(price)
+        qty = optional_number("qty", qty)
+        qty_percent = optional_number("qty_percent", qty_percent)
+        if math.isnan(base_price):
+            return
         target_qty = self._target_open_qty(str(id))
         requested_qty = _requested_exit_qty(target_qty=target_qty, qty=qty, qty_percent=qty_percent)
         fill_qty = min(target_qty, abs(self.position_size), requested_qty)
@@ -842,6 +790,12 @@ class IncrementalStrategyNamespace:
     ) -> None:
         if not when or (stop is None and limit is None):
             return
+        limit = optional_number("limit", limit)
+        stop = optional_number("stop", stop)
+        qty = optional_number("qty", qty)
+        qty_percent = optional_number("qty_percent", qty_percent)
+        if stop is None and limit is None:
+            return
         self._touched = True
         pending = self._upsert_pending_exit_order({
             "id": str(id),
@@ -852,10 +806,10 @@ class IncrementalStrategyNamespace:
             "price": self._current_price(),
             "position_after": 0.0,
             "comment": comment,
-            "_limit": _optional_float(limit),
-            "_stop": _optional_float(stop),
-            "_requested_qty": _optional_float(qty),
-            "_qty_percent": _optional_float(qty_percent),
+            "_limit": limit,
+            "_stop": stop,
+            "_requested_qty": qty,
+            "_qty_percent": qty_percent,
             "_submit_time": self._current_time(),
         })
         if self._try_fill_pending_exit_order(pending):
@@ -1338,7 +1292,9 @@ class IncrementalStrategyNamespace:
         raise ValueError("strategy direction must be strategy.long or strategy.short")
 
     def _price_or_current(self, price: float | None) -> float:
-        return float(self._current_price() if price is None else price)
+        value = self._current_price() if price is None else price
+        number = optional_number("price", value)
+        return math.nan if number is None else number
 
     def _current_price(self) -> float:
         if self._context.current_bar is None:
@@ -1397,9 +1353,3 @@ def _requested_exit_qty(
     if qty_percent is not None:
         return target * max(float(qty_percent), 0.0) / 100.0
     return target
-
-
-def _optional_float(value: Any) -> float | None:
-    if value is None:
-        return None
-    return float(value)

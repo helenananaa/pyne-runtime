@@ -7,7 +7,9 @@ import pytest
 
 
 strategy_module = importlib.import_module("pyne_runtime.strategy.module")
-strategy_replay = importlib.import_module("pyne_runtime.strategy.replay")
+strategy_output = importlib.import_module("pyne_runtime.strategy.replay_output")
+strategy_events = importlib.import_module("pyne_runtime.strategy.replay_events")
+strategy_fills = importlib.import_module("pyne_runtime.strategy.replay_fills")
 strategy_ledger = importlib.import_module("pyne_runtime.strategy.ledger")
 
 
@@ -36,14 +38,19 @@ def test_default_dense_strategy_keeps_replay_and_snapshots_linear(
         "captured_trade_items": 0,
     }
     original_replay = strategy_module.replay_strategy_orders
-    original_write_snapshot = strategy_replay._write_strategy_snapshot
+    original_write_snapshot = strategy_output.ReplayOutput.write
+    observed_strategy = None
 
     def counted_replay(strategy, **kwargs):
+        nonlocal observed_strategy
+        observed_strategy = strategy
         counters["replays"] += 1
         return original_replay(strategy, **kwargs)
 
-    def counted_write_snapshot(strategy, **kwargs):
-        result = original_write_snapshot(strategy, **kwargs)
+    def counted_write_snapshot(output, idx, state):
+        result = original_write_snapshot(output, idx, state)
+        strategy = observed_strategy
+        assert strategy is not None
         counters["snapshot_writes"] += 1
         counters["captured_trade_items"] += sum(
             len(trades) for trades in strategy._closed_trades_by_bar
@@ -56,7 +63,7 @@ def test_default_dense_strategy_keeps_replay_and_snapshots_linear(
         return result
 
     monkeypatch.setattr(strategy_module, "replay_strategy_orders", counted_replay)
-    monkeypatch.setattr(strategy_replay, "_write_strategy_snapshot", counted_write_snapshot)
+    monkeypatch.setattr(strategy_output.ReplayOutput, "write", counted_write_snapshot)
 
     result = pn.run(
         """
@@ -84,18 +91,18 @@ def test_alternating_close_materializes_in_one_replay(
 ) -> None:
     counters = {"replays": 0, "snapshot_writes": 0}
     original_replay = strategy_module.replay_strategy_orders
-    original_write_snapshot = strategy_replay._write_strategy_snapshot
+    original_write_snapshot = strategy_output.ReplayOutput.write
 
     def counted_replay(strategy, **kwargs):
         counters["replays"] += 1
         return original_replay(strategy, **kwargs)
 
-    def counted_write_snapshot(strategy, **kwargs):
+    def counted_write_snapshot(output, idx, state):
         counters["snapshot_writes"] += 1
-        return original_write_snapshot(strategy, **kwargs)
+        return original_write_snapshot(output, idx, state)
 
     monkeypatch.setattr(strategy_module, "replay_strategy_orders", counted_replay)
-    monkeypatch.setattr(strategy_replay, "_write_strategy_snapshot", counted_write_snapshot)
+    monkeypatch.setattr(strategy_output.ReplayOutput, "write", counted_write_snapshot)
 
     result = pn.run(
         """
@@ -149,17 +156,24 @@ def test_process_orders_on_close_uses_compact_trade_events(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     observed_strategy = None
-    original_write_snapshot = strategy_replay._write_strategy_snapshot
+    original_write_snapshot = strategy_output.ReplayOutput.write
+    original_replay = strategy_module.replay_strategy_orders
 
-    def observed_write_snapshot(strategy, **kwargs):
+    def observed_replay(strategy, **kwargs):
         nonlocal observed_strategy
         observed_strategy = strategy
-        result = original_write_snapshot(strategy, **kwargs)
+        return original_replay(strategy, **kwargs)
+
+    def observed_write_snapshot(output, idx, state):
+        result = original_write_snapshot(output, idx, state)
+        strategy = observed_strategy
+        assert strategy is not None
         assert strategy._closed_trades_by_bar == []
         assert strategy._open_trades_by_bar == []
         return result
 
-    monkeypatch.setattr(strategy_replay, "_write_strategy_snapshot", observed_write_snapshot)
+    monkeypatch.setattr(strategy_module, "replay_strategy_orders", observed_replay)
+    monkeypatch.setattr(strategy_output.ReplayOutput, "write", observed_write_snapshot)
     bars = _bars(4)
     result = pn.run(
         """
@@ -239,13 +253,13 @@ def test_risk_liquidations_are_rederived_without_persistent_inputs(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     source_risk_counts: list[int] = []
-    original_ordering = strategy_replay._orders_in_replay_order
+    original_ordering = strategy_events._orders_in_replay_order
 
     def observed_ordering(orders):
         source_risk_counts.append(sum(bool(order.get("_risk_liquidation")) for order in orders))
         return original_ordering(orders)
 
-    monkeypatch.setattr(strategy_replay, "_orders_in_replay_order", observed_ordering)
+    monkeypatch.setattr(strategy_events, "_orders_in_replay_order", observed_ordering)
     result = pn.run(
         """
 strategy("Risk Source", initial_capital=1000)
@@ -326,7 +340,7 @@ def test_repeated_session_risk_orders_do_not_grow_replay_inputs(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     source_sizes: list[tuple[int, int]] = []
-    original_ordering = strategy_replay._orders_in_replay_order
+    original_ordering = strategy_events._orders_in_replay_order
 
     def observed_ordering(orders):
         source_sizes.append(
@@ -337,7 +351,7 @@ def test_repeated_session_risk_orders_do_not_grow_replay_inputs(
         )
         return original_ordering(orders)
 
-    monkeypatch.setattr(strategy_replay, "_orders_in_replay_order", observed_ordering)
+    monkeypatch.setattr(strategy_events, "_orders_in_replay_order", observed_ordering)
     bar_count = 16
     bars = [
         {
@@ -375,14 +389,14 @@ def test_never_triggered_pending_orders_use_price_index_without_full_scans(
     bar_count: int,
 ) -> None:
     trigger_calls = 0
-    original_trigger = strategy_replay._pending_trigger
+    original_trigger = strategy_fills._pending_trigger
 
     def observed_trigger(**kwargs):
         nonlocal trigger_calls
         trigger_calls += 1
         return original_trigger(**kwargs)
 
-    monkeypatch.setattr(strategy_replay, "_pending_trigger", observed_trigger)
+    monkeypatch.setattr(strategy_fills, "_pending_trigger", observed_trigger)
     result = pn.run(
         """
 strategy("Indexed Pending")

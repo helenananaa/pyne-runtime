@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Candidate rc38 retains computation semantics 42. Split historical strategy
+  replay into explicit scheduling, fill, risk, state and output phases. Keep
+  exact ALMA calculations efficient across widely separated binary64 exponent
+  ranges by convolving narrow integer bands and combining before rounding.
+  Authentic rc37 /42 state and replay snapshots remain compatible.
+- Candidate rc37 uses computation semantics 42. Make weighted calculations
+  causal and recover WMA/VWMA after large values leave their windows. Isolate
+  mutable parameter graphs, validate strategy/input numbers before mutation,
+  retain local deadlines after caught caller alarms, and reduce varip creation,
+  linefill deletion and missing-percentile scans. Rebuild incompatible rc36 /41
+  snapshots from authoritative supplied OHLCV.
 - Candidate rc36 uses computation semantics 41. Preserve shared and deep Pyne
   collection graphs in snapshots and isolate input bar/replay graphs. Validate
   restored owned resource counts and historical horizons before adoption;

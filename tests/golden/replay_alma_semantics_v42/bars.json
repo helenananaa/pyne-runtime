@@ -1,0 +1,98 @@
+[
+  {
+    "time": 60,
+    "open": 10,
+    "high": 10.5,
+    "low": 9.5,
+    "close": 10,
+    "volume": 1
+  },
+  {
+    "time": 120,
+    "open": 11,
+    "high": 11.5,
+    "low": 10.5,
+    "close": 11,
+    "volume": 2
+  },
+  {
+    "time": 180,
+    "open": 9,
+    "high": 9.5,
+    "low": 8.5,
+    "close": 9,
+    "volume": 3
+  },
+  {
+    "time": 240,
+    "open": 12,
+    "high": 12.5,
+    "low": 11.5,
+    "close": 12,
+    "volume": 4
+  },
+  {
+    "time": 300,
+    "open": 10,
+    "high": 10.5,
+    "low": 9.5,
+    "close": 10,
+    "volume": 5
+  },
+  {
+    "time": 360,
+    "open": 14,
+    "high": 14.5,
+    "low": 13.5,
+    "close": 14,
+    "volume": 6
+  },
+  {
+    "time": 420,
+    "open": 7,
+    "high": 7.5,
+    "low": 6.5,
+    "close": 7,
+    "volume": 7
+  },
+  {
+    "time": 480,
+    "open": 15,
+    "high": 15.5,
+    "low": 14.5,
+    "close": 15,
+    "volume": 8
+  },
+  {
+    "time": 540,
+    "open": 9,
+    "high": 9.5,
+    "low": 8.5,
+    "close": 9,
+    "volume": 9
+  },
+  {
+    "time": 600,
+    "open": 11,
+    "high": 11.5,
+    "low": 10.5,
+    "close": 11,
+    "volume": 10
+  },
+  {
+    "time": 660,
+    "open": 16,
+    "high": 16.5,
+    "low": 15.5,
+    "close": 16,
+    "volume": 11
+  },
+  {
+    "time": 720,
+    "open": 8,
+    "high": 8.5,
+    "low": 7.5,
+    "close": 8,
+    "volume": 12
+  }
+]

@@ -10,6 +10,7 @@ from typing import Any
 
 import numpy as np
 
+from ..plot.linefill_store import LineFillStore
 from .checkpoint import PynePortableSnapshotError
 
 
@@ -57,11 +58,14 @@ def decode_typed_state_graph(
     nodes = graph["nodes"]
     if not isinstance(nodes, list) or len(nodes) > max(int(max_nodes), 1):
         raise PynePortableSnapshotError("Portable typed state graph node budget is invalid")
-    return _GraphDecoder(
+    decoder = _GraphDecoder(
         nodes,
         max_depth=max_depth,
         max_nodes=max_nodes,
-    ).decode(graph["root"])
+    )
+    result = decoder.decode(graph["root"])
+    decoder.finish_linefill_stores()
+    return result
 
 
 class _GraphEncoder:
@@ -82,6 +86,11 @@ class _GraphEncoder:
         if scalar is not _NOT_SCALAR:
             return scalar
         if isinstance(value, np.generic):
+            if type(value) is not np.generic.dtype.__get__(value, type(value)).type:
+                raise PynePortableSnapshotError(
+                    f"Portable typed state cannot encode {type(value).__module__}."
+                    f"{type(value).__qualname__}"
+                )
             return self.encode(value.item(), depth=depth)
         oid = id(value)
         if oid in self._memo:
@@ -111,7 +120,7 @@ class _GraphEncoder:
             }
         if isinstance(value, dict):
             return {
-                "kind": "dict",
+                "kind": "linefill-store" if type(value) is LineFillStore else "dict",
                 "items": [
                     [self.encode(key, depth=depth), self.encode(item, depth=depth)]
                     for key, item in value.items()
@@ -169,6 +178,7 @@ class _GraphDecoder:
         self._values: dict[int, Any] = {}
         self._building: set[int] = set()
         self._runtime_types = _runtime_type_registry()
+        self._linefill_nodes: list[tuple[LineFillStore, list[tuple[str, Any]]]] = []
 
     def decode(self, value: Any, *, depth: int = 0) -> Any:
         if depth > self.max_depth:
@@ -204,14 +214,26 @@ class _GraphDecoder:
                 self._values[node_id] = result
                 result.extend(self._decode_items(node, depth=depth))
                 return result
-            if kind == "dict":
-                result = {}
+            if kind in {"dict", "linefill-store"}:
+                result = LineFillStore() if kind == "linefill-store" else {}
                 self._values[node_id] = result
+                linefill_pairs: list[tuple[str, Any]] = []
+                linefill_keys: set[str] = set()
                 for pair in _node_list(node, "items"):
                     if not isinstance(pair, list) or len(pair) != 2:
                         raise PynePortableSnapshotError("Portable typed state mapping item is invalid")
                     key = self.decode(pair[0], depth=depth)
                     item = self.decode(pair[1], depth=depth)
+                    if kind == "linefill-store":
+                        if type(key) is not str or not key:
+                            raise PynePortableSnapshotError("Portable typed linefill key is invalid")
+                        if key in linefill_keys:
+                            raise PynePortableSnapshotError(
+                                "Portable typed linefill store contains duplicate keys"
+                            )
+                        linefill_keys.add(key)
+                        linefill_pairs.append((key, item))
+                        continue
                     try:
                         if key in result:
                             raise PynePortableSnapshotError(
@@ -222,6 +244,8 @@ class _GraphDecoder:
                         raise PynePortableSnapshotError(
                             "Portable typed state mapping key is invalid"
                         ) from exc
+                if kind == "linefill-store":
+                    self._linefill_nodes.append((result, linefill_pairs))
                 return result
             if kind == "deque":
                 maxlen = node.get("maxlen")
@@ -315,6 +339,25 @@ class _GraphDecoder:
     def _decode_items(self, node: dict[str, Any], *, depth: int) -> list[Any]:
         return [self.decode(item, depth=depth) for item in _node_list(node, "items")]
 
+    def finish_linefill_stores(self) -> None:
+        """Validate completed entry graphs, then rebuild only the private index.
+
+        An entry may be an ancestor of its own store in a valid cycle. Filling a
+        store while that dictionary is still decoding would mistake unfinished
+        fields for a malformed entry. Every authority is allocated and memoized
+        first; publication uses its normal setter after all dictionaries finish.
+        """
+        for _, pairs in self._linefill_nodes:
+            for key, item in pairs:
+                if (type(item) is not dict or type(item.get("id")) is not str or item["id"] != key
+                        or type(item.get("line1_id")) is not str or not item["line1_id"]
+                        or type(item.get("line2_id")) is not str or not item["line2_id"]):
+                    raise PynePortableSnapshotError("Portable typed linefill entry is invalid")
+        for store, pairs in self._linefill_nodes:
+            for key, item in pairs:
+                store[key] = item
+        self._linefill_nodes.clear()
+
     def _restore_attributes(self, target: Any, node: dict[str, Any], *, depth: int) -> None:
         attributes = _node_list(node, "attributes")
         for pair in attributes:
@@ -342,9 +385,9 @@ _NOT_SCALAR = _NotScalar()
 
 
 def _encode_scalar(value: Any) -> Any:
-    if value is None or isinstance(value, (bool, int, str)):
+    if value is None or type(value) in (bool, int, str):
         return value
-    if isinstance(value, float):
+    if type(value) is float:
         if math.isnan(value):
             return {"$float": "nan"}
         if math.isinf(value):
@@ -424,6 +467,7 @@ def _validate_node_fields(node: dict[str, Any], kind: str) -> None:
         "tuple": {"kind", "items"},
         "deque": {"kind", "maxlen", "items"},
         "dict": {"kind", "items"},
+        "linefill-store": {"kind", "items"},
         "set": {"kind", "items"},
         "frozenset": {"kind", "items"},
         "ndarray": {"kind", "dtype", "shape", "items"},

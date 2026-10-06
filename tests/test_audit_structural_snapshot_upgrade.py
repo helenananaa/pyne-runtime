@@ -31,7 +31,7 @@ def test_actual_rc34_artifacts_reject_before_construction(mode, monkeypatch):
     old_result = json.loads((BASELINE / "committed-result.json").read_text())
     old_lower = next(line for line in old_result["lines"] if line["name"] == "Lower count")
     assert [point["value"] for point in old_lower["data"]] == [2., 1.]
-    assert INCREMENTAL_SEMANTICS_VERSION == 41
+    assert INCREMENTAL_SEMANTICS_VERSION == 42
 
     def forbidden(*args, **kwargs):
         pytest.fail("Incompatible state must reject before session construction or provider access")

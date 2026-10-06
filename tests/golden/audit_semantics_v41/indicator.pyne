@@ -1,0 +1,4 @@
+indicator("Weighted continuation", mode="incremental")
+def on_bar(ctx, bar):
+    ctx.plot("WMA", ctx.ta.wma("w", period=2).update(bar.close))
+    ctx.plot("VWMA", ctx.ta.vwma("v", period=2).update(bar.close, bar.volume))

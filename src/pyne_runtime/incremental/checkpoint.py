@@ -8,6 +8,8 @@ import math
 from dataclasses import asdict, dataclass
 from typing import Any, Mapping
 
+import numpy as np
+
 from ..settings import PyneSettings
 
 
@@ -21,7 +23,7 @@ DEFAULT_PORTABLE_SNAPSHOT_MAX_NODES = 1_000_000
 
 # Independent of package and wire-format versions. Bump when committed state or
 # replay semantics change incompatibly; legacy unmarked checkpoints are unknown.
-INCREMENTAL_SEMANTICS_VERSION = 41
+INCREMENTAL_SEMANTICS_VERSION = 42
 
 
 class PynePortableSnapshotError(ValueError):
@@ -408,9 +410,15 @@ def _encode_value(value: Any, *, depth: int, max_depth: int, budget: _NodeBudget
         raise PynePortableSnapshotError(
             f"Portable incremental snapshot exceeds nesting depth {max(int(max_depth), 1)}"
         )
-    if value is None or isinstance(value, (bool, int, str)):
+    if isinstance(value, np.generic):
+        if type(value) is not np.generic.dtype.__get__(value, type(value)).type:
+            raise PynePortableSnapshotError(
+                f"Portable snapshot cannot encode {type(value).__qualname__}"
+            )
+        value = value.item()
+    if value is None or type(value) in (bool, int, str):
         return value
-    if isinstance(value, float):
+    if type(value) is float:
         if not math.isfinite(value):
             raise PynePortableSnapshotError("Portable snapshot does not allow NaN or infinity")
         return value
@@ -434,7 +442,7 @@ def _encode_value(value: Any, *, depth: int, max_depth: int, budget: _NodeBudget
         ]
         return {"$type": "frozenset", "items": sorted(encoded, key=_canonical_json)}
     if isinstance(value, Mapping):
-        if not all(isinstance(key, str) for key in value):
+        if not all(type(key) is str for key in value):
             raise PynePortableSnapshotError("Portable snapshot mapping keys must be strings")
         if "$type" in value:
             raise PynePortableSnapshotError("Portable snapshot mappings reserve the '$type' key")

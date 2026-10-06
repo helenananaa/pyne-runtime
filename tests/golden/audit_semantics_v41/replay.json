@@ -1,0 +1,120 @@
+{
+  "checksum": "sha256:19a1800282d08c5c614e1d6669ccbeb129fedf8cda7bca5a342fe9d4a9367383",
+  "format": "pyne.incremental-session/1",
+  "payload": {
+    "bars": [
+      {
+        "close": 1e+16,
+        "high": 1e+16,
+        "low": 1e+16,
+        "open": 1e+16,
+        "time": 1,
+        "volume": 1.0
+      },
+      {
+        "close": 1.0,
+        "high": 1.0,
+        "low": 1.0,
+        "open": 1.0,
+        "time": 2,
+        "volume": 1.0
+      },
+      {
+        "close": 1.0,
+        "high": 1.0,
+        "low": 1.0,
+        "open": 1.0,
+        "time": 3,
+        "volume": 1.0
+      },
+      {
+        "close": 1.0,
+        "high": 1.0,
+        "low": 1.0,
+        "open": 1.0,
+        "time": 4,
+        "volume": 1.0
+      }
+    ],
+    "params": {},
+    "providerRequired": false,
+    "retentionBars": null,
+    "schemaVersion": 1,
+    "scriptSha256": "3881d7343644099406e7a02723ac779646eda046706f950b0d5c160212e11929",
+    "seedCount": 4,
+    "semanticsVersion": 41,
+    "settings": {
+      "allowedImports": [
+        "math",
+        "statistics",
+        "decimal",
+        "fractions",
+        "itertools",
+        "functools",
+        "collections",
+        "bisect",
+        "heapq",
+        "operator",
+        "numpy",
+        "pandas",
+        "scipy",
+        "sklearn",
+        "torch"
+      ],
+      "cacheMaxItems": 32,
+      "incrementalRetentionBars": null,
+      "maxArraySize": null,
+      "maxBars": null,
+      "maxCollectionDepth": null,
+      "maxDrawingObjects": null,
+      "maxMapSize": null,
+      "maxMatrixCells": null,
+      "maxObjectEvents": null,
+      "maxOutputPoints": null,
+      "maxOutputSeries": null,
+      "maxPreviewPayloadItems": null,
+      "maxStateKeys": null,
+      "maxStatePayloadItems": null,
+      "maxStrategyLogEntries": null,
+      "maxStrategyPendingOperations": null,
+      "maxTableCells": null,
+      "maxTotalWindowItems": null,
+      "maxWindowSize": null,
+      "replayHistoryBars": null,
+      "requestCacheMaxBars": 1000000,
+      "securityMode": "unsafe",
+      "session": {
+        "isfirstbar": false,
+        "islastbar": false,
+        "ismarket": true
+      },
+      "syminfo": {
+        "basecurrency": "",
+        "currency": "",
+        "mintick": 1.0,
+        "pointvalue": 1.0,
+        "prefix": "",
+        "ticker": "",
+        "tickerid": "",
+        "timezone": "",
+        "type": "",
+        "volumetype": ""
+      },
+      "timeframe": {
+        "_times": {
+          "$type": "tuple",
+          "items": []
+        },
+        "_timezone": "UTC",
+        "isdaily": false,
+        "isintraday": true,
+        "ismonthly": false,
+        "isweekly": false,
+        "multiplier": 1,
+        "period": "1",
+        "unit": ""
+      },
+      "timeoutSeconds": null
+    }
+  }
+}

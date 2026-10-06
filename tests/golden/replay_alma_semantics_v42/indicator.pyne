@@ -1,0 +1,22 @@
+indicator("Replay and ALMA continuation", mode="incremental")
+def init(ctx):
+    ctx.strategy.configure(initial_capital=1000, pyramiding=2, mintick=0.1,
+                           commission_type=ctx.strategy.commission.cash_per_order,
+                           commission_value=0.2)
+    ctx.strategy.risk.max_position_size(4)
+def on_bar(ctx, bar):
+    ctx.plot("ALMA", ctx.ta.alma("a", period=4).update(bar.close))
+    ctx.plot("WMA", ctx.ta.wma("w", period=3).update(bar.close))
+    ctx.plot("VWMA", ctx.ta.vwma("v", period=3).update(bar.close, bar.volume))
+    ctx.strategy.entry("Breakout", ctx.strategy.long, qty=3, stop=13,
+                       oca_name="first", oca_type=ctx.strategy.oca.cancel,
+                       when=ctx.bar_index == 0)
+    ctx.strategy.order("Fade", ctx.strategy.short, qty=2, limit=15,
+                       oca_name="first", oca_type=ctx.strategy.oca.cancel,
+                       when=ctx.bar_index == 0)
+    ctx.strategy.close("Breakout", qty=1, when=ctx.bar_index == 6)
+    ctx.strategy.entry("Reverse", ctx.strategy.short, qty=2,
+                       when=ctx.bar_index == 8)
+    ctx.strategy.close_all(when=ctx.bar_index == 10)
+    ctx.plot("Position", ctx.strategy.position_size)
+    ctx.plot("Equity", ctx.strategy.equity)

@@ -98,7 +98,7 @@ def test_real_rc31_wrong_dmi_origin_snapshot_rejected_before_construction(mode, 
     assert provenance["wheelSha256"] == "26013fafc495c85394efad343f59fbbc75d07deccb432cce6ed06c5f72189f6a"
     for name, digest in provenance["sha256"].items():
         assert hashlib.sha256((folder / name).read_bytes().replace(b"\r\n", b"\n")).hexdigest() == digest
-    assert INCREMENTAL_SEMANTICS_VERSION == 41
+    assert INCREMENTAL_SEMANTICS_VERSION == 42
     script = (folder / "indicator.pyne").read_text()
     current = pn.run(script, json.loads((folder / "bars.json").read_text()), executor_mode="inline")
     assert current.ok

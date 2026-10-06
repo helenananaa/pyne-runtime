@@ -31,7 +31,7 @@ def test_real_rc33_numeric_snapshots_reject_before_construction(mode, monkeypatc
     old = json.loads((BASELINE / "committed-result.json").read_text())
     stdev = next(line for line in old["lines"] if line["name"] == "stdev")
     assert stdev["data"] == [{"time": 20, "value": 0.0}]
-    assert INCREMENTAL_SEMANTICS_VERSION == 41
+    assert INCREMENTAL_SEMANTICS_VERSION == 42
 
     def forbidden(*args, **kwargs):
         pytest.fail("Incompatible numeric state must fail before constructing a session")

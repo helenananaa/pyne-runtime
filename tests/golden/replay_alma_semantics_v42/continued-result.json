@@ -1,0 +1,789 @@
+{
+  "ok": true,
+  "error": null,
+  "code": null,
+  "line": null,
+  "column": null,
+  "hint": null,
+  "lines": [
+    {
+      "id": "position",
+      "name": "Position",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 60,
+          "value": 0.0
+        },
+        {
+          "time": 120,
+          "value": 0.0
+        },
+        {
+          "time": 180,
+          "value": 0.0
+        },
+        {
+          "time": 240,
+          "value": 0.0
+        },
+        {
+          "time": 300,
+          "value": 0.0
+        },
+        {
+          "time": 360,
+          "value": 3.0
+        },
+        {
+          "time": 420,
+          "value": 2.0
+        },
+        {
+          "time": 480,
+          "value": 2.0
+        },
+        {
+          "time": 540,
+          "value": -2.0
+        },
+        {
+          "time": 600,
+          "value": -2.0
+        },
+        {
+          "time": 660,
+          "value": 0.0
+        },
+        {
+          "time": 720,
+          "value": 0.0
+        }
+      ]
+    },
+    {
+      "id": "equity",
+      "name": "Equity",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 60,
+          "value": 1000.0
+        },
+        {
+          "time": 120,
+          "value": 1000.0
+        },
+        {
+          "time": 180,
+          "value": 1000.0
+        },
+        {
+          "time": 240,
+          "value": 1000.0
+        },
+        {
+          "time": 300,
+          "value": 1000.0
+        },
+        {
+          "time": 360,
+          "value": 999.8
+        },
+        {
+          "time": 420,
+          "value": 978.6
+        },
+        {
+          "time": 480,
+          "value": 994.6
+        },
+        {
+          "time": 540,
+          "value": 982.4
+        },
+        {
+          "time": 600,
+          "value": 978.4
+        },
+        {
+          "time": 660,
+          "value": 968.2
+        },
+        {
+          "time": 720,
+          "value": 968.2
+        }
+      ]
+    },
+    {
+      "id": "wma",
+      "name": "WMA",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 180,
+          "value": 9.833333333333334
+        },
+        {
+          "time": 240,
+          "value": 10.833333333333334
+        },
+        {
+          "time": 300,
+          "value": 10.5
+        },
+        {
+          "time": 360,
+          "value": 12.333333333333334
+        },
+        {
+          "time": 420,
+          "value": 9.833333333333334
+        },
+        {
+          "time": 480,
+          "value": 12.166666666666666
+        },
+        {
+          "time": 540,
+          "value": 10.666666666666666
+        },
+        {
+          "time": 600,
+          "value": 11.0
+        },
+        {
+          "time": 660,
+          "value": 13.166666666666666
+        },
+        {
+          "time": 720,
+          "value": 11.166666666666666
+        }
+      ]
+    },
+    {
+      "id": "vwma",
+      "name": "VWMA",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 180,
+          "value": 9.833333333333334
+        },
+        {
+          "time": 240,
+          "value": 10.777777777777779
+        },
+        {
+          "time": 300,
+          "value": 10.416666666666666
+        },
+        {
+          "time": 360,
+          "value": 12.133333333333333
+        },
+        {
+          "time": 420,
+          "value": 10.166666666666666
+        },
+        {
+          "time": 480,
+          "value": 12.047619047619047
+        },
+        {
+          "time": 540,
+          "value": 10.416666666666666
+        },
+        {
+          "time": 600,
+          "value": 11.518518518518519
+        },
+        {
+          "time": 660,
+          "value": 12.233333333333333
+        },
+        {
+          "time": 720,
+          "value": 11.575757575757576
+        }
+      ]
+    },
+    {
+      "id": "alma",
+      "name": "ALMA",
+      "color": "#f59e0b",
+      "type": "line",
+      "pane": "main",
+      "lineWidth": 2,
+      "lineStyle": 0,
+      "style": "solid",
+      "data": [
+        {
+          "time": 240,
+          "value": 10.601722509778945
+        },
+        {
+          "time": 300,
+          "value": 10.861149694892882
+        },
+        {
+          "time": 360,
+          "value": 12.106286919830813
+        },
+        {
+          "time": 420,
+          "value": 10.291146048778737
+        },
+        {
+          "time": 480,
+          "value": 11.342295324665008
+        },
+        {
+          "time": 540,
+          "value": 11.62683033328169
+        },
+        {
+          "time": 600,
+          "value": 10.26519370366449
+        },
+        {
+          "time": 660,
+          "value": 13.44366024755677
+        },
+        {
+          "time": 720,
+          "value": 11.741089086095071
+        }
+      ]
+    }
+  ],
+  "output": {
+    "lines": [
+      {
+        "id": "position",
+        "title": "Position",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 60,
+            "value": 0.0
+          },
+          {
+            "time": 120,
+            "value": 0.0
+          },
+          {
+            "time": 180,
+            "value": 0.0
+          },
+          {
+            "time": 240,
+            "value": 0.0
+          },
+          {
+            "time": 300,
+            "value": 0.0
+          },
+          {
+            "time": 360,
+            "value": 3.0
+          },
+          {
+            "time": 420,
+            "value": 2.0
+          },
+          {
+            "time": 480,
+            "value": 2.0
+          },
+          {
+            "time": 540,
+            "value": -2.0
+          },
+          {
+            "time": 600,
+            "value": -2.0
+          },
+          {
+            "time": 660,
+            "value": 0.0
+          },
+          {
+            "time": 720,
+            "value": 0.0
+          }
+        ]
+      },
+      {
+        "id": "equity",
+        "title": "Equity",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 60,
+            "value": 1000.0
+          },
+          {
+            "time": 120,
+            "value": 1000.0
+          },
+          {
+            "time": 180,
+            "value": 1000.0
+          },
+          {
+            "time": 240,
+            "value": 1000.0
+          },
+          {
+            "time": 300,
+            "value": 1000.0
+          },
+          {
+            "time": 360,
+            "value": 999.8
+          },
+          {
+            "time": 420,
+            "value": 978.6
+          },
+          {
+            "time": 480,
+            "value": 994.6
+          },
+          {
+            "time": 540,
+            "value": 982.4
+          },
+          {
+            "time": 600,
+            "value": 978.4
+          },
+          {
+            "time": 660,
+            "value": 968.2
+          },
+          {
+            "time": 720,
+            "value": 968.2
+          }
+        ]
+      },
+      {
+        "id": "wma",
+        "title": "WMA",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 180,
+            "value": 9.833333333333334
+          },
+          {
+            "time": 240,
+            "value": 10.833333333333334
+          },
+          {
+            "time": 300,
+            "value": 10.5
+          },
+          {
+            "time": 360,
+            "value": 12.333333333333334
+          },
+          {
+            "time": 420,
+            "value": 9.833333333333334
+          },
+          {
+            "time": 480,
+            "value": 12.166666666666666
+          },
+          {
+            "time": 540,
+            "value": 10.666666666666666
+          },
+          {
+            "time": 600,
+            "value": 11.0
+          },
+          {
+            "time": 660,
+            "value": 13.166666666666666
+          },
+          {
+            "time": 720,
+            "value": 11.166666666666666
+          }
+        ]
+      },
+      {
+        "id": "vwma",
+        "title": "VWMA",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 180,
+            "value": 9.833333333333334
+          },
+          {
+            "time": 240,
+            "value": 10.777777777777779
+          },
+          {
+            "time": 300,
+            "value": 10.416666666666666
+          },
+          {
+            "time": 360,
+            "value": 12.133333333333333
+          },
+          {
+            "time": 420,
+            "value": 10.166666666666666
+          },
+          {
+            "time": 480,
+            "value": 12.047619047619047
+          },
+          {
+            "time": 540,
+            "value": 10.416666666666666
+          },
+          {
+            "time": 600,
+            "value": 11.518518518518519
+          },
+          {
+            "time": 660,
+            "value": 12.233333333333333
+          },
+          {
+            "time": 720,
+            "value": 11.575757575757576
+          }
+        ]
+      },
+      {
+        "id": "alma",
+        "title": "ALMA",
+        "color": "#f59e0b",
+        "linewidth": 2,
+        "style": "solid",
+        "pane": "main",
+        "data": [
+          {
+            "time": 240,
+            "value": 10.601722509778945
+          },
+          {
+            "time": 300,
+            "value": 10.861149694892882
+          },
+          {
+            "time": 360,
+            "value": 12.106286919830813
+          },
+          {
+            "time": 420,
+            "value": 10.291146048778737
+          },
+          {
+            "time": 480,
+            "value": 11.342295324665008
+          },
+          {
+            "time": 540,
+            "value": 11.62683033328169
+          },
+          {
+            "time": 600,
+            "value": 10.26519370366449
+          },
+          {
+            "time": 660,
+            "value": 13.44366024755677
+          },
+          {
+            "time": 720,
+            "value": 11.741089086095071
+          }
+        ]
+      }
+    ],
+    "strategy": {
+      "orders": [
+        {
+          "time": 360,
+          "id": "Breakout",
+          "type": "entry",
+          "side": "long",
+          "qty": 3.0,
+          "price": 14.0,
+          "position_after": 3.0,
+          "comment": "",
+          "reason": "stop",
+          "commission": 0.2,
+          "oca_name": "first",
+          "oca_type": "cancel"
+        },
+        {
+          "time": 420,
+          "id": "Breakout",
+          "type": "close",
+          "side": "flat",
+          "qty": 1.0,
+          "price": 7.0,
+          "position_after": 2.0,
+          "comment": "",
+          "commission": 0.2
+        },
+        {
+          "time": 540,
+          "id": "Reverse",
+          "type": "entry",
+          "side": "short",
+          "qty": 2.0,
+          "price": 9.0,
+          "position_after": -2.0,
+          "comment": "",
+          "commission": 0.2
+        },
+        {
+          "time": 660,
+          "id": "close_all",
+          "type": "close_all",
+          "side": "flat",
+          "qty": 2.0,
+          "price": 16.0,
+          "position_after": 0.0,
+          "comment": "",
+          "commission": 0.2
+        }
+      ],
+      "position": {
+        "size": 0.0,
+        "side": "flat",
+        "avg_price": null
+      },
+      "summary": {
+        "initial_capital": 1000.0,
+        "currency": "",
+        "equity": 968.2,
+        "netprofit": -31.8,
+        "openprofit": 0.0,
+        "grossprofit": 0.0,
+        "grossloss": -31.0,
+        "commission": 0.8,
+        "backtest_fill_limits_assumption": 0,
+        "same_bar_fill_priority": "stop_first",
+        "intrabar_path": "same_bar_priority",
+        "margin_long": 0.0,
+        "margin_short": 0.0
+      },
+      "risk": {
+        "locked": false,
+        "max_drawdown": null,
+        "max_drawdown_type": "percent_of_equity",
+        "max_intraday_loss": null,
+        "max_intraday_loss_type": "percent_of_equity",
+        "max_position_size": 4.0,
+        "max_intraday_filled_orders": null
+      },
+      "closedtrades": [
+        {
+          "entry_time": 360,
+          "exit_time": 420,
+          "entry_id": "Breakout",
+          "exit_id": "Breakout",
+          "side": "long",
+          "qty": 1.0,
+          "entry_price": 14.0,
+          "exit_price": 7.0,
+          "profit": -7.2,
+          "commission": 0.26666667,
+          "net_profit": -7.46666667
+        },
+        {
+          "entry_time": 360,
+          "exit_time": 540,
+          "entry_id": "Breakout",
+          "exit_id": "Reverse",
+          "side": "long",
+          "qty": 2.0,
+          "entry_price": 14.0,
+          "exit_price": 9.0,
+          "profit": -10.0,
+          "commission": 0.23333333,
+          "net_profit": -10.23333333
+        },
+        {
+          "entry_time": 540,
+          "exit_time": 660,
+          "entry_id": "Reverse",
+          "exit_id": "close_all",
+          "side": "short",
+          "qty": 2.0,
+          "entry_price": 9.0,
+          "exit_price": 16.0,
+          "profit": -14.0,
+          "commission": 0.3,
+          "net_profit": -14.3
+        }
+      ],
+      "opentrades": [],
+      "lifecycle": [
+        {
+          "id": "Breakout",
+          "type": "entry",
+          "status": "filled",
+          "phase": "pending_fill",
+          "submitted_time": 60,
+          "filled_time": 360,
+          "canceled_time": null,
+          "rejected_time": null,
+          "side": "long",
+          "qty": 3.0,
+          "price": 14.0,
+          "position_after": 3.0,
+          "reason": "stop",
+          "comment": "",
+          "commission": 0.2,
+          "oca_name": "first",
+          "oca_type": "cancel",
+          "stop": 13.0,
+          "requested_qty": 3.0,
+          "filled_qty": 3.0
+        },
+        {
+          "id": "Fade",
+          "type": "order",
+          "status": "canceled",
+          "phase": "pending_canceled",
+          "submitted_time": 60,
+          "filled_time": null,
+          "canceled_time": 360,
+          "rejected_time": null,
+          "side": "short",
+          "qty": 2.0,
+          "price": 10.0,
+          "position_after": 0.0,
+          "comment": "",
+          "limit": 15.0,
+          "canceled_by": "Breakout"
+        },
+        {
+          "id": "Breakout",
+          "type": "close",
+          "status": "filled",
+          "phase": "close_fill",
+          "submitted_time": 420,
+          "filled_time": 420,
+          "canceled_time": null,
+          "rejected_time": null,
+          "side": "flat",
+          "qty": 1.0,
+          "price": 7.0,
+          "position_after": 2.0,
+          "comment": "",
+          "commission": 0.2,
+          "requested_qty": 1.0,
+          "filled_qty": 1.0,
+          "target_qty": 3.0
+        },
+        {
+          "id": "Reverse",
+          "type": "entry",
+          "status": "filled",
+          "phase": "market_fill",
+          "submitted_time": 540,
+          "filled_time": 540,
+          "canceled_time": null,
+          "rejected_time": null,
+          "side": "short",
+          "qty": 2.0,
+          "price": 9.0,
+          "position_after": -2.0,
+          "comment": "",
+          "commission": 0.2,
+          "requested_qty": 2.0,
+          "filled_qty": 2.0,
+          "transaction_qty": 4.0
+        },
+        {
+          "id": "close_all",
+          "type": "close_all",
+          "status": "filled",
+          "phase": "close_all_fill",
+          "submitted_time": 660,
+          "filled_time": 660,
+          "canceled_time": null,
+          "rejected_time": null,
+          "side": "flat",
+          "qty": 2.0,
+          "price": 16.0,
+          "position_after": 0.0,
+          "comment": "",
+          "commission": 0.2,
+          "requested_qty": 2.0,
+          "filled_qty": 2.0,
+          "target_qty": 2.0
+        }
+      ]
+    }
+  },
+  "param_schema": [],
+  "meta": {
+    "title": "Replay and ALMA continuation",
+    "overlay": true,
+    "mode": "incremental",
+    "bar_index": 11,
+    "last_bar_index": 11,
+    "barstate": {
+      "isfirst": false,
+      "islast": true,
+      "ishistory": false,
+      "isrealtime": true,
+      "isnew": false,
+      "isconfirmed": true,
+      "islastconfirmedhistory": false
+    },
+    "retentionBars": null,
+    "retainedBars": 12,
+    "totalCommittedBars": 12,
+    "snapshotVersion": 3
+  }
+}

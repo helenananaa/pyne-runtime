@@ -43,6 +43,7 @@ from ..settings import PyneSettings
 from ..trace import PyneTraceRecorder, bounded_trace_value
 from .bar import IncrementalBar
 from ._bar_admission import admit_bar, copy_seed_inputs, replay_input
+from ._parameters import instance_parameter_items, parameter_array_items, parameters_equal
 from .checkpoint import (
     DEFAULT_PORTABLE_SNAPSHOT_MAX_BYTES,
     INCREMENTAL_SEMANTICS_VERSION,
@@ -229,17 +230,7 @@ class PyneIncrementalSession:
         PyneData.from_ohlcv(ohlcv, allow_empty=True)
         seed_items = copy_seed_inputs(ohlcv)
         self.prepare()
-        self._ctx = IncrementalContext(
-            params=self.params,
-            meta=self._meta,
-            limits=self._limits,
-            syminfo=self.settings.syminfo,
-            timeframe=self.settings.timeframe,
-            session=self.settings.session,
-            max_drawing_objects=self.settings.max_drawing_objects,
-            trace=self.trace,
-        )
-        self._call_optional(self._init_func, self._ctx)
+        self._ensure_context()
         self._closed_count = 0
         self.last_closed_time = None
         self._active_preview_time = None
@@ -283,18 +274,7 @@ class PyneIncrementalSession:
         recorded = replay_input(bar, complete=self._portable_complete,
                                 budget=self.settings.replay_history_bars, count=len(self._portable_bars))
         self.prepare()
-        if self._ctx is None:
-            self._ctx = IncrementalContext(
-                params=self.params,
-                meta=self._meta,
-                limits=self._limits,
-                syminfo=self.settings.syminfo,
-                timeframe=self.settings.timeframe,
-                session=self.settings.session,
-                max_drawing_objects=self.settings.max_drawing_objects,
-                trace=self.trace,
-            )
-            self._call_optional(self._init_func, self._ctx)
+        self._ensure_context()
         bar_index = self._closed_count
         had_preview = self._active_preview_time == bar.time
         self._run_bar(
@@ -327,18 +307,7 @@ class PyneIncrementalSession:
         bar = admit_bar(item, is_confirmed=False)
         self._validate_event_time(bar, preview=True)
         self.prepare()
-        if self._ctx is None:
-            self._ctx = IncrementalContext(
-                params=self.params,
-                meta=self._meta,
-                limits=self._limits,
-                syminfo=self.settings.syminfo,
-                timeframe=self.settings.timeframe,
-                session=self.settings.session,
-                max_drawing_objects=self.settings.max_drawing_objects,
-                trace=self.trace,
-            )
-            self._call_optional(self._init_func, self._ctx)
+        self._ensure_context()
         try:
             user_globals = {
                 key: value for key, value in self._globals.items()
@@ -849,6 +818,23 @@ class PyneIncrementalSession:
             self._poison(exc)
             raise
 
+    def _ensure_context(self) -> IncrementalContext:
+        """Bind every first-use entrypoint to the selected state and trace."""
+        if self._ctx is None:
+            self._ctx = IncrementalContext(
+                params=self.params, meta=self._meta, limits=self._limits,
+                syminfo=self.settings.syminfo, timeframe=self.settings.timeframe,
+                session=self.settings.session,
+                max_drawing_objects=self.settings.max_drawing_objects, trace=self.trace,
+            )
+            try:
+                self._call_optional(self._init_func, self._ctx)
+                self._ctx.sync_varip_payload()
+            except Exception as exc:
+                self._poison(exc)
+                raise
+        return self._ctx
+
     def _call_required(
         self,
         func: Callable[..., Any] | None,
@@ -899,17 +885,7 @@ class PyneIncrementalSession:
     ) -> IncrementalPyneResult:
         self._ensure_healthy()
         self.prepare()
-        if self._ctx is None:
-            self._ctx = IncrementalContext(
-                params=self.params,
-                meta=self._meta,
-                limits=self._limits,
-                syminfo=self.settings.syminfo,
-                timeframe=self.settings.timeframe,
-                session=self.settings.session,
-                max_drawing_objects=self.settings.max_drawing_objects,
-            )
-            self._call_optional(self._init_func, self._ctx)
+        self._ensure_context()
         return self._to_result(self._ctx, start_s=start_s, end_s=end_s)
 
     def _to_result(
@@ -1068,7 +1044,7 @@ class PyneIncrementalSession:
         old_settings = validate_restore_settings(snapshot.settings_contract or {}, self.settings)
         if snapshot.retention_bars != self.retention_bars:
             raise ValueError("Incremental snapshot retention policy does not match this session")
-        if dict(self.params.items()) != snapshot.params:
+        if not parameters_equal(dict(self.params.items()), snapshot.params):
             raise ValueError("Incremental snapshot params do not match this session")
 
         with staged_restore_preparation(self) as commit_cache:
@@ -1463,7 +1439,7 @@ def _mutable_object_ids(value: Any) -> set[int]:
         ):
             mutable.add(identity)
             continue
-        if isinstance(current, tuple | frozenset):
+        if type(current) in (tuple, frozenset):
             pending.extend(current)
             continue
         mutable.add(identity)
@@ -1472,6 +1448,15 @@ def _mutable_object_ids(value: Any) -> set[int]:
             pending.extend(current.values())
         elif isinstance(current, (list, set)):
             pending.extend(current)
-        elif hasattr(current, "__dict__"):
-            pending.extend(vars(current).values())
+        else:
+            from numpy import ndarray
+            if isinstance(current, ndarray):
+                if ndarray.dtype.__get__(current, type(current)).hasobject:
+                    pending.extend(parameter_array_items(current))
+                base = ndarray.base.__get__(current, type(current))
+                if base is not None:
+                    pending.append(base)
+            elif isinstance(current, memoryview):
+                pending.append(current.obj)
+        pending.extend(item for _, item in instance_parameter_items(current))
     return mutable

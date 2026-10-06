@@ -81,7 +81,9 @@ pyne run script.py --ohlcv bars.csv --param Length=20 --param Show=true
 Overrides are validated by the declared input type:
 
 - `input.int()` accepts integer-like values and enforces `minval` / `maxval`.
-- `input.float()` accepts numeric values and enforces `minval` / `maxval`.
+- `input.float()` accepts finite numeric values and enforces `minval` / `maxval`;
+  its default, bounds and step metadata must also be finite.
+- `input.price()` requires a finite default and override.
 - `input.bool()` accepts booleans, `0` / `1`, and string `true` / `false`.
 - string-like inputs require strings.
 - inputs with `options` reject values outside the declared choices.
@@ -91,3 +93,6 @@ Overrides are validated by the declared input type:
   option tokens to hosts.
 
 Invalid overrides return `PYNE_INVALID_PARAM` in the run result.
+Failed declarations do not publish schema or consume a parameter key. If a
+script catches the exception and retries the same title, it still validates
+the same override; it cannot silently select a suffixed default parameter.

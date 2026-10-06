@@ -1,0 +1,18 @@
+{
+  "packageVersion": "0.4.1rc37",
+  "semanticsVersion": 42,
+  "seedCount": 5,
+  "baseCommit": "039a0eaf99b2c3bc74d81bff6698e3940b83c123",
+  "sourceWasUncommitted": true,
+  "wheelSha256": "9dc58517602e6f79e1ecf74e627859a1a623275222bdcea32a81ca901474bd9c",
+  "packagePythonFiles": 99,
+  "qualifiedSourceManifestSha256": "889526f85d350477efd0a2693b11b43f9ae8b12d9ca0329d829bc519cf7bbf62",
+  "sha256": {
+    "bars.json": "43e094514d48a34a136e6056ab6ded78b38d3bf3a052898109fc4e8d852dfbe0",
+    "committed-result.json": "1ae0b0ecfc835017de9c0979b828d672cc61b20715821333c3a1c0b5c20babcf",
+    "continued-result.json": "bb480e250788a16558d315df5f9d7cecf1ffaaf0ac48288e2f91e46da00c803d",
+    "indicator.pyne": "d97142acc9fa3567f5d604c3f735dfec68dc58e56619eadc733801d7449b1f68",
+    "replay.json": "52f43dc3e9e3bdea0696a7c487bef9c0e4e718e1b141f18fe151489f8251afad",
+    "state.json": "b7aa99c815bdae72258011a56d39cd85f26647a01c40f4cb141ba982f848c410"
+  }
+}

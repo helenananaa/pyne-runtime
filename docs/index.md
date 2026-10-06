@@ -97,6 +97,10 @@ strategy, request, and host-renderer output workflows.
 
 ## Compatibility And Development
 
+- [Replay And ALMA Repairs](development/replay_alma_repair_zh.md):
+  explicit strategy replay phases and exact convolution across separated exponent ranges.
+- [Weighted And State Audit Repairs](development/weighted_state_audit_repair_zh.md):
+  causal weighted calculations, parameter recovery, strategy admission and measured work reductions.
 - [Remaining Audit Repairs](development/remaining_audit_repair_zh.md):
   additional graph, restore, request and executor fixes with validation receipts.
 - [Structural Audit Repairs](development/structural_audit_repair_zh.md):

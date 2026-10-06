@@ -1,0 +1,50 @@
+[
+  {
+    "time": 1,
+    "open": 1e+16,
+    "high": 1e+16,
+    "low": 1e+16,
+    "close": 1e+16,
+    "volume": 1
+  },
+  {
+    "time": 2,
+    "open": 1,
+    "high": 1,
+    "low": 1,
+    "close": 1,
+    "volume": 1
+  },
+  {
+    "time": 3,
+    "open": 1,
+    "high": 1,
+    "low": 1,
+    "close": 1,
+    "volume": 1
+  },
+  {
+    "time": 4,
+    "open": 1,
+    "high": 1,
+    "low": 1,
+    "close": 1,
+    "volume": 1
+  },
+  {
+    "time": 5,
+    "open": 1,
+    "high": 1,
+    "low": 1,
+    "close": 1,
+    "volume": 1
+  },
+  {
+    "time": 6,
+    "open": 1,
+    "high": 1,
+    "low": 1,
+    "close": 1,
+    "volume": 1
+  }
+]

@@ -110,6 +110,27 @@ def test_caller_handler_exception_keeps_its_identity(monkeypatch):
     assert alarm.getitimer(0) == (0, 0)
 
 
+@pytest.mark.parametrize("interval", [0, 1])
+def test_caught_caller_handler_exception_rearms_local_deadline(monkeypatch, interval):
+    error = LookupError("caller alarm")
+    events = []
+    def callback(*args):
+        events.append(alarm.now)
+        raise error
+    alarm = Alarm(callback, delay=1, interval=interval)
+    install(monkeypatch, alarm)
+    with execution_timeout(3.5):
+        for expected in ([1] if interval == 0 else [1, 2, 3]):
+            with pytest.raises(LookupError) as caught:
+                alarm.trigger()
+            assert caught.value is error
+            assert events[-1] == expected
+        with pytest.raises(PyneTimeoutError, match="3.5s timeout"):
+            alarm.trigger()
+    assert alarm.handler is callback
+    assert alarm.getitimer(0) == ((.5, 1) if interval else (0, 0))
+
+
 def test_unsupported_or_failed_timer_does_not_leave_pyne_handler_installed(monkeypatch):
     alarm = Alarm(delay=10)
     install(monkeypatch, alarm)

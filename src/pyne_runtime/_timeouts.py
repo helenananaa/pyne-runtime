@@ -43,12 +43,21 @@ def alarm_timeout(seconds: float, error_type: type[Exception]):
             else:
                 previous_deadline = None
             if callable(previous_handler):
-                previous_handler(signum, frame)
+                # A script can catch the caller's exception and continue. The
+                # one-shot OS timer has already fired, so rearm our remaining
+                # deadlines even when the caller handler raises.
+                try:
+                    previous_handler(signum, frame)
+                finally:
+                    arm()
             elif previous_handler != signal.SIG_IGN:
                 # Preserve an explicitly selected default signal disposition.
                 signal.signal(signal.SIGALRM, previous_handler)
-                signal.raise_signal(signum)
-                signal.signal(signal.SIGALRM, handler)
+                try:
+                    signal.raise_signal(signum)
+                finally:
+                    signal.signal(signal.SIGALRM, handler)
+                    arm()
         if monotonic() >= deadline:
             raise error_type(f"Pyne script exceeded {seconds:g}s timeout")
         arm()

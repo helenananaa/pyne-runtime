@@ -14,6 +14,7 @@ from ..barstate import PyneIncrementalBarState
 from ..metadata import SessionInfo, SymbolInfo, TimeframeInfo
 from ..security import PyneSecurityError
 from ..trace import PyneTraceRecorder
+from ..plot.linefill_store import LineFillStore
 from .bar import IncrementalBar, _session_info_for_bar, copy_bar_payload
 from .drawing import IncrementalDrawingMixin, _filter_object_events
 from .limits import (
@@ -69,7 +70,7 @@ class IncrementalContext(IncrementalDrawingMixin):
         self._object_labels: dict[str, dict[str, Any]] = {}
         self._object_boxes: dict[str, dict[str, Any]] = {}
         self._object_tables: dict[str, dict[str, Any]] = {}
-        self._object_linefills: dict[str, dict[str, Any]] = {}
+        self._object_linefills: dict[str, dict[str, Any]] = LineFillStore()
         self._object_polylines: dict[str, dict[str, Any]] = {}
         self._table_cell_indices: dict[str, dict[tuple[int, int], int]] = {}
         self._object_events: list[dict[str, Any]] = []
@@ -351,18 +352,29 @@ class IncrementalContext(IncrementalDrawingMixin):
         key = str(name)
         if key not in self._varip_states:
             self._ensure_state_key_available()
-            existing_payload = self._measure_varip_payload()
             previous_payload = self._limit_tracker.varip_payload_items
-            self._limit_tracker.replace_varip_payload(
-                existing_payload + _state_payload_items(default)
-            )
+            # Without an admission budget, existing mutable cells are reconciled
+            # once at callback/adoption/initialization boundaries. Scanning all
+            # prior cells for every new scalar makes bulk creation quadratic.
+            # A finite budget must still observe arbitrary nested mutations
+            # before admitting another cell; their changes cannot be inferred
+            # from assignment hooks alone.
+            bounded = self._limits.max_state_payload_items is not None
+            existing_payload = self._measure_varip_payload() if bounded else previous_payload
             try:
+                if bounded:
+                    self._limit_tracker.replace_varip_payload(
+                        existing_payload + _state_payload_items(default)
+                    )
+                value = copy.deepcopy(default)
+                self._limit_tracker.replace_varip_payload(
+                    existing_payload + _state_payload_items(value)
+                )
                 self._varip_states[key] = StateCell(
-                    copy.deepcopy(default),
+                    value,
                     max_history=self._limits.max_state_history,
                     limit_tracker=self._limit_tracker,
                 )
-                self.sync_varip_payload()
             except Exception:
                 self._varip_states.pop(key, None)
                 self._limit_tracker.varip_payload_items = previous_payload

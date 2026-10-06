@@ -5,6 +5,7 @@ import copy
 from typing import Any
 
 from ..security import PyneResourceLimitError, PyneSecurityError
+from .linefill_store import LineFillStore
 
 
 class OutputCollector:
@@ -44,7 +45,7 @@ class OutputCollector:
         self._object_tables: dict[str, dict[str, Any]] = {}
         self._table_cell_indices: dict[str, dict[tuple[int, int], int]] = {}
         self._table_cell_count = 0
-        self._object_linefills: dict[str, dict[str, Any]] = {}
+        self._object_linefills: dict[str, dict[str, Any]] = LineFillStore()
         self._object_polylines: dict[str, dict[str, Any]] = {}
         self._indicator_meta: dict[str, Any] = {}
         self._plot_counter: int = 0

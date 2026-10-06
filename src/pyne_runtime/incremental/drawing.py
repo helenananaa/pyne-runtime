@@ -9,6 +9,7 @@ from typing import Any
 from ..chart import ChartPoint, chart_point_coordinates
 from ..collections import PyneArray
 from ..plot import ObjectRef
+from ..plot.linefill_store import linefill_store
 from .limits import IncrementalResourceLimitError, StateCell
 from .strategy import _round8
 
@@ -119,9 +120,8 @@ class IncrementalDrawingMixin:
 
     def line_delete(self, ref: ObjectRef) -> None:
         if isinstance(ref, ObjectRef) and ref.kind == "line":
-            for linefill_id, entry in list(self._object_linefills.items()):
-                if ref.id in {entry.get("line1_id"), entry.get("line2_id")}:
-                    self._delete_object(ObjectRef(id=linefill_id, kind="linefill"), "linefill")
+            for linefill_id in linefill_store(self).dependent_ids(ref.id):
+                self._delete_object(ObjectRef(id=linefill_id, kind="linefill"), "linefill")
         self._delete_object(ref, "line")
 
     def linefill_new(
@@ -144,7 +144,7 @@ class IncrementalDrawingMixin:
             "pane": pane
             or (str(first.get("pane")) if first.get("pane") == second.get("pane") else "main"),
         }
-        self._object_linefills[object_id] = entry
+        linefill_store(self)[object_id] = entry
         self._record_object_event("create", "linefill", entry)
         return ObjectRef(id=object_id, kind="linefill")
 
@@ -152,6 +152,7 @@ class IncrementalDrawingMixin:
         self._update_object(ref, "linefill", {"color": color})
 
     def linefill_delete(self, ref: ObjectRef) -> None:
+        linefill_store(self)
         self._delete_object(ref, "linefill")
 
     def polyline_new(

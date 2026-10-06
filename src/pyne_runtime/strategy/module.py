@@ -11,6 +11,8 @@ from ..context import PyneContext
 from ..plot import OutputCollector
 from ..series import PyneSeries
 from ..values import is_na_value
+from .admission import finite_number
+from .configuration import StrategySettingsUpdate, normalize_strategy_configuration
 from .constants import (
     StrategyCommission,
     StrategyDirection,
@@ -23,14 +25,11 @@ from .costs import (
     _commission_amount,
     _is_exposure_reduction,
     _margin_required,
-    _normalize_commission_type,
 )
 from .ledger import StrategyTradesNamespace, _trade_open_profit
 from .orders import (
     _exit_trigger,
-    _normalize_intrabar_path,
     _normalize_oca_type,
-    _normalize_same_bar_fill_priority,
     _strategy_lifecycle_events,
 )
 from .risk import StrategyRiskNamespace
@@ -71,9 +70,10 @@ class StrategyModule:
     ) -> None:
         self._context = context
         self._collector = collector
+        self._initial_capital = 100000.0
         self._position_size = np.zeros(context.bar_count, dtype=np.float64)
         self._position_avg_price = np.full(context.bar_count, np.nan, dtype=np.float64)
-        self._equity = np.zeros(context.bar_count, dtype=np.float64)
+        self._equity = np.full(context.bar_count, self._initial_capital, dtype=np.float64)
         self._netprofit = np.zeros(context.bar_count, dtype=np.float64)
         self._openprofit = np.zeros(context.bar_count, dtype=np.float64)
         self._grossprofit = np.zeros(context.bar_count, dtype=np.float64)
@@ -99,7 +99,6 @@ class StrategyModule:
         self._max_intraday_filled_orders: int | None = None
         self._risk_locked = False
         self.risk = StrategyRiskNamespace(self)
-        self._initial_capital = 100000.0
         self._currency = str(context.syminfo.currency or "")
         self._slippage_ticks = 0
         self._mintick = max(float(context.syminfo.mintick), 0.0)
@@ -169,36 +168,48 @@ class StrategyModule:
         Positive values cap the total live same-direction trade lots, including
         lots created by ``order``. Closing a lot frees an entry slot.
         """
-        if pyramiding is not None:
-            self._pyramiding = max(int(pyramiding), 0)
-        if slippage is not None:
-            self._slippage_ticks = max(int(slippage), 0)
-        tick_value = mintick if mintick is not None else min_tick
-        if tick_value is not None:
-            self._mintick = max(float(tick_value), 0.0)
-        if commission_type is not None:
-            self._commission_type = _normalize_commission_type(commission_type)
-        if commission_value is not None:
-            self._commission_value = max(float(commission_value), 0.0)
-        if initial_capital is not None:
-            self._initial_capital = max(float(initial_capital), 0.0)
-        if currency is not None:
-            self._currency = str(currency)
-        if backtest_fill_limits_assumption is not None:
-            self._backtest_fill_limits_assumption = max(
-                int(backtest_fill_limits_assumption),
-                0,
-            )
-        if process_orders_on_close is not None:
-            self._process_orders_on_close = bool(process_orders_on_close)
-        if same_bar_fill_priority is not None:
-            self._same_bar_fill_priority = _normalize_same_bar_fill_priority(same_bar_fill_priority)
-        if intrabar_path is not None:
-            self._intrabar_path = _normalize_intrabar_path(intrabar_path)
-        if margin_long is not None:
-            self._margin_long = max(float(margin_long), 0.0)
-        if margin_short is not None:
-            self._margin_short = max(float(margin_short), 0.0)
+        self._update_strategy_settings(normalize_strategy_configuration({
+            "pyramiding": pyramiding, "slippage": slippage, "mintick": mintick,
+            "min_tick": min_tick, "commission_type": commission_type,
+            "commission_value": commission_value, "initial_capital": initial_capital,
+            "currency": currency, "backtest_fill_limits_assumption": backtest_fill_limits_assumption,
+            "process_orders_on_close": process_orders_on_close,
+            "same_bar_fill_priority": same_bar_fill_priority, "intrabar_path": intrabar_path,
+            "margin_long": margin_long, "margin_short": margin_short,
+        }))
+
+    def _copy_for_replay(self) -> StrategyModule:
+        """Stage changes to configuration, orders and derived timelines together."""
+        candidate = copy.copy(self)
+        candidate._collector = copy.copy(self._collector)
+        candidate._collector.strategy_orders = copy.deepcopy(self._collector.strategy_orders)
+        for name, value in self.__dict__.items():
+            if isinstance(value, np.ndarray):
+                setattr(candidate, name, value.copy())
+        return candidate
+
+    def _adopt_replay(self, candidate: StrategyModule) -> None:
+        bindings = {"_collector", "_context", "risk", "_closedtrades_namespace",
+                    "_opentrades_namespace", "_entry_transaction"}
+        for name, value in candidate.__dict__.items():
+            if name not in bindings:
+                setattr(self, name, value)
+        for name in ("strategy_orders", "strategy_report", "strategy_position"):
+            setattr(self._collector, name, getattr(candidate._collector, name))
+
+    def _update_strategy_settings(self, updates: StrategySettingsUpdate) -> None:
+        changed = {name: value for name, value in updates.items() if getattr(self, name) != value}
+        if not changed:
+            return
+        if not self._touched:
+            self.__dict__.update(changed)
+            self._equity.fill(self._initial_capital)
+            return
+        candidate = self._copy_for_replay()
+        candidate.__dict__.update(changed)
+        candidate._replay_position()
+        candidate._sync_position_snapshot()
+        self._adopt_replay(candidate)
 
     @property
     def position_size(self) -> PyneSeries:
@@ -286,34 +297,28 @@ class StrategyModule:
         limits = _optional_price_values(limit, self._context.bar_count)
         stops = _optional_price_values(stop, self._context.bar_count)
         side = _normalize_direction(direction)
-        qty_abs = abs(float(qty))
+        qty_abs = abs(finite_number("qty", qty))
+        normalized_oca = _normalize_oca_type(oca_type)
 
         if not getattr(self, "_entry_transaction", False) and any(
             order.get("type") == "entry" and order.get("id") == str(id) and order.get("side") != side
             for order in self._collector.strategy_orders
         ):
-            candidate = copy.copy(self)
-            candidate._collector = copy.copy(self._collector)
-            candidate._collector.strategy_orders = copy.deepcopy(self._collector.strategy_orders)
-            for key, value in self.__dict__.items():
-                if isinstance(value, np.ndarray):
-                    setattr(candidate, key, value.copy())
+            candidate = self._copy_for_replay()
             # Existing historical entries cause this branch again; bypass only
             # transaction construction, never chronological pending validation.
             candidate._entry_transaction = True
             candidate.entry_when(condition, id, direction, qty=qty, price=price,
                                  limit=limit, stop=stop, oca_name=oca_name, oca_type=oca_type, comment=comment)
-            for key, value in candidate.__dict__.items():
-                if key not in {"_collector", "_context", "risk", "_closedtrades_namespace", "_opentrades_namespace", "_entry_transaction"}:
-                    setattr(self, key, value)
-            for key in ("strategy_orders", "strategy_report", "strategy_position"):
-                setattr(self._collector, key, getattr(candidate._collector, key))
+            self._adopt_replay(candidate)
             return
 
         for idx, flag in enumerate(flags):
             if not flag:
                 continue
             event_price = prices[idx]
+            if is_na_value(event_price):
+                continue
             self._collector.strategy_orders.append(
                 {
                     "time": self._context.times[idx],
@@ -330,7 +335,7 @@ class StrategyModule:
                     "_market_submission": self._process_orders_on_close and limits[idx] is None and stops[idx] is None,
                     "_original_qty": qty_abs,
                     "_oca_name": str(oca_name or ""),
-                    "_oca_type": _normalize_oca_type(oca_type),
+                    "_oca_type": normalized_oca,
                     "_submit_time": self._context.times[idx],
                     "_seq": self._next_event_seq(),
                 }
@@ -392,12 +397,15 @@ class StrategyModule:
         limits = _optional_price_values(limit, self._context.bar_count)
         stops = _optional_price_values(stop, self._context.bar_count)
         side = _normalize_direction(direction)
-        qty_abs = abs(float(qty))
+        qty_abs = abs(finite_number("qty", qty))
+        normalized_oca = _normalize_oca_type(oca_type)
 
         for idx, flag in enumerate(flags):
             if not flag:
                 continue
             event_price = prices[idx]
+            if is_na_value(event_price):
+                continue
             self._collector.strategy_orders.append(
                 {
                     "time": self._context.times[idx],
@@ -413,7 +421,7 @@ class StrategyModule:
                     "_stop": stops[idx],
                     "_original_qty": qty_abs,
                     "_oca_name": str(oca_name or ""),
-                    "_oca_type": _normalize_oca_type(oca_type),
+                    "_oca_type": normalized_oca,
                     "_submit_time": self._context.times[idx],
                     "_seq": self._next_event_seq(),
                 }
@@ -525,6 +533,8 @@ class StrategyModule:
             if not flags[idx] or current_position == 0:
                 return None
             event_price = prices[idx]
+            if is_na_value(event_price):
+                return None
             target_qty = min(
                 abs(current_position),
                 _requested_close_qty(
@@ -570,6 +580,8 @@ class StrategyModule:
             if not flag:
                 continue
             event_price = prices[idx]
+            if is_na_value(event_price):
+                continue
             self._collector.strategy_orders.append(
                 {
                     "time": self._context.times[idx],

@@ -1,0 +1,14 @@
+{
+  "packageVersion": "0.4.1rc36",
+  "semanticsVersion": 41,
+  "source": "Independently installed wheel built from clean commit 039a0eaf99b2c3bc74d81bff6698e3940b83c123; no snapshot relabeling",
+  "sourceCommit": "039a0eaf99b2c3bc74d81bff6698e3940b83c123",
+  "wheelSha256": "4e46a035de038d834f1a8f8041631161cd112854f1f3335bc7f992600b4890dd",
+  "sha256": {
+    "bars.json": "2787bc8630c3f9cd0528d751880a27f2f2072e730fd3202966a9552567991ab7",
+    "committed-result.json": "d1d9dce62eee8e7c47980f43ae1acc55bb3a55102d1c89865e8a1c9426f8fb97",
+    "indicator.pyne": "3881d7343644099406e7a02723ac779646eda046706f950b0d5c160212e11929",
+    "replay.json": "cff780c2068a83b2594bee633a59d8819fc750de5ab529e6e2fe9a9c23e7f836",
+    "state.json": "67541b2141dc6fe2a05a088263e60688d710281c34e0a6d4c19098cb35ce1499"
+  }
+}

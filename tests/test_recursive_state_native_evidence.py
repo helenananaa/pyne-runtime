@@ -104,7 +104,7 @@ def test_real_rc29_rma_gap_snapshot_rejected_before_construction(mode, monkeypat
     for name, digest in provenance["sha256"].items():
         assert hashlib.sha256((folder / name).read_bytes().replace(b"\r\n", b"\n")).hexdigest() == digest
     assert json.loads((folder / (mode + ".json")).read_text())["payload"]["semanticsVersion"] == 34
-    assert INCREMENTAL_SEMANTICS_VERSION == 41
+    assert INCREMENTAL_SEMANTICS_VERSION == 42
     script = (folder / "indicator.pyne").read_text()
     result = pn.run(script, json.loads((folder / "bars.json").read_text()), executor_mode="inline")
     assert result.ok

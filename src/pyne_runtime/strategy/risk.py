@@ -1,12 +1,9 @@
 """Strategy risk configuration and gates."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
+from .admission import nonnegative_integer, nonnegative_number
+from .configuration import StrategySettingsTarget
 from .constants import StrategyDirection, StrategyRiskMode
-
-if TYPE_CHECKING:
-    from .module import StrategyModule
 
 
 class StrategyRiskNamespace:
@@ -20,33 +17,43 @@ class StrategyRiskNamespace:
     percent_of_equity = StrategyRiskMode.percent_of_equity
     cash = StrategyRiskMode.cash
 
-    def __init__(self, strategy: "StrategyModule") -> None:
+    def __init__(self, strategy: StrategySettingsTarget) -> None:
         self._strategy = strategy
 
     def allow_entry_in(self, direction: str = StrategyDirection.all) -> None:
-        self._strategy._allow_entry_in = _normalize_allowed_entry_direction(direction)
+        self._strategy._update_strategy_settings({
+            "_allow_entry_in": _normalize_allowed_entry_direction(direction),
+        })
 
     def max_drawdown(
         self,
         value: float,
         type: str = StrategyRiskMode.percent_of_equity,
     ) -> None:
-        self._strategy._max_drawdown_value = max(float(value), 0.0)
-        self._strategy._max_drawdown_type = _normalize_risk_mode(type)
+        self._strategy._update_strategy_settings({
+            "_max_drawdown_value": nonnegative_number("max_drawdown", value),
+            "_max_drawdown_type": _normalize_risk_mode(type),
+        })
 
     def max_intraday_loss(
         self,
         value: float,
         type: str = StrategyRiskMode.percent_of_equity,
     ) -> None:
-        self._strategy._max_intraday_loss_value = max(float(value), 0.0)
-        self._strategy._max_intraday_loss_type = _normalize_risk_mode(type)
+        self._strategy._update_strategy_settings({
+            "_max_intraday_loss_value": nonnegative_number("max_intraday_loss", value),
+            "_max_intraday_loss_type": _normalize_risk_mode(type),
+        })
 
     def max_position_size(self, contracts: float) -> None:
-        self._strategy._max_position_size = max(float(contracts), 0.0)
+        self._strategy._update_strategy_settings({
+            "_max_position_size": nonnegative_number("max_position_size", contracts),
+        })
 
     def max_intraday_filled_orders(self, count: int) -> None:
-        self._strategy._max_intraday_filled_orders = max(int(count), 0)
+        self._strategy._update_strategy_settings({
+            "_max_intraday_filled_orders": nonnegative_integer("max_intraday_filled_orders", count),
+        })
 
 
 def _entry_allowed(

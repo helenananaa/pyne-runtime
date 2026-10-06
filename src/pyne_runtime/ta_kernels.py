@@ -7,6 +7,13 @@ import math
 import numpy as np
 
 from .series import to_numpy
+from ._weighted_numeric import (
+    SCALE as _FLOAT_EXACT_SCALE,
+    exact_convolution,
+    rounded_ratio,
+    scaled_float as _scaled_float,
+    weighted_windows,
+)
 def _fixnan(values: np.ndarray) -> np.ndarray:
     result = np.array(values, dtype=np.float64, copy=True)
     last = np.nan
@@ -20,14 +27,7 @@ def _fixnan(values: np.ndarray) -> np.ndarray:
 
 
 _ROLLING_REBASE_CHUNK = 4096
-_FLOAT_EXACT_SCALE = 1 << 1074
 _FLOAT_MIN_NORMAL = float.fromhex("0x1.0p-1022")
-
-
-def _scaled_float(value: float) -> int:
-    """Represent a finite binary64 value on its fixed exact integer scale."""
-    numerator, denominator = value.as_integer_ratio()
-    return numerator << (1074 - (denominator.bit_length() - 1))
 
 
 def _exact_variance(total: int, squares: int, period: int, ddof: int = 0) -> float:
@@ -503,89 +503,13 @@ def _rolling_nansum(values: np.ndarray, period: int) -> np.ndarray:
     return sums
 
 
-def _exact_rolling_weighted_sums(values: np.ndarray, period: int) -> np.ndarray:
-    """Return 1..period weighted sums with exact binary64 accumulation."""
-    source = np.asarray(values, dtype=np.float64)
-    result = np.empty(len(source) - period + 1, dtype=np.float64)
-    scaled_values: list[int] = []
-    for value in source:
-        numerator, denominator = float(value).as_integer_ratio()
-        shift = 1074 - (denominator.bit_length() - 1)
-        scaled_values.append(numerator << shift)
-
-    simple = sum(scaled_values[:period])
-    weighted = sum((index + 1) * value for index, value in enumerate(scaled_values[:period]))
-    for output_index in range(len(result)):
-        try:
-            result[output_index] = weighted / _FLOAT_EXACT_SCALE
-        except OverflowError:
-            result[output_index] = np.inf if weighted > 0 else -np.inf
-        next_index = output_index + period
-        if next_index >= len(source):
-            continue
-        outgoing = scaled_values[output_index]
-        incoming = scaled_values[next_index]
-        weighted = weighted - simple + period * incoming
-        simple = simple - outgoing + incoming
-    return result
-
-
-def _rolling_weighted_sums(values: np.ndarray, period: int) -> np.ndarray:
-    """Return 1..period weighted sums in O(n), periodically rebasing drift."""
-    source = np.asarray(values, dtype=np.float64)
-    n = len(source)
-    result = np.empty(n - period + 1, dtype=np.float64)
-    weights = np.arange(1, period + 1, dtype=np.float64)
-    chunk_size = max(period, _ROLLING_REBASE_CHUNK)
-    first_output = period - 1
-    with np.errstate(over="ignore", invalid="ignore"):
-        for output_start in range(first_output, n, chunk_size):
-            output_stop = min(output_start + chunk_size, n)
-            segment_start = output_start - period + 1
-            segment = source[segment_start:output_stop]
-            simple = float(np.sum(segment[:period]))
-            # einsum with optimize=False stays in NumPy, avoiding BLAS thread
-            # dispatch on the tiny period-length seed reduction.
-            weighted = float(
-                np.einsum("i,i->", segment[:period], weights, optimize=False)
-            )
-            for end_index in range(output_start, output_stop):
-                result[end_index - period + 1] = weighted
-                relative_end = end_index - output_start + period - 1
-                next_index = relative_end + 1
-                if next_index >= len(segment):
-                    continue
-                outgoing = segment[relative_end - period + 1]
-                incoming = segment[next_index]
-                weighted = weighted - simple + period * incoming
-                simple = simple - outgoing + incoming
-
-    # An overflowing recurrence can otherwise remain infinite after the large
-    # value leaves its window. Exact integer state preserves O(n) recovery.
-    if np.any(~np.isfinite(result)) and np.all(np.isfinite(source)):
-        return _exact_rolling_weighted_sums(source, period)
-    return result
-
-
 def _rolling_weighted_average_values(source: np.ndarray, period: int) -> np.ndarray:
-    """Compute finite weighted averages with block-local centering."""
+    """Round exact causal weighted sums after division, in O(n) work."""
     values = np.asarray(source, dtype=np.float64)
-    n = len(values)
-    result = np.empty(n - period + 1, dtype=np.float64)
-    denominator = period * (period + 1) / 2.0
-    chunk_size = max(period, _ROLLING_REBASE_CHUNK)
-    first_output = period - 1
-    for output_start in range(first_output, n, chunk_size):
-        output_stop = min(output_start + chunk_size, n)
-        segment_start = output_start - period + 1
-        segment = values[segment_start:output_stop]
-        finite = np.isfinite(segment)
-        anchor = float(np.mean(segment[finite])) if np.any(finite) else 0.0
-        centered = np.where(finite, segment - anchor, 0.0)
-        weighted = _rolling_weighted_sums(centered, period)
-        result[output_start - period + 1 : output_stop - period + 1] = (
-            anchor + weighted / denominator
-        )
+    result = np.empty(len(values) - period + 1, dtype=np.float64)
+    denominator = _FLOAT_EXACT_SCALE * (period * (period + 1) // 2)
+    for index, _, weighted, _ in weighted_windows(values, period):
+        result[index-period+1] = rounded_ratio(weighted, denominator)
     return result
 
 
@@ -594,7 +518,7 @@ def _rolling_linear_regression_values(
     period: int,
     offset: int,
 ) -> np.ndarray:
-    """Compute rolling least-squares values in O(n) with centered chunks."""
+    """Compute rolling least-squares values from exact causal moments in O(n)."""
     values = np.asarray(source, dtype=np.float64)
     n = len(values)
     result = np.full(n, np.nan)
@@ -603,28 +527,13 @@ def _rolling_linear_regression_values(
     if period == 1:
         return values.copy()
 
-    x_mean = (period - 1) / 2.0
-    denom = period * (period * period - 1) / 12.0
-    target_x = float(period - 1 - offset)
-    chunk_size = max(period, _ROLLING_REBASE_CHUNK)
-    first_output = period - 1
-    for output_start in range(first_output, n, chunk_size):
-        output_stop = min(output_start + chunk_size, n)
-        segment_start = output_start - period + 1
-        segment = values[segment_start:output_stop]
-        finite = np.isfinite(segment)
-        if not np.any(finite):
-            continue
-        anchor = float(np.mean(segment[finite]))
-        centered = np.where(finite, segment - anchor, 0.0)
-        counts = _window_sums(finite.astype(np.int64), period)
-        sums = _window_sums(centered, period)
-        weighted = _rolling_weighted_sums(centered, period) - sums
-        slopes = (weighted - x_mean * sums) / denom
-        means = anchor + sums / period
-        values_at_target = means + slopes * (target_x - x_mean)
-        values_at_target[counts != period] = np.nan
-        result[output_start:output_stop] = values_at_target
+    spread = period * period - 1
+    denominator = _FLOAT_EXACT_SCALE * period * spread
+    target = period - 1 - 2 * offset
+    for index, total, weighted, valid in weighted_windows(values, period):
+        if valid == period:
+            numerator = total * spread + (6 * weighted - 3 * (period + 1) * total) * target
+            result[index] = rounded_ratio(numerator, denominator)
     return result
 
 
@@ -751,6 +660,7 @@ def _interpolate_hazen(lower: float, upper: float, fraction: float) -> float:
 
 def _rolling_missing_percentile_values(
     values: np.ndarray, period: int, percentage: float, *, linear: bool,
+    start: int = 0,
 ) -> np.ndarray:
     """Retain native order-update state through missing observations.
 
@@ -760,13 +670,19 @@ def _rolling_missing_percentile_values(
     List updates cost O(period) in the worst case; complete arrays use Fenwick.
     """
     result = np.full(len(values), np.nan)
-    ordered: list[tuple[int, float]] = []
+    # Before the first missing bar, native order is value ascending with newer
+    # equal observations first. Build that one bounded window directly instead
+    # of repeating the missing-order list scans over the whole finite prefix.
+    ordered = sorted(((index, float(values[index]))
+                      for index in range(max(start-period, 0), start)),
+                     key=lambda item: (item[1], -item[0]))
     pct = float(np.clip(percentage, 0.0, 100.0))
     nearest = max(int(np.ceil(pct / 100.0 * period)), 1) - 1
     virtual = float(np.clip(pct / 100.0 * period - 0.5, 0.0, period - 1))
     lower = int(np.floor(virtual))
     upper = min(lower + 1, period - 1)
-    for index, raw in enumerate(values):
+    for index in range(start, len(values)):
+        raw = values[index]
         number = float(raw)
         expired = None
         if index >= period:
@@ -817,7 +733,11 @@ def _rolling_percentile_values(
     if not np.any(valid):
         return result
     if not np.all(valid) and not np.isinf(values).any():
-        return _rolling_missing_percentile_values(values, period, percentage, linear=linear)
+        start = int(np.flatnonzero(~valid)[0])
+        result = _rolling_missing_percentile_values(
+            values, period, percentage, linear=linear, start=start)
+        result[:start] = _rolling_percentile_values(values[:start], period, percentage, linear=linear)
+        return result
     coordinates = np.unique(values[valid])
     ranks = np.full(n, -1, dtype=np.intp)
     ranks[valid] = np.searchsorted(coordinates, values[valid])
@@ -860,24 +780,11 @@ def _rolling_percentile_values(
     return result
 
 
-_DIRECT_CONVOLUTION_WORK_LIMIT = 1_000_000
-
-
 def _valid_weighted_convolution(values: np.ndarray, weights: np.ndarray) -> np.ndarray:
-    """Return valid correlation, switching to FFT before direct work can grow quadratic."""
+    """Return exact valid correlation using subquadratic integer convolution."""
     source = np.asarray(values, dtype=np.float64)
     kernel = np.asarray(weights, dtype=np.float64)
-    if len(source) * len(kernel) <= _DIRECT_CONVOLUTION_WORK_LIMIT:
-        return np.correlate(source, kernel, mode="valid")
-
-    finite = np.isfinite(source)
-    anchor = float(np.mean(source[finite])) if np.any(finite) else 0.0
-    centered = np.where(finite, source - anchor, 0.0)
-    output_size = len(source) + len(kernel) - 1
-    fft_size = 1 << (output_size - 1).bit_length()
-    transformed = np.fft.rfft(centered, fft_size) * np.fft.rfft(kernel[::-1], fft_size)
-    convolution = np.fft.irfft(transformed, fft_size)[:output_size]
-    return convolution[len(kernel) - 1 : len(source)] + anchor * np.sum(kernel)
+    return exact_convolution(source, kernel)
 
 
 def _valid_boolean_correlation(values: np.ndarray, weights: np.ndarray) -> np.ndarray:

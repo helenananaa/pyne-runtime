@@ -27,7 +27,7 @@ def test_real_audit_baseline_snapshots_reject_before_session_construction(mode, 
         assert hashlib.sha256(contents).hexdigest() == digest
     payload = (BASELINE / f"{mode}.json").read_bytes()
     assert json.loads(payload)["payload"]["semanticsVersion"] == 37
-    assert INCREMENTAL_SEMANTICS_VERSION == 41
+    assert INCREMENTAL_SEMANTICS_VERSION == 42
 
     def forbidden(*args, **kwargs):
         pytest.fail("Incompatible state must fail before constructing a session")

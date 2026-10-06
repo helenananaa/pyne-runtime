@@ -12,6 +12,7 @@ from ..series import PyneSeries
 from ..values import is_na_value
 from .collector import OutputCollector
 from .namespace_builder import assemble_plot_namespace
+from .line_functions import create_line_functions
 from .refs import ObjectRef, PlotRef
 from .value_helpers import (
     PlotValueAdapter,
@@ -45,10 +46,6 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
     _condition_is_true = values.condition_is_true
     _scalar_from_value = values.scalar
 
-    def _line_entry(ref: ObjectRef) -> dict[str, Any] | None:
-        if not isinstance(ref, ObjectRef) or ref.kind != "line":
-            return None
-        return collector._object_lines.get(ref.id)
 
     def _label_entry(ref: ObjectRef) -> dict[str, Any] | None:
         if not isinstance(ref, ObjectRef) or ref.kind != "label":
@@ -65,10 +62,6 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
             return None
         return collector._object_tables.get(ref.id)
 
-    def _linefill_entry(ref: ObjectRef) -> dict[str, Any] | None:
-        if not isinstance(ref, ObjectRef) or ref.kind != "linefill":
-            return None
-        return collector._object_linefills.get(ref.id)
 
     def _polyline_entry(ref: ObjectRef) -> dict[str, Any] | None:
         if not isinstance(ref, ObjectRef) or ref.kind != "polyline":
@@ -820,176 +813,6 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
             }
         )
 
-    def line_new(
-        x1: Any,
-        y1: Any,
-        x2: Any = _MISSING,
-        y2: Any = _MISSING,
-        color: str = "#2196f3",
-        width: int = 1,
-        style: str = "solid",
-        extend: str = "none",
-        xloc: str = "bar_index",
-        pane: str | None = None,
-    ) -> ObjectRef:
-        if pane is None:
-            pane = "main"
-        if isinstance(x1, ChartPoint) or isinstance(y1, ChartPoint):
-            if not isinstance(x1, ChartPoint) or not isinstance(y1, ChartPoint):
-                raise TypeError("line.new() point overload requires two chart.point values")
-            if x2 is not _MISSING:
-                xloc = str(x2)
-            if y2 is not _MISSING:
-                extend = str(y2)
-            resolved_x1, resolved_y1 = _point_coordinates(x1, xloc)
-            resolved_x2, resolved_y2 = _point_coordinates(y1, xloc)
-        else:
-            if x2 is _MISSING or y2 is _MISSING:
-                raise TypeError("line.new() requires x1, y1, x2, and y2")
-            resolved_x1 = _scalar_from_value(x1)
-            resolved_y1 = _scalar_from_value(y1)
-            resolved_x2 = _scalar_from_value(x2)
-            resolved_y2 = _scalar_from_value(y2)
-        object_id = collector._next_object_id("line")
-        collector._object_lines[object_id] = {
-            "id": object_id,
-            "x1": resolved_x1,
-            "y1": resolved_y1,
-            "x2": resolved_x2,
-            "y2": resolved_y2,
-            "color": color,
-            "width": int(width),
-            "style": style,
-            "extend": extend,
-            "xloc": xloc,
-            "pane": pane,
-        }
-        return ObjectRef(id=object_id, kind="line")
-
-    def line_set_xy1(ref: ObjectRef, x: Any, y: Any) -> None:
-        entry = _line_entry(ref)
-        if entry is not None:
-            entry["x1"] = _scalar_from_value(x)
-            entry["y1"] = _scalar_from_value(y)
-
-    def line_set_xy2(ref: ObjectRef, x: Any, y: Any) -> None:
-        entry = _line_entry(ref)
-        if entry is not None:
-            entry["x2"] = _scalar_from_value(x)
-            entry["y2"] = _scalar_from_value(y)
-
-    def line_set_first_point(ref: ObjectRef, point: ChartPoint) -> None:
-        entry = _line_entry(ref)
-        if entry is not None:
-            entry["x1"], entry["y1"] = _point_coordinates(
-                point,
-                str(entry.get("xloc", "bar_index")),
-            )
-
-    def line_set_second_point(ref: ObjectRef, point: ChartPoint) -> None:
-        entry = _line_entry(ref)
-        if entry is not None:
-            entry["x2"], entry["y2"] = _point_coordinates(
-                point,
-                str(entry.get("xloc", "bar_index")),
-            )
-
-    def line_set_x1(ref: ObjectRef, x: Any) -> None:
-        entry = _line_entry(ref)
-        if entry is not None:
-            entry["x1"] = _scalar_from_value(x)
-
-    def line_set_y1(ref: ObjectRef, y: Any) -> None:
-        entry = _line_entry(ref)
-        if entry is not None:
-            entry["y1"] = _scalar_from_value(y)
-
-    def line_set_x2(ref: ObjectRef, x: Any) -> None:
-        entry = _line_entry(ref)
-        if entry is not None:
-            entry["x2"] = _scalar_from_value(x)
-
-    def line_set_y2(ref: ObjectRef, y: Any) -> None:
-        entry = _line_entry(ref)
-        if entry is not None:
-            entry["y2"] = _scalar_from_value(y)
-
-    def line_set_color(ref: ObjectRef, color: str) -> None:
-        entry = _line_entry(ref)
-        if entry is not None:
-            entry["color"] = color
-
-    def line_set_width(ref: ObjectRef, width: int) -> None:
-        entry = _line_entry(ref)
-        if entry is not None:
-            entry["width"] = int(width)
-
-    def line_set_style(ref: ObjectRef, style: str) -> None:
-        entry = _line_entry(ref)
-        if entry is not None:
-            entry["style"] = style
-
-    def line_set_extend(ref: ObjectRef, extend: str) -> None:
-        entry = _line_entry(ref)
-        if entry is not None:
-            entry["extend"] = extend
-
-    def line_get_x1(ref: ObjectRef) -> Any:
-        entry = _line_entry(ref)
-        return np.nan if entry is None or entry.get("x1") is None else entry["x1"]
-
-    def line_get_y1(ref: ObjectRef) -> Any:
-        entry = _line_entry(ref)
-        return np.nan if entry is None or entry.get("y1") is None else entry["y1"]
-
-    def line_get_x2(ref: ObjectRef) -> Any:
-        entry = _line_entry(ref)
-        return np.nan if entry is None or entry.get("x2") is None else entry["x2"]
-
-    def line_get_y2(ref: ObjectRef) -> Any:
-        entry = _line_entry(ref)
-        return np.nan if entry is None or entry.get("y2") is None else entry["y2"]
-
-    def line_delete(ref: ObjectRef) -> None:
-        if isinstance(ref, ObjectRef) and ref.kind == "line":
-            collector._object_lines.pop(ref.id, None)
-            for linefill_id, entry in list(collector._object_linefills.items()):
-                if ref.id in {entry.get("line1_id"), entry.get("line2_id")}:
-                    collector._object_linefills.pop(linefill_id, None)
-
-    def linefill_new(
-        line1: ObjectRef,
-        line2: ObjectRef,
-        color: str = "rgba(33,150,243,0.25)",
-        pane: str | None = None,
-    ) -> ObjectRef:
-        first = _line_entry(line1)
-        second = _line_entry(line2)
-        if first is None or second is None:
-            raise TypeError("linefill.new() requires two live line objects")
-        resolved_pane = pane or (
-            str(first.get("pane"))
-            if first.get("pane") == second.get("pane")
-            else "main"
-        )
-        object_id = collector._next_object_id("linefill")
-        collector._object_linefills[object_id] = {
-            "id": object_id,
-            "line1_id": line1.id,
-            "line2_id": line2.id,
-            "color": color,
-            "pane": resolved_pane,
-        }
-        return ObjectRef(id=object_id, kind="linefill")
-
-    def linefill_set_color(ref: ObjectRef, color: str) -> None:
-        entry = _linefill_entry(ref)
-        if entry is not None:
-            entry["color"] = color
-
-    def linefill_delete(ref: ObjectRef) -> None:
-        if isinstance(ref, ObjectRef) and ref.kind == "linefill":
-            collector._object_linefills.pop(ref.id, None)
 
     def polyline_new(
         points: PyneArray | list[ChartPoint] | tuple[ChartPoint, ...],
@@ -1488,4 +1311,79 @@ def create_plot_functions(collector: OutputCollector) -> dict[str, Any]:
         if row < 0 or row >= int(entry["rows"]):
             raise IndexError(f"table row {row} is outside the table")
 
-    return assemble_plot_namespace(collector, locals())
+    implementations = {
+        "_color_for_index": _color_for_index,
+        "_is_valid_value": _is_valid_value,
+        "_object_refs": _object_refs,
+        "_values_from_data": _values_from_data,
+        "alertcondition": alertcondition,
+        "bar": bar,
+        "barcolor": barcolor,
+        "bgcolor": bgcolor,
+        "box_copy": box_copy,
+        "box_delete": box_delete,
+        "box_get_bottom": box_get_bottom,
+        "box_get_left": box_get_left,
+        "box_get_right": box_get_right,
+        "box_get_top": box_get_top,
+        "box_new": box_new,
+        "box_set_bgcolor": box_set_bgcolor,
+        "box_set_border_color": box_set_border_color,
+        "box_set_border_style": box_set_border_style,
+        "box_set_border_width": box_set_border_width,
+        "box_set_bottom": box_set_bottom,
+        "box_set_bottom_right_point": box_set_bottom_right_point,
+        "box_set_extend": box_set_extend,
+        "box_set_left": box_set_left,
+        "box_set_lefttop": box_set_lefttop,
+        "box_set_right": box_set_right,
+        "box_set_rightbottom": box_set_rightbottom,
+        "box_set_text": box_set_text,
+        "box_set_text_color": box_set_text_color,
+        "box_set_text_halign": box_set_text_halign,
+        "box_set_text_size": box_set_text_size,
+        "box_set_text_valign": box_set_text_valign,
+        "box_set_top": box_set_top,
+        "box_set_top_left_point": box_set_top_left_point,
+        "emit_signal": emit_signal,
+        "fill": fill,
+        "hline": hline,
+        "indicator": indicator,
+        "label_delete": label_delete,
+        "label_func": label_func,
+        "label_get_text": label_get_text,
+        "label_get_x": label_get_x,
+        "label_get_y": label_get_y,
+        "label_new": label_new,
+        "label_set_color": label_set_color,
+        "label_set_point": label_set_point,
+        "label_set_size": label_set_size,
+        "label_set_style": label_set_style,
+        "label_set_text": label_set_text,
+        "label_set_textcolor": label_set_textcolor,
+        "label_set_tooltip": label_set_tooltip,
+        "label_set_x": label_set_x,
+        "label_set_xloc": label_set_xloc,
+        "label_set_xy": label_set_xy,
+        "label_set_y": label_set_y,
+        "label_set_yloc": label_set_yloc,
+        "marker": marker,
+        "plot": plot,
+        "plotarrow": plotarrow,
+        "plotcandle": plotcandle,
+        "plotchar": plotchar,
+        "plotshape": plotshape,
+        "polyline_delete": polyline_delete,
+        "polyline_new": polyline_new,
+        "table_cell": table_cell,
+        "table_clear": table_clear,
+        "table_delete": table_delete,
+        "table_merge_cells": table_merge_cells,
+        "table_new": table_new,
+        "table_set_bgcolor": table_set_bgcolor,
+        "table_set_border_color": table_set_border_color,
+        "table_set_frame_color": table_set_frame_color,
+        "table_set_position": table_set_position,
+    }
+    implementations.update(create_line_functions(collector))
+    return assemble_plot_namespace(collector, implementations)

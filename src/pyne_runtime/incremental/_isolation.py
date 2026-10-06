@@ -72,9 +72,9 @@ def _snapshot_user_globals(
 
 
 def _is_deeply_immutable(value: Any) -> bool:
-    if value is None or isinstance(value, (bool, int, float, complex, str, bytes, range)):
+    if type(value) in (type(None), bool, int, float, complex, str, bytes, range):
         return True
-    if isinstance(value, tuple | frozenset):
+    if type(value) in (tuple, frozenset):
         return all(_is_deeply_immutable(item) for item in value)
     return False
 

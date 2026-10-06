@@ -157,7 +157,7 @@ and the [API matrix](docs/reference/pine_like_api_matrix.md).
 
 Within **0.4.x**, patch releases preserve documented public imports, signatures,
 and existing CLI commands. Numeric corrections may require recalculation.
-The development checkout uses incremental computation semantics **41** following
+The development checkout uses incremental computation semantics **42** following
 WMA/oscillator, extrema, pivot, direction, foundation, Keltner, missing-percentile,
 strategy timing, array ordering, matrix arithmetic/reshape and connected array
 slice corrections, atomic map merge admission and array missing/default/join
@@ -170,7 +170,9 @@ properties, shared dataset-origin extrema/Stoch initial lookback readiness,
 causal rolling statistics, consistent missing-volume MFI windows, refreshed
 live request intervals, isolated callback/result graphs, and scale-safe standard
 deviation/Bollinger dispersion, preservation of duplicate requested rows, atomic
-local restore rejection, single initialization, and incremental Pivot state;
+local restore rejection, single initialization, incremental Pivot state, causal
+weighted windows, cancellation-safe incremental WMA/VWMA, isolated scalar-subclass
+parameters, and consistent configured strategy equity;
 published **0.4.0** uses **5**. Display precision is a rendering hint.
 Strategy ledger and report fields retain their existing eight-decimal format;
 this correction does not qualify arbitrary financial precision.

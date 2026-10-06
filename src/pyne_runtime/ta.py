@@ -180,6 +180,8 @@ class TaModule:
         positions = np.arange(period, dtype=np.float64)
         weights = np.exp(-((positions - m) ** 2) / (2 * s * s))
         weights = weights / np.sum(weights)
+        if not np.isfinite(weights).all():
+            return wrap_like(result, src)
 
         clean = np.where(np.isfinite(source), source, 0.0)
         window_values = _valid_weighted_convolution(clean, weights)
